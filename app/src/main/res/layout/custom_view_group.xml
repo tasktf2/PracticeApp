@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:parentTag="com.setjy.practiceapp.view.CustomViewGroup">
+
+    <ImageView
+        android:id="@+id/iv_avatar"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:foreground="@drawable/round_avatar"
+        android:src="@drawable/ic_launcher_background"
+        tools:src="@tools:sample/avatars" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_background"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:layout_marginBottom="48dp"
+        android:backgroundTint="@color/emoji_bg_not_selected"
+        app:cardCornerRadius="18dp">
+
+        <TextView
+            android:id="@+id/tv_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="12dp"
+            android:maxWidth="217dp"
+            android:text="@string/test_username"
+            android:textColor="@color/username_cyan"
+            tools:text="@tools:sample/full_names" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:maxWidth="217dp"
+            android:text="@string/test_message_text"
+            android:textColor="@color/white"
+            tools:text="@tools:sample/lorem" />
+    </androidx.cardview.widget.CardView>
+
+    <com.setjy.practiceapp.view.FlexboxLayout
+        android:id="@+id/flexbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:layout_marginTop="24dp"
+        android:maxWidth="265dp" />
+</merge>
