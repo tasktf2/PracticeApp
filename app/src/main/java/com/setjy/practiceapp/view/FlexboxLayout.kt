@@ -14,11 +14,13 @@ class FlexboxLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     init {
-//        setWillNotDraw(true)
+        setWillNotDraw(true)
     }
 
     private var childWidth: Int = 0
     private var childHeight: Int = 0
+    private val childRightMargin = context.dpToPx(7F)
+    private val childBottomMargin = context.dpToPx(10F)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var currentWidth = 0
@@ -37,20 +39,18 @@ class FlexboxLayout @JvmOverloads constructor(
                 currentHeight
             )
             childLP.apply {
-                rightMargin = context.dpToPx(7F)
-                bottomMargin = context.dpToPx(10F)
+                rightMargin = childRightMargin
+                bottomMargin = childBottomMargin
             }
 
 
             childWidth = child.measuredWidth + childLP.run { leftMargin + rightMargin }
             childHeight = child.measuredHeight + childLP.run { topMargin + bottomMargin }
-            when {
-                currentWidth + childWidth <= parentWidth -> currentWidth += childWidth
-
-                currentWidth + childWidth > parentWidth -> {
-                    currentHeight += childHeight
-                    currentWidth = childWidth
-                }
+            if (currentWidth + childWidth <= parentWidth) {
+                currentWidth += childWidth
+            } else {
+                currentHeight += childHeight
+                currentWidth = childWidth
             }
         }
         currentHeight += childHeight
@@ -70,35 +70,31 @@ class FlexboxLayout @JvmOverloads constructor(
             childWidth = child.measuredWidth + childLP.run { leftMargin + rightMargin }
             childHeight = child.measuredHeight + childLP.run { topMargin + bottomMargin }
             childLP.apply {
-                rightMargin = context.dpToPx(7F)
-                bottomMargin = context.dpToPx(10F)
+                rightMargin = childRightMargin
+                bottomMargin = childBottomMargin
             }
-            when {
-                left + childWidth <= parentWidth -> {
-                    with(childLP) {
-                        child.layout(
-                            left + leftMargin,
-                            top + topMargin,
-                            left + childWidth - rightMargin,
-                            top + childHeight - bottomMargin
-                        )
-                    }
-                    left += childWidth
+            if (left + childWidth <= parentWidth) {
+                with(childLP) {
+                    child.layout(
+                        left + leftMargin,
+                        top + topMargin,
+                        left + childWidth - rightMargin,
+                        top + childHeight - bottomMargin
+                    )
                 }
-                left + childWidth > parentWidth -> {
-                    left = 0
-                    top += childHeight
-                    with(childLP) {
-                        child.layout(
-                            left + leftMargin,
-                            top + topMargin,
-                            left + childWidth - rightMargin,
-                            top + childHeight - bottomMargin
-                        )
-                    }
-                    left += childWidth
+                left += childWidth
+            } else {
+                left = 0
+                top += childHeight
+                with(childLP) {
+                    child.layout(
+                        left + leftMargin,
+                        top + topMargin,
+                        left + childWidth - rightMargin,
+                        top + childHeight - bottomMargin
+                    )
                 }
-
+                left += childWidth
             }
         }
     }

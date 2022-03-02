@@ -7,9 +7,11 @@ import android.graphics.PointF
 import android.util.AttributeSet
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.core.content.res.ResourcesCompat
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.util.dpToPx
+import com.setjy.practiceapp.util.getEmojiByUnicode
 import com.setjy.practiceapp.util.spToPx
 
 class EmojiView @JvmOverloads constructor(
@@ -19,9 +21,30 @@ class EmojiView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
+    var emojiUnicode: String = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                requestLayout()
+            }
+        }
+    var emojiCounter: Int = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                requestLayout()
+            }
+        }
+
+    @ColorInt
     private var counterColor: Int = 0
+
+    @ColorInt
     private var colorNotSelected: Int = 0
+
+    @ColorInt
     private var colorSelected: Int = 0
+
     private var flagIsSelected: Boolean
 
     private var emojiWidth: Float = 0F
@@ -38,43 +61,29 @@ class EmojiView @JvmOverloads constructor(
     private val bgPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
-
-    var emoji: String = ""
-        set(value) {
-            if (field != value)
-                field = value
-            requestLayout()
-        }
-
     private val emojiPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
 
-    private var emojiSize: Int
-        get() = emojiPaint.textSize.toInt()
+    private var emojiSize: Float
+        get() = emojiPaint.textSize
         set(value) {
-            if (emojiPaint.textSize.toInt() != value) {
-                emojiPaint.textSize = value.toFloat()
-                requestLayout()
-            }
-        }
-
-    var emojiCounter: Int = 0
-        set(value) {
-            if (field != value) {
-                field = value
+            if (emojiPaint.textSize != value) {
+                emojiPaint.textSize = value
                 requestLayout()
             }
         }
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.EmojiView).apply {
-            emoji = getEmojiByUnicode(getString(R.styleable.EmojiView_cl_emoji) ?: DEFAULT_EMOJI)
+            emojiUnicode = getEmojiByUnicode(
+                getString(R.styleable.EmojiView_cl_emoji) ?: DEFAULT_EMOJI_UNICODE
+            )
             emojiSize = getDimensionPixelSize(
                 R.styleable.EmojiView_cl_text_size, context.spToPx(
                     DEFAULT_FONT_SIZE_PX
                 )
-            )
+            ).toFloat()
             emojiCounter = getInt(R.styleable.EmojiView_cl_counter, 0)
             counterColor = getColor(
                 R.styleable.EmojiView_cl_text_color,
@@ -92,20 +101,22 @@ class EmojiView @JvmOverloads constructor(
             recycle()
         }
     }
+
     private val counterPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.LEFT
-        textSize = emojiSize.toFloat()
+        textSize = emojiSize
         color = counterColor
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
         val counterString: String = emojiCounter.toString()
-        paddingPaint.measureText("0", 0, "0".length)
-        emojiWidth = if (emoji == "+") {
-            val defEmoji = getEmojiByUnicode(DEFAULT_EMOJI)
+        emojiWidth = if (emojiUnicode == "+") {
+            val defEmoji = getEmojiByUnicode(DEFAULT_EMOJI_UNICODE)
             emojiPaint.measureText(defEmoji, 0, defEmoji.length)
-        } else emojiPaint.measureText(emoji, 0, emoji.length)
+        } else {
+            emojiPaint.measureText(emojiUnicode, 0, emojiUnicode.length)
+        }
         val textWidth =
             emojiWidth + counterPaint.measureText(counterString, 0, counterString.length)
         emojiHeight = emojiPaint.fontMetrics.run { bottom - ascent }
@@ -114,16 +125,21 @@ class EmojiView @JvmOverloads constructor(
         setMeasuredDimension(contentWidth.toInt(), contentHeight.toInt())
     }
 
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        if (emoji == "+") emojiPoint.set(width / 2f, height / 2f)
-        else {
+        if (emojiUnicode == "+") {
+            emojiPoint.set(width / 2f, height / 2f)
+        } else {
+            val padding = paddingPaint.measureText("0") * (emojiCounter.toString().length - 1)
+            val baseline = height / 1.6f
+
             emojiPoint.set(
-                width / 2f - textMargin - paddingPaint.textSize * (emojiCounter.toString().length - 1),
-                height / 1.6f
+                width / 2f - textMargin - padding,
+                baseline
             )
             counterPoint.set(
-                width / 2f + textMargin - paddingPaint.textSize * (emojiCounter.toString().length - 1),
-                height / 1.6f
+                width / 2f + textMargin - padding,
+                baseline
             )
         }
     }
@@ -135,9 +151,24 @@ class EmojiView @JvmOverloads constructor(
         canvas.restoreToCount(canvasCount)
     }
 
+    override fun onCreateDrawableState(extraSpace: Int): IntArray {
+        val drawableState = super.onCreateDrawableState(extraSpace + 1)
+        if (isSelected) mergeDrawableStates(drawableState, DRAWABLE_STATE)
+        return drawableState
+    }
+
+    override fun performClick(): Boolean {
+        if (emojiUnicode != "+") {
+            toggleSelected()
+        } else {
+            Toast.makeText(context, "Bottom navigation imitation", Toast.LENGTH_SHORT).show()
+        }
+        return super.performClick()
+    }
+
     private fun drawViewContent(canvas: Canvas) {
         with(canvas) {
-            if (emoji == "+") {
+            if (emojiUnicode == "+") {
                 emojiPaint.apply {
                     color = counterColor
                     strokeWidth = context.dpToPx(1F).toFloat()
@@ -157,23 +188,10 @@ class EmojiView @JvmOverloads constructor(
                     emojiPaint
                 )
             } else {
-                drawText(emoji, emojiPoint.x, emojiPoint.y, emojiPaint)
+                drawText(emojiUnicode, emojiPoint.x, emojiPoint.y, emojiPaint)
                 drawText(emojiCounter.toString(), counterPoint.x, counterPoint.y, counterPaint)
             }
         }
-    }
-
-    override fun onCreateDrawableState(extraSpace: Int): IntArray {
-        val drawableState = super.onCreateDrawableState(extraSpace + 1)
-        if (isSelected) mergeDrawableStates(drawableState, DRAWABLE_STATE)
-        return drawableState
-    }
-
-    override fun performClick(): Boolean {
-        if (emoji!="+")
-        toggleSelected()
-        else Toast.makeText(context,"Bottom navigation imitation",Toast.LENGTH_SHORT).show()
-        return super.performClick()
     }
 
     private fun toggleSelected() {
@@ -199,15 +217,9 @@ class EmojiView @JvmOverloads constructor(
         )
     }
 
-    fun getEmojiByUnicode(unicode: String): String {
-        if (unicode == "+") return unicode
-        val code = unicode.substring(2).toInt(16)
-        return String(Character.toChars(code))
-    }
-
     companion object {
         private const val DEFAULT_FONT_SIZE_PX = 14F
-        private const val DEFAULT_EMOJI = "0x1f600"
+        private const val DEFAULT_EMOJI_UNICODE = "0x1f600"
         private val DRAWABLE_STATE = IntArray(1) { android.R.attr.state_selected }
     }
 }

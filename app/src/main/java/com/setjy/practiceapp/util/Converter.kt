@@ -20,3 +20,9 @@ fun spToPx(sp: Float, resources: Resources): Int {
 fun dpToPx(dp: Float, resources: Resources): Int {
     return (dp * resources.displayMetrics.density).roundToInt()
 }
+
+fun getEmojiByUnicode(unicode: String): String {
+    if (unicode == "+") return unicode
+    val code = unicode.substring(2).toInt(16)
+    return String(Character.toChars(code))
+}

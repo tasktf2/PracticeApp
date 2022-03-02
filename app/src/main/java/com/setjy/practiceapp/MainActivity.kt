@@ -1,11 +1,8 @@
 package com.setjy.practiceapp
 
 import android.os.Bundle
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.setjy.practiceapp.databinding.ActivityMainBinding
-import com.setjy.practiceapp.databinding.CustomViewGroupBinding
+import com.setjy.practiceapp.util.getEmojiByUnicode
 import com.setjy.practiceapp.view.EmojiView
 import com.setjy.practiceapp.view.FlexboxLayout
 
@@ -35,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         )
         emojiData.forEach { child ->
             EmojiView(this).apply {
-                this.emoji = getEmojiByUnicode(child.emoji)
+                this.emojiUnicode = getEmojiByUnicode(child.emoji)
                 this.emojiCounter = child.counter
                 flexboxLayout.addView(this)
                 setOnClickListener { }
