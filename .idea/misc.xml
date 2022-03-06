@@ -5,11 +5,19 @@
       <map>
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_10.xml" value="0.1" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_38.xml" value="0.14074074074074075" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_89_edit_text.xml" value="0.23703703703703705" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_not_selected.xml" value="0.1" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_selected.xml" value="0.1" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_send.xml" value="0.1" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/drawable/round_avatar.xml" value="0.1" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/activity_main.xml" value="0.3356401384083045" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/custom_view_group.xml" value="0.264" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/fragment_chat.xml" value="0.264" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/image.xml" value="0.1" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/item_msg_income.xml" value="0.264" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/item_msg_incoming.xml" value="0.1" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/item_msg_outgoing.xml" value="0.1" />
+        <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/item_msg_send.xml" value="0.536" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/view_avatar.xml" value="0.4" />
       </map>
     </option>

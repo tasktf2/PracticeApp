@@ -93,7 +93,7 @@ class CustomViewGroup @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         ivAvatar.layout(avatarRect, 0, 0)
-        cvBackground.layout(backgroundRect,avatarRect.right,0)
+        cvBackground.layout(backgroundRect, avatarRect.right, 0)
         tvUsername.layout(usernameRect, 0, 0)
         tvMessage.layout(messageRect, 0, usernameRect.bottom)
         flexbox.layout(flexboxRect, avatarRect.right, messageRect.bottom)

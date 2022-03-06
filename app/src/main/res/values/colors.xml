@@ -11,6 +11,9 @@
     <color name="emoji_bg_selected">#3A3A3A</color>
     <color name="emoji_bg_not_selected">#1C1C1C</color>
     <color name="emoji_counter_white">#EAEAEA</color>
-    <color name="username_cyan">#2A9D8F</color>
+    <color name="app_cyan">#2A9D8F</color>
     <color name="background_black">#121212</color>
+    <color name="bg_send_gradient_end">#006153</color>
+    <color name="bg_edit_text">#282828</color>
+    <color name="hint_grey">#CCCCCC</color>
 </resources>
