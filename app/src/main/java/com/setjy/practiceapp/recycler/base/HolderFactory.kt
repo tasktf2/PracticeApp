@@ -25,7 +25,7 @@ abstract class HolderFactory() : (ViewGroup, Int) -> BaseViewHolder<ViewTyped> {
 
 fun <T : View> View.inflate(
     @LayoutRes layout: Int,
-    root: ViewGroup? = this as ViewGroup,
+    root: ViewGroup? = this as? ViewGroup,
     attachToRoot: Boolean = false
 ): T {
     return LayoutInflater.from(context).inflate(layout, root, attachToRoot) as T

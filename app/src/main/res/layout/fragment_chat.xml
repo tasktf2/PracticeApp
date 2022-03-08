@@ -39,7 +39,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/et_send"
         app:layout_constraintTop_toTopOf="@id/et_send"
-        app:srcCompat="@drawable/btn_send"
         tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
 
     <ImageView
@@ -53,6 +52,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/et_send"
         app:layout_constraintTop_toTopOf="@id/et_send"
-        app:srcCompat="@drawable/btn_add" />
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

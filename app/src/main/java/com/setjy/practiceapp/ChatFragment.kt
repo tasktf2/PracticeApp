@@ -15,7 +15,6 @@ import com.setjy.practiceapp.recycler.ChatHolderFactory
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.holders.IncomingMessageUI
 import com.setjy.practiceapp.recycler.holders.OutgoingMessageUI
-import com.setjy.practiceapp.view.CustomViewGroup
 
 class ChatFragment : Fragment() {
 
