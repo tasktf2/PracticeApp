@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.PointF
 import android.util.AttributeSet
 import android.view.View
-import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.core.content.res.ResourcesCompat
 import com.setjy.practiceapp.R
@@ -36,6 +35,8 @@ class EmojiView @JvmOverloads constructor(
             }
         }
 
+    var flagIsSelected: Boolean
+
     @ColorInt
     private var counterColor: Int = 0
 
@@ -44,8 +45,6 @@ class EmojiView @JvmOverloads constructor(
 
     @ColorInt
     private var colorSelected: Int = 0
-
-    private var flagIsSelected: Boolean
 
     private var emojiWidth: Float = 0F
     private var emojiHeight: Float = 0F
@@ -95,7 +94,7 @@ class EmojiView @JvmOverloads constructor(
             )
             colorNotSelected = getColor(
                 R.styleable.EmojiView_cl_bg_not_selected_color,
-                ResourcesCompat.getColor(resources, R.color.emoji_bg_not_selected, null)
+                ResourcesCompat.getColor(resources, R.color.bg_black_secondary, null)
             )
             flagIsSelected = getBoolean(R.styleable.EmojiView_cl_state_selected, false)
             recycle()
@@ -157,15 +156,6 @@ class EmojiView @JvmOverloads constructor(
         return drawableState
     }
 
-    override fun performClick(): Boolean {
-        if (emojiUnicode != "+") {
-            toggleSelected()
-        } else {
-            Toast.makeText(context, "Bottom navigation imitation", Toast.LENGTH_SHORT).show()
-        }
-        return super.performClick()
-    }
-
     private fun drawViewContent(canvas: Canvas) {
         with(canvas) {
             if (emojiUnicode == "+") {
@@ -194,16 +184,9 @@ class EmojiView @JvmOverloads constructor(
         }
     }
 
-    private fun toggleSelected() {
-        flagIsSelected = !flagIsSelected
-        isSelected = flagIsSelected
-        if (isSelected) emojiCounter++
-        else emojiCounter--
-    }
-
     private fun setViewBackground(canvas: Canvas) {
         bgPaint.apply {
-            color = if (isSelected) colorSelected
+            color = if (flagIsSelected) colorSelected
             else colorNotSelected
         }
         canvas.drawRoundRect(
@@ -219,7 +202,7 @@ class EmojiView @JvmOverloads constructor(
 
     companion object {
         private const val DEFAULT_FONT_SIZE_PX = 14F
-        private const val DEFAULT_EMOJI_UNICODE = "0x1f600"
+        private const val DEFAULT_EMOJI_UNICODE = "1f600"
         private val DRAWABLE_STATE = IntArray(1) { android.R.attr.state_selected }
     }
 }

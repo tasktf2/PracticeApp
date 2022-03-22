@@ -6,10 +6,8 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.databinding.CustomViewGroupBinding
 
 class CustomViewGroup @JvmOverloads constructor(
     context: Context,
@@ -18,11 +16,7 @@ class CustomViewGroup @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttrs, defStyleRes) {
 
-    private val ivAvatar: ImageView
-    private val tvUsername: TextView
-    private val tvMessage: TextView
-    private val flexbox: FlexboxLayout
-    private val cvBackground: CardView
+    val binding: CustomViewGroupBinding
 
     private val avatarRect = Rect()
     private val usernameRect = Rect()
@@ -32,71 +26,69 @@ class CustomViewGroup @JvmOverloads constructor(
 
     init {
         LayoutInflater.from(context).inflate(R.layout.custom_view_group, this, true)
-        ivAvatar = findViewById(R.id.iv_avatar)
-        tvUsername = findViewById(R.id.tv_username)
-        tvMessage = findViewById(R.id.tv_message)
-        flexbox = findViewById(R.id.flexbox)
-        cvBackground = findViewById(R.id.cv_background)
+        binding = CustomViewGroupBinding.bind(this)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
         var usedWidth = 0
         var usedHeight = 0
-
-        measureChildWithMargins(
-            ivAvatar,
-            widthMeasureSpec,
-            usedWidth,
-            heightMeasureSpec,
-            usedHeight
-        )
-        usedWidth += getWidthWithMargins(ivAvatar)
-        measureChildWithMargins(
-            cvBackground,
-            widthMeasureSpec,
-            usedWidth,
-            heightMeasureSpec,
-            usedHeight
-        )
-        measureChildWithMargins(
-            tvUsername,
-            widthMeasureSpec,
-            usedWidth,
-            heightMeasureSpec,
-            usedHeight
-        )
-        usedHeight += getHeightWithMargins(tvUsername)
-        measureChildWithMargins(
-            tvMessage,
-            widthMeasureSpec,
-            usedWidth,
-            heightMeasureSpec,
-            usedHeight
-        )
-        usedHeight += getHeightWithMargins(tvMessage)
-        measureChildWithMargins(
-            flexbox,
-            widthMeasureSpec,
-            usedWidth,
-            heightMeasureSpec,
-            usedHeight
-        )
-        usedWidth += getWidthWithMargins(flexbox)
-        usedHeight += getHeightWithMargins(flexbox)
-
+        with(binding) {
+            measureChildWithMargins(
+                ivAvatar,
+                widthMeasureSpec,
+                usedWidth,
+                heightMeasureSpec,
+                usedHeight
+            )
+            usedWidth += getWidthWithMargins(ivAvatar)
+            measureChildWithMargins(
+                cvBackground,
+                widthMeasureSpec,
+                usedWidth,
+                heightMeasureSpec,
+                usedHeight
+            )
+            measureChildWithMargins(
+                tvUsername,
+                widthMeasureSpec,
+                usedWidth,
+                heightMeasureSpec,
+                usedHeight
+            )
+            usedHeight += getHeightWithMargins(tvUsername)
+            measureChildWithMargins(
+                tvMessage,
+                widthMeasureSpec,
+                usedWidth,
+                heightMeasureSpec,
+                usedHeight
+            )
+            usedHeight += getHeightWithMargins(tvMessage)
+            measureChildWithMargins(
+                flexbox,
+                widthMeasureSpec,
+                usedWidth,
+                heightMeasureSpec,
+                usedHeight
+            )
+            usedHeight += getHeightWithMargins(flexbox)
+            usedWidth += getWidthWithMargins(flexbox)
+        }
         setMeasuredDimension(
-            resolveSize(usedWidth, widthMeasureSpec),
+            resolveSize(MeasureSpec.getSize(widthMeasureSpec), widthMeasureSpec),
             resolveSize(usedHeight, heightMeasureSpec)
         )
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        ivAvatar.layout(avatarRect, 0, 0)
-        cvBackground.layout(backgroundRect, avatarRect.right, 0)
-        tvUsername.layout(usernameRect, 0, 0)
-        tvMessage.layout(messageRect, 0, usernameRect.bottom)
-        flexbox.layout(flexboxRect, avatarRect.right, messageRect.bottom)
+        with(binding) {
+            ivAvatar.layout(avatarRect, 0, 0)
+            cvBackground.layout(backgroundRect, avatarRect.right, 0)
+            tvUsername.layout(usernameRect, 0, 0)
+            tvMessage.layout(messageRect, 0, usernameRect.bottom)
+            flexbox.layout(flexboxRect, avatarRect.right, messageRect.bottom)
+        }
     }
 
     override fun generateDefaultLayoutParams(): LayoutParams =

@@ -10,8 +10,7 @@ import com.setjy.practiceapp.recycler.holders.OutgoingMessageViewHolder
 class ChatHolderFactory(private val longClick: (View) -> Unit) : HolderFactory() {
     override fun createViewHolder(view: View, viewType: Int): BaseViewHolder<*>? {
         return when (viewType) {
-//            R.layout.item_msg_incoming -> IncomingMessageViewHolder(view, longClick)
-            R.layout.custom_view_group -> IncomingMessageViewHolder(view, longClick)
+            R.layout.item_msg_incoming -> IncomingMessageViewHolder(view, longClick)
             R.layout.item_msg_outgoing -> OutgoingMessageViewHolder(view)
             else -> null
         }

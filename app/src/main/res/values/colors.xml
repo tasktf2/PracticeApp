@@ -9,11 +9,15 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="emoji_bg_selected">#3A3A3A</color>
-    <color name="emoji_bg_not_selected">#1C1C1C</color>
+    <color name="bg_black_secondary">#1C1C1C</color>
     <color name="emoji_counter_white">#EAEAEA</color>
     <color name="app_cyan">#2A9D8F</color>
     <color name="background_black">#121212</color>
     <color name="bg_send_gradient_end">#006153</color>
     <color name="bg_edit_text">#282828</color>
     <color name="hint_grey">#CCCCCC</color>
+    <color name="bg_time_divider_black">#070707</color>
+    <color name="time_divider_text_grey">#999999</color>
+    <color name="item_bottom_fragment_grey">#555555</color>
+
 </resources>

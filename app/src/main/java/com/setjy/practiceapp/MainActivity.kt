@@ -4,50 +4,16 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-//    private val binding:FragmentChatBinding by viewBinding()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//        val holderFactory = ChatHolderFactory()
-//        val adapter = Adapter<ViewTyped>(holderFactory)
-//        binding.rvListOfMessages.adapter = adapter
-//        binding.rvListOfMessages.layoutManager =
-//            LinearLayoutManager(this)
-//            LinearLayoutManager(context, RecyclerView.VERTICAL, true)
-//        adapter.items = listOf( SimpleItem(R.layout.image))
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container,ChatFragment())
+                .add(R.id.fragment_container, ChatFragment())
                 .commit()
         }
-//        val flexboxLayout = findViewById<FlexboxLayout>(R.id.flexbox)
-//        val emojiData = mutableListOf(
-//            EmojiData("U+1F614", 0),
-//            EmojiData("0x1F61A", 1),
-//            EmojiData("0x1F61C", 2),
-//            EmojiData("0x1F62A", 3),
-//            EmojiData("0x1F630", 4),
-//            EmojiData("0x1F633", 5),
-//            EmojiData("0x1F649", 6),
-//            EmojiData("0x1F64B", 7),
-//            EmojiData("0x1F64F", 8),
-//            EmojiData("U+1F614", 9),
-//            EmojiData("0x1F61A", 10),
-//            EmojiData("0x1F61C", 11),
-//            EmojiData("0x1F62A", 12),
-//            EmojiData("0x1F630", 13),
-//            EmojiData("0x1F633", 14),
-//            EmojiData("+")
-//        )
-//        emojiData.forEach { child ->
-//            EmojiView(this).apply {
-//                this.emojiUnicode = getEmojiByUnicode(child.emoji)
-//                this.emojiCounter = child.counter
-//                flexboxLayout.addView(this)
-//                setOnClickListener { }
-//            }
-//        }
     }
 }
 

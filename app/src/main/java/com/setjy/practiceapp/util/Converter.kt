@@ -23,6 +23,6 @@ fun dpToPx(dp: Float, resources: Resources): Int {
 
 fun getEmojiByUnicode(unicode: String): String {
     if (unicode == "+") return unicode
-    val code = unicode.substring(2).toInt(16)
+    val code = unicode.toInt(16)
     return String(Character.toChars(code))
 }
