@@ -10,6 +10,7 @@ import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.*
 
+//todo, data
 class TimeUI(val timeStamp: Long, override val viewType: Int = R.layout.item_time_divider) :
     ViewTyped
 

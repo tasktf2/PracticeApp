@@ -50,7 +50,7 @@
             tools:text="@tools:sample/lorem" />
     </androidx.cardview.widget.CardView>
 
-    <com.setjy.practiceapp.view.FlexboxLayout
+    <com.setjy.practiceapp.view.EmojiFlexboxLayout
         android:id="@+id/flexbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

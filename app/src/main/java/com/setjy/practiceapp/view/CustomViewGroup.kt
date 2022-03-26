@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.CustomViewGroupBinding
+import com.setjy.practiceapp.recycler.reactions.EmojiNCS
 
+//todoo rename MessageViewGroup
 class CustomViewGroup @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -98,6 +100,19 @@ class CustomViewGroup @JvmOverloads constructor(
         MarginLayoutParams(context, attrs)
 
     override fun generateLayoutParams(p: LayoutParams?): LayoutParams = MarginLayoutParams(p)
+
+    fun setEmojis(items: List<EmojiNCS>) {
+        binding.flexbox.setEmojis(items)
+    }
+
+    fun setOnEmojiClickListener(onClick: (emojiCode: String) -> Unit) {
+        binding.flexbox.onEmojiClick = onClick
+    }
+
+    fun setOnAddEmojiClickListener(onClick: () -> Unit) {
+        binding.flexbox.onAddEmojiClick = onClick
+    }
+
 }
 
 private fun getWidthWithMargins(view: View): Int {
@@ -128,4 +143,6 @@ private fun View.layout(
     rect.bottom = rect.top + this.measuredHeight + viewLP.bottomMargin
     this.layout(rect)
 }
+
+
 

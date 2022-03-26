@@ -1,12 +1,13 @@
 package com.setjy.practiceapp.recycler.holders
 
 import android.view.View
+import com.setjy.practiceapp.DEFAULT_USER_ID
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.ItemMsgOutgoingBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
 import com.setjy.practiceapp.recycler.base.ViewTyped
-import com.setjy.practiceapp.recycler.holders.OutgoingMessageViewHolder.Companion.DEFAULT_USER_ID
 
+//todo
 data class OutgoingMessageUI(
     val user_id: String = DEFAULT_USER_ID,
     val text: String,
@@ -19,10 +20,6 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
 
     override fun bind(item: OutgoingMessageUI) {
         binding.tvMessage.text = item.text
-    }
-
-    companion object {
-        const val DEFAULT_USER_ID: String = "1"
     }
 
 }

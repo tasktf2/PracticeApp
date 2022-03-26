@@ -13,4 +13,5 @@ class Adapter<T : ViewTyped>(holderFactory: HolderFactory) : BaseAdapter<T>(hold
             localItems.addAll(newItems)
             notifyDataSetChanged()
         }
+    //todo research DiffUtils
 }

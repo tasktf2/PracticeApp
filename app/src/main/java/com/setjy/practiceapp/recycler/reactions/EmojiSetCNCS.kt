@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.recycler.reactions
 
+//todo remove
 // Class Emoji with Category, Name and Code as String
 data class EmojiCNCS(
     val category: String,

@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.core.view.children
 import com.setjy.practiceapp.util.dpToPx
 
-class FlexboxLayout @JvmOverloads constructor(
+open class FlexboxLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,

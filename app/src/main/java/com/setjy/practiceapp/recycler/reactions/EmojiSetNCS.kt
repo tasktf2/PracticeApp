@@ -4,11 +4,15 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.base.ViewTyped
 
 // Class Emoji with Name and Code as String
+//todo rename to EmojiUI
 data class EmojiNCS(
-    val name: String,
+    //todo remove field
+    val name: String = "",
     val code: String,
+    val isSelected: Boolean = false,
     override val viewType: Int = R.layout.item_emoji
 ) : ViewTyped {
+    //todo val codeString = ...
     fun getCodeString() = String(Character.toChars(code.toInt(16)))
 }
 

@@ -40,7 +40,7 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
                 REQUEST_KEY,
                 bundleOf(BUNDLE_KEY to pressedEmojiCode)
             )
-            hideFragment()
+            dismiss()
         }
 
         val holderFactory = BottomSheetHolderFactory(click)
@@ -49,12 +49,5 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
         binding.rvBottomSheet.layoutManager =
             GridLayoutManager(context, 7, GridLayoutManager.VERTICAL, false)
         adapter.items = emojiSetNCS
-    }
-
-    private fun hideFragment() {
-
-        parentFragmentManager.beginTransaction()
-            .remove(this@BottomSheetFragment)
-            .commit()
     }
 }
