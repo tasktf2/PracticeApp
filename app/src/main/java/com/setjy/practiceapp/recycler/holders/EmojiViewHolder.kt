@@ -4,9 +4,9 @@ import android.view.View
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.databinding.ItemEmojiBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.recycler.reactions.EmojiNCS
+import com.setjy.practiceapp.recycler.items.EmojiUI
 
-class EmojiViewHolder(view: View, click: (View) -> Unit) : BaseViewHolder<EmojiNCS>(view) {
+class EmojiViewHolder(view: View, click: (View) -> Unit) : BaseViewHolder<EmojiUI>(view) {
 
     init {
         view.setOnClickListener(click)
@@ -14,7 +14,7 @@ class EmojiViewHolder(view: View, click: (View) -> Unit) : BaseViewHolder<EmojiN
 
     private val binding: ItemEmojiBinding by viewBinding()
 
-    override fun bind(item: EmojiNCS) {
-        binding.tvEmoji.text = item.getCodeString()
+    override fun bind(item: EmojiUI) {
+        binding.tvEmoji.text = item.codeString
     }
 }

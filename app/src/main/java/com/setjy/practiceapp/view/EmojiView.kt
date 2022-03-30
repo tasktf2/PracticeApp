@@ -35,7 +35,11 @@ class EmojiView @JvmOverloads constructor(
             }
         }
 
-    var flagIsSelected: Boolean
+    var flagIsSelected: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     @ColorInt
     private var counterColor: Int = 0

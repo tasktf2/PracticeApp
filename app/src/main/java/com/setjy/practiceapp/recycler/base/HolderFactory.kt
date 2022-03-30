@@ -7,8 +7,8 @@ import androidx.annotation.LayoutRes
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.holders.TimeDividerViewHolder
 
-abstract class HolderFactory() : (ViewGroup, Int) -> BaseViewHolder<ViewTyped> {
-    //сюда пихать что-то такое общее типа ошибки либо неизменяемой херни
+abstract class HolderFactory : (ViewGroup, Int) -> BaseViewHolder<ViewTyped> {
+
     abstract fun createViewHolder(view: View, viewType: Int): BaseViewHolder<*>?
 
     override fun invoke(parent: ViewGroup, viewType: Int): BaseViewHolder<ViewTyped> {

@@ -7,6 +7,7 @@ abstract class BaseAdapter<T : ViewTyped>(internal val holderFactory: HolderFact
     RecyclerView.Adapter<BaseViewHolder<ViewTyped>>() {
 
     abstract var items: List<T>
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<ViewTyped> =
         holderFactory(parent, viewType)
 
