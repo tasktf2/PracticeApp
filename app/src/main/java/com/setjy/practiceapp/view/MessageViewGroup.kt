@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.setjy.practiceapp.R
-import com.setjy.practiceapp.databinding.CustomViewGroupBinding
+import com.setjy.practiceapp.databinding.MessageViewGroupBinding
 import com.setjy.practiceapp.recycler.items.EmojiUI
 
 class MessageViewGroup @JvmOverloads constructor(
@@ -17,7 +17,7 @@ class MessageViewGroup @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttrs, defStyleRes) {
 
-    val binding: CustomViewGroupBinding
+    val binding: MessageViewGroupBinding
 
     private val avatarRect = Rect()
     private val usernameRect = Rect()
@@ -26,8 +26,8 @@ class MessageViewGroup @JvmOverloads constructor(
     private val backgroundRect = Rect()
 
     init {
-        LayoutInflater.from(context).inflate(R.layout.custom_view_group, this, true)
-        binding = CustomViewGroupBinding.bind(this)
+        LayoutInflater.from(context).inflate(R.layout.message_view_group, this, true)
+        binding = MessageViewGroupBinding.bind(this)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

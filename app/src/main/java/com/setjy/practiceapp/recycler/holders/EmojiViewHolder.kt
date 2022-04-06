@@ -6,15 +6,14 @@ import com.setjy.practiceapp.databinding.ItemEmojiBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
 import com.setjy.practiceapp.recycler.items.EmojiUI
 
-class EmojiViewHolder(view: View, click: (View) -> Unit) : BaseViewHolder<EmojiUI>(view) {
+class EmojiViewHolder(view: View) : BaseViewHolder<EmojiUI>(view) {
 
-    init {
-        view.setOnClickListener(click)
-    }
+    var currentEmojiCode: String? = null
 
     private val binding: ItemEmojiBinding by viewBinding()
 
     override fun bind(item: EmojiUI) {
         binding.tvEmoji.text = item.codeString
+        currentEmojiCode = item.code
     }
 }

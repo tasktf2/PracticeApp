@@ -8,6 +8,6 @@ data class IncomingMessageUI(
     val avatar: Int,
     val username: String,
     val message: String,
-    val reactions: List<EmojiUI>,
+    val reactions: List<EmojiUI>? = null,
     override val viewType: Int = R.layout.item_msg_incoming,
 ) : ViewTyped

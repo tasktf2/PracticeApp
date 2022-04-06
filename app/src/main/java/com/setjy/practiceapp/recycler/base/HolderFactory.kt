@@ -14,8 +14,6 @@ abstract class HolderFactory : (ViewGroup, Int) -> BaseViewHolder<ViewTyped> {
     override fun invoke(parent: ViewGroup, viewType: Int): BaseViewHolder<ViewTyped> {
         val view: View = parent.inflate(viewType)
         return when (viewType) {
-            R.layout.item_time_divider -> TimeDividerViewHolder(view)
-
             else -> checkNotNull(createViewHolder(view, viewType)) {
                 "unknown viewType" + parent.resources.getResourceName(viewType)
             }

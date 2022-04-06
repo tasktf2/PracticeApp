@@ -19,5 +19,8 @@
     <color name="bg_time_divider_black">#070707</color>
     <color name="time_divider_text_grey">#999999</color>
     <color name="item_bottom_fragment_grey">#555555</color>
+    <color name="bg_bottom_nav_view_black">#1E1E1E</color>
+    <color name="text_white">#FAFAFA</color>
+    <color name="bottom_nav_view_not_selected_grey">#919191</color>
 
 </resources>

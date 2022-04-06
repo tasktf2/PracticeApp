@@ -22,12 +22,17 @@ class IncomingMessageViewHolder(val view: View) : BaseViewHolder<IncomingMessage
             tvUsername.text = item.username
             tvMessage.text = item.message
         }
-        messageView.setEmojis(item.reactions)
-        messageView.setOnEmojiClickListener { emojiCode ->
-            onEmojiClick?.invoke(item.messageId, emojiCode)
-        }
-        messageView.setOnAddEmojiClickListener {
-            onAddEmojiClick?.invoke(item.messageId)
+        if (!item.reactions.isNullOrEmpty()) {
+            messageView.setEmojis(item.reactions)
+
+            messageView.setOnEmojiClickListener { emojiCode ->
+                onEmojiClick?.invoke(item.messageId, emojiCode)
+            }
+            messageView.setOnAddEmojiClickListener {
+                onAddEmojiClick?.invoke(item.messageId)
+            }
+        } else {
+            messageView.binding.flexbox.removeAllViews()
         }
     }
 }

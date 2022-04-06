@@ -19,6 +19,11 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
 
     private val binding: FragmentBottomSheetBinding by viewBinding()
 
+    private val holderFactory: BottomSheetHolderFactory = BottomSheetHolderFactory(
+        this::onEmojiClick
+    )
+    private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -29,22 +34,21 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val click: (View) -> Unit = { emoji: View ->
-            val pressedEmojiCode: String? =
-                emojiUISet.find { it.codeString == (emoji as TextView).text.toString() }?.code
-            parentFragmentManager.setFragmentResult(
-                REQUEST_KEY,
-                bundleOf(BUNDLE_KEY to pressedEmojiCode)
-            )
-            dismiss()
-        }
 
-        val holderFactory = BottomSheetHolderFactory(click)
-        val adapter = Adapter<ViewTyped>(holderFactory)
         binding.rvBottomSheet.adapter = adapter
         binding.rvBottomSheet.layoutManager =
             GridLayoutManager(context, 7, GridLayoutManager.VERTICAL, false)
         adapter.items = emojiUISet
+    }
+
+    private fun onEmojiClick(emojiCode: String) {
+        val pressedEmojiCode: String? =
+            emojiUISet.find { it.code == emojiCode }?.code
+        parentFragmentManager.setFragmentResult(
+            REQUEST_KEY,
+            bundleOf(BUNDLE_KEY to pressedEmojiCode)
+        )
+        dismiss()
     }
 
     companion object {

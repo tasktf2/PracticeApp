@@ -13,6 +13,5 @@ class Adapter<T : ViewTyped>(holderFactory: HolderFactory) : BaseAdapter<T>(hold
         get() = differ.currentList as List<T>
         set(newItems) {
             differ.submitList(newItems)
-            notifyDataSetChanged()
         }
 }

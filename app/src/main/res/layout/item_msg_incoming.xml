@@ -3,4 +3,5 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="start"
-    android:id="@+id/custom_vg" />
+    android:id="@+id/custom_vg"
+    android:layout_marginBottom="32dp"/>

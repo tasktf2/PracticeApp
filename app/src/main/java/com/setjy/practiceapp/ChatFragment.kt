@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -43,7 +44,7 @@ class ChatFragment : Fragment() {
         binding.rvListOfMessages.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, true)
         adapter.items = Data.getMessages()
-        adapter.setMessageSender()
+        setMessageSender()
         setButtonVisibility()
     }
 
@@ -62,10 +63,10 @@ class ChatFragment : Fragment() {
         adapter.items = adapter.items.map { item ->
             when {
                 item is IncomingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions.toMutableList()
+                    val mutableReactions = item.reactions?.toMutableList()
                     val removed =
-                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed) {
+                        mutableReactions?.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed!!) {
                         item.copy(reactions = mutableReactions)
                     } else {
                         item.copy(
@@ -78,7 +79,23 @@ class ChatFragment : Fragment() {
                         )
                     }
                 }
-                item is OutgoingMessageUI -> item
+                item is OutgoingMessageUI && item.messageId == messageId -> {
+                    val mutableReactions = item.reactions?.toMutableList()
+                    val removed =
+                        mutableReactions?.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed!!) {
+                        item.copy(reactions = mutableReactions)
+                    } else {
+                        item.copy(
+                            reactions = mutableReactions + listOf(
+                                EmojiUI(
+                                    code = emojiCode,
+                                    isSelected = true
+                                )
+                            )
+                        )
+                    }
+                }
                 else -> item
             }
         }
@@ -88,31 +105,78 @@ class ChatFragment : Fragment() {
         adapter.items = adapter.items.map { item ->
             when {
                 item is IncomingMessageUI && item.messageId == messageId -> {
-                    if (item.reactions.all { !(it.code == emojiCode && it.isSelected) }) {
-                        item.copy(
-                            reactions = item.reactions + listOf(
-                                EmojiUI(
-                                    code = emojiCode,
-                                    isSelected = true
+                    when {
+                        item.reactions.isNullOrEmpty() -> {
+                            item.copy(
+                                reactions = listOf(
+                                    EmojiUI(
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
                                 )
                             )
-                        )
-                    } else {
-                        item.copy(
-                            reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
-                        )
+                        }
+                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
+                            item.copy(
+                                reactions = item.reactions + listOf(
+                                    EmojiUI(
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        else -> {
+                            item.copy(
+                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
+                            )
+                        }
                     }
                 }
-                item is OutgoingMessageUI -> item
+                item is OutgoingMessageUI && item.messageId == messageId -> {
+                    when {
+                        item.reactions.isNullOrEmpty() -> {
+                            item.copy(
+                                reactions = listOf(
+                                    EmojiUI(
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
+                            item.copy(
+                                reactions = item.reactions + listOf(
+                                    EmojiUI(
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        else -> {
+                            item.copy(
+                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
+                            )
+                        }
+                    }
+                }
                 else -> item
             }
         }
     }
 
-    private fun Adapter<ViewTyped>.setMessageSender() {
+    private fun setMessageSender() {
         binding.ivSend.setOnClickListener {
             val message = binding.etSend.text.toString()
-            items = listOf(OutgoingMessageUI(text = message)) + items
+            adapter.items = listOf(
+                OutgoingMessageUI(
+                    text = message,
+                    messageId = adapter.itemCount.toString(),
+                    reactions = null
+                )
+            ) + adapter.items
             binding.etSend.text.clear()
         }
     }
@@ -121,11 +185,11 @@ class ChatFragment : Fragment() {
         with(binding) {
             etSend.addTextChangedListener { word ->
                 if (word.isNullOrBlank()) {
-                    ivAdd.visibility = View.VISIBLE
-                    ivSend.visibility = View.INVISIBLE
+                    ivAdd.isVisible = true
+                    ivSend.isVisible = false
                 } else {
-                    ivAdd.visibility = View.INVISIBLE
-                    ivSend.visibility = View.VISIBLE
+                    ivAdd.isVisible = false
+                    ivSend.isVisible = true
                 }
             }
         }

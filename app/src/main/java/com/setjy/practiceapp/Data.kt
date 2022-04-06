@@ -38,7 +38,11 @@ object Data {
     fun getMessages(): List<ViewTyped> =
         listOf(
             TimeUI(System.currentTimeMillis()),
-            OutgoingMessageUI(text = "getString(R.string.test_message_text)"),
+            OutgoingMessageUI(
+                text = "getString(R.string.test_message_text)",
+                messageId = "2",
+                reactions = listOfReactions
+            ),
             IncomingMessageUI(
                 messageId = "1",
                 avatar = R.drawable.ic_launcher_background,
