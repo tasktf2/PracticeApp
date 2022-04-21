@@ -18,7 +18,7 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
 
     override fun bind(item: OutgoingMessageUI) {
         currentMessageId = item.messageId
-        binding.tvMessage.text = item.text
+        binding.tvMessage.text = item.message
 
         if (!item.reactions.isNullOrEmpty()) {
             binding.flexbox.setEmojis(item.reactions)

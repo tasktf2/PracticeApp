@@ -58,7 +58,7 @@ class ChatFragment : Fragment() {
             addReactionToMessage(messageId, emojiCode)
         }
     }
-
+    //todo refactor this
     private fun onEmojiClick(messageId: String, emojiCode: String) {
         adapter.items = adapter.items.map { item ->
             when {
@@ -100,7 +100,7 @@ class ChatFragment : Fragment() {
             }
         }
     }
-
+    //todo refactor this
     private fun addReactionToMessage(messageId: String, emojiCode: String) {
         adapter.items = adapter.items.map { item ->
             when {
@@ -172,7 +172,7 @@ class ChatFragment : Fragment() {
             val message = binding.etSend.text.toString()
             adapter.items = listOf(
                 OutgoingMessageUI(
-                    text = message,
+                    message = message,
                     messageId = adapter.itemCount.toString(),
                     reactions = null
                 )

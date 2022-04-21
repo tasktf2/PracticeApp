@@ -8,6 +8,8 @@ import com.setjy.practiceapp.recycler.items.TimeUI
 
 const val DEFAULT_USER_ID: String = "1"
 
+const val DEFAULT_INCOMING_USER_ID: String = "2"
+
 data class EmojiRemote(
     val code: String,
     val userId: String
@@ -39,7 +41,7 @@ object Data {
         listOf(
             TimeUI(System.currentTimeMillis()),
             OutgoingMessageUI(
-                text = "getString(R.string.test_message_text)",
+                message = "getString(R.string.test_message_text)",
                 messageId = "2",
                 reactions = listOfReactions
             ),
