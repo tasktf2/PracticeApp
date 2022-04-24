@@ -3,10 +3,10 @@
     <declare-styleable name="EmojiView">
         <attr name="cl_text_size" format="dimension" />
         <attr name="cl_emoji" format="string" />
-        <attr name="cl_counter" format="integer"/>
+        <attr name="cl_counter" format="integer" />
         <attr name="cl_text_color" format="color" />
         <attr name="cl_bg_selected_color" format="color" />
         <attr name="cl_bg_not_selected_color" format="color" />
-        <attr name="cl_state_selected" format="boolean"/>
+        <attr name="cl_state_selected" format="boolean" />
     </declare-styleable>
 </resources>

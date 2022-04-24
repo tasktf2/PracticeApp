@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:parentTag="com.setjy.practiceapp.view.CustomViewGroup">
+    tools:parentTag="com.setjy.practiceapp.view.MessageViewGroup">
 
     <ImageView
         android:id="@+id/iv_avatar"
@@ -12,7 +12,6 @@
         android:layout_height="38dp"
         android:layout_marginStart="12dp"
         android:foreground="@drawable/round_avatar"
-        android:src="@drawable/ic_launcher_background"
         tools:src="@tools:sample/avatars" />
 
     <androidx.cardview.widget.CardView
@@ -21,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="9dp"
         android:layout_marginBottom="48dp"
-        android:backgroundTint="@color/emoji_bg_not_selected"
+        android:backgroundTint="@color/bg_black_secondary"
         app:cardCornerRadius="18dp">
 
         <TextView
@@ -31,8 +30,8 @@
             android:layout_marginHorizontal="12dp"
             android:layout_marginTop="12dp"
             android:maxWidth="217dp"
-            android:text="@string/test_username"
-            android:textColor="@color/username_cyan"
+            android:textColor="@color/app_cyan"
+            android:textSize="14sp"
             tools:text="@tools:sample/full_names" />
 
         <TextView
@@ -41,12 +40,12 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
             android:maxWidth="217dp"
-            android:text="@string/test_message_text"
             android:textColor="@color/white"
+            android:textSize="16sp"
             tools:text="@tools:sample/lorem" />
     </androidx.cardview.widget.CardView>
 
-    <com.setjy.practiceapp.view.FlexboxLayout
+    <com.setjy.practiceapp.view.EmojiFlexboxLayout
         android:id="@+id/flexbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

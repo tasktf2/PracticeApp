@@ -2,4 +2,6 @@
     <string name="app_name">PracticeApp</string>
     <string name="test_message_text">Всем привет! Это тестовое сообщение для моей домашней работы, которая очень давно сидела в мыслях так близко, а в жизни далеко. Ну, как видите, теперь я добрался до сего курса и очень этому рад)) Осталось только допилить вьюгруппу и можно топать дальше разматывать</string>
     <string name="test_username">Denis Mashkov</string>
+    <string name="test_text_sample">Привет! lorem ipsum test message dalshe zabil</string>
+    <string name="hint_type">Написать...</string>
 </resources>
