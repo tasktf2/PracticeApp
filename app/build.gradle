@@ -42,4 +42,7 @@ dependencies {
     implementation 'com.github.kirich1409:viewbindingpropertydelegate:1.4.6'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
+
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
 }
