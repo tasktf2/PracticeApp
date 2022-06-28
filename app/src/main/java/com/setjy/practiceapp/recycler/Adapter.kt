@@ -14,4 +14,13 @@ class Adapter<T : ViewTyped>(holderFactory: HolderFactory) : BaseAdapter<T>(hold
         set(newItems) {
             differ.submitList(newItems)
         }
+
+    fun setItemsWithCommitCallback(
+        newItems: List<T>,
+        action: () -> Unit
+    ) {
+        differ.submitList(newItems) {
+            action()
+        }
+    }
 }
