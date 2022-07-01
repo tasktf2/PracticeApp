@@ -1,4 +1,4 @@
-package com.setjy.practiceapp
+package com.setjy.practiceapp.chat
 
 import android.app.Activity
 import android.os.Bundle
@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.setjy.practiceapp.Data
+import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentChatBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.ChatHolderFactory
@@ -22,9 +24,9 @@ import com.setjy.practiceapp.recycler.bottom_sheet_fragment.BottomSheetFragment
 import com.setjy.practiceapp.recycler.items.EmojiUI
 import com.setjy.practiceapp.recycler.items.IncomingMessageUI
 import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
+import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
@@ -39,13 +41,8 @@ class ChatFragment : Fragment() {
     )
     private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
 
-    private var disposable: Disposable? = null
-    private var searchDisposable: Disposable? = null
-    private val publish = PublishSubject.create<Int>() //move to Repo.kt
-    private val resultsPublish: Observable<Int> = publish
-
-    private var searchList = listOf<ViewTyped>()
-    private var currentSearchList = listOf<ViewTyped>()
+    private val searchSubject: PublishSubject<SearchAction> = PublishSubject.create()
+    private var disposable: CompositeDisposable = CompositeDisposable()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -66,6 +63,8 @@ class ChatFragment : Fragment() {
         getMessagesFromDatabase()
         setButtonVisibility()
         initClicks()
+        initSearch()
+        subscribeToSearchResults()
     }
 
     private fun initClicks() {
@@ -73,149 +72,110 @@ class ChatFragment : Fragment() {
             ivSend.setOnClickListener { setMessageSender() }
             val searchMenuItem = tbStream.menu.findItem(R.id.search_button_chat)
             tbStream.setNavigationOnClickListener { //back pressing to hide search group
-                if (groupSearch.isVisible) {
-                    groupSearch.isVisible = false
-                    groupSend.isVisible = true
-                    binding.etSearch.text.clear()
-                    hideKeyboard()
-                    unsubscribeFromSearch()
-                }
+                searchSubject.onNext(SearchAction.CANCEL)
             }
             ivSearchDelete.setOnClickListener { //delete text in search field
                 etSearch.text.clear()
                 setDeleteAnimationOnClick(it)
             }
-            ivSearchUp.setOnClickListener {
-                subscribeToUp()
-            }
-            ivSearchDown.setOnClickListener {
-                subscribeToDown()
-            }
-
+            ivSearchUp.setOnClickListener { searchSubject.onNext(SearchAction.NEXT) }
+            ivSearchDown.setOnClickListener { searchSubject.onNext(SearchAction.PREV) }
             searchMenuItem.setOnMenuItemClickListener { //sets visibility of search group
                 groupSearch.isVisible = true
                 groupSend.isVisible = false
-                initSearchLogic()
                 true
             }
         }
     }
 
-    private fun setSearchClicksLogicIfResultsIsNotEmpty(size: Int) {
-        if (size != 0) {
-            setSearchClicksLogic()
-        } else {
-            setSearchClicksDisabled()
-        }
-    }
-
-    private fun setSearchClicksLogic() {
-        with(binding) {
-            when (searchCounter) {
-                currentSearchList.size - 1 -> {
-                    ivSearchUp.apply {
-                        isClickable = false
-                        isEnabled = false
-                    }
-                    if (searchCounter != 0)
-                        ivSearchDown.apply {
-                            isClickable = true
-                            isEnabled = true
-                        }
-                }
-                -1, 0 -> {
-                    ivSearchUp.apply {
-                        isClickable = true
-                        isEnabled = true
-                    }
-                    ivSearchDown.apply {
-                        isClickable = false
-                        isEnabled = false
-                    }
-                }
-                else -> {
-                    ivSearchUp.apply {
-                        isClickable = true
-                        isEnabled = true
-                    }
-                    ivSearchDown.apply {
-                        isClickable = true
-                        isEnabled = true
-                    }
-                }
-            }
-            val id = when (currentSearchList[searchCounter].viewType) {
-                R.layout.item_msg_outgoing -> {
-                    (currentSearchList[searchCounter] as OutgoingMessageUI).messageId
-                }
-                R.layout.item_msg_incoming -> {
-                    (currentSearchList[searchCounter] as IncomingMessageUI).messageId
-                }
-                else -> "error"
-            }
-            rvListOfMessages.scrollToPosition(adapter.itemCount - id.toInt() - 1)
-            /*
-            todo callback after scroll and then recolor background (use findViewByPosition?)
-            also make scroll to center of screen if possible?
-            refactor id to Int?
-             */
-        }
-    }
-
-    private fun initSearchLogic() {
+    private fun initSearch() {
         with(binding) {
             ivSearchUp.isVisible = false //todo refactor to group
             ivSearchDown.isVisible = false
-            etSearch.apply {
-                searchList = adapter.items
-                addTextChangedListener { text ->
-                    setVisibilityOfSearchClicks(text)
-                    searchDisposable = Observable.create<String> { emitter ->
-                        emitter.onNext(text.toString().lowercase().trim())
-                    }.debounce(500, TimeUnit.MILLISECONDS)
-                        .map { stringText ->
-                            searchList.filter {
-                                when (it.viewType) {
-                                    R.layout.item_msg_outgoing -> {
-                                        (it as OutgoingMessageUI).message.lowercase()
-                                            .contains(stringText)
-                                    }
-                                    R.layout.item_msg_incoming -> {
-                                        (it as IncomingMessageUI).message.lowercase()
-                                            .contains(stringText)
-                                    }
-                                    else -> return@filter false
-                                }
+            etSearch.addTextChangedListener { text ->
+                val query = text?.toString()?.trim().orEmpty()
+                adapter.items = adapter.items.map { item ->
+                    when (item) {
+                        is IncomingMessageUI -> {
+                            if (item.message.contains(query, ignoreCase = true)) {
+                                item.copy(isFound = true)
+                            } else {
+                                item
                             }
-                        }.subscribe(
-                            { list ->
-                                tvSearchResults.text = if (text.isNullOrEmpty()) ""
-                                else "Найдено совпадений: ${list.size}"
-                                currentSearchList = list
-                                searchCounter = -1 //start of search
-                                setSearchClicksLogicIfResultsIsNotEmpty(list.size)
-                            },
-                            { error -> Log.d("xxx", "error $error") }
-                        )
-                    setDeleteAnimation(text)
+                        }
+                        is OutgoingMessageUI -> {
+                            if (item.message.contains(query, ignoreCase = true)) {
+                                item.copy(isFound = true)
+                            } else {
+                                item
+                            }
+                        }
+                        else -> item
+                    }
                 }
-            }
-            disposable = resultsPublish.subscribe {
-                setSearchClicksLogic()
+                searchSubject.onNext(SearchAction.START)
+                setDeleteAnimation(text)
             }
         }
     }
 
-    private fun setVisibilityOfSearchClicks(text: Editable?) {
-        with(binding) {
-            if (text.isNullOrEmpty()) {
-                ivSearchUp.isVisible = false
-                ivSearchDown.isVisible = false
-            } else {
-                ivSearchUp.isVisible = true
-                ivSearchDown.isVisible = true
+    private fun subscribeToSearchResults() {
+        val searchIterator = SearchMessagesIterator()
+        disposable += searchSubject
+            .debounce(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+            .subscribe { action ->
+                when (action) {
+                    SearchAction.START -> {
+                        searchIterator.resetIndex()
+                        searchIterator.setItems(adapter.items)
+                        if (searchIterator.hasNext()) {
+                            //todo set views to "HAS RESULTS"
+                            val nextItemIndex = searchIterator.nextIndex()
+                            if (nextItemIndex < adapter.items.size) {
+                                binding.rvListOfMessages.smoothScrollToPosition(nextItemIndex)
+                            }
+                            if (searchIterator.hasNext()) {
+                                //todo enable next button
+                            } else {
+                                //todo disable next\prev buttons
+                            }
+                        } else {
+                            //todo set views to "NO RESULTS"
+                        }
+                    }
+                    SearchAction.NEXT -> {
+                        if (searchIterator.hasNext()) {
+                            val nextItemIndex = searchIterator.nextIndex()
+                            if (nextItemIndex < adapter.items.size) {
+                                binding.rvListOfMessages.smoothScrollToPosition(nextItemIndex)
+                            }
+                        } else {
+                            //todo disable next button
+                        }
+                    }
+                    SearchAction.PREV -> {
+                        //todo по аналогии
+                    }
+                    SearchAction.CANCEL -> {
+                        searchIterator.resetIndex()
+                        searchIterator.setItems(emptyList())
+                        with(binding) {
+                            groupSearch.isVisible = false
+                            groupSend.isVisible = true
+                            etSearch.text.clear()
+                            hideKeyboard()
+                            tvSearchResults.text = ""
+                            adapter.items = adapter.items.map {
+                                when (it) {
+                                    is IncomingMessageUI -> it.copy(isFound = false)
+                                    is OutgoingMessageUI -> it.copy(isFound = false)
+                                    else -> it
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        }
     }
 
     private fun getMessagesFromDatabase() {
@@ -422,25 +382,4 @@ class ChatFragment : Fragment() {
         }
     }
 
-    private fun dispatchPublish(n: Int) { //move to Repo.kt
-        publish.onNext(n)
-    }
-
-    private fun subscribeToUp() {
-        dispatchPublish(searchCounter++)
-    }
-
-    private fun subscribeToDown() {
-        dispatchPublish(searchCounter--)
-    }
-
-    private fun unsubscribeFromSearch() {
-        disposable?.dispose()
-        searchDisposable?.dispose()
-        binding.tvSearchResults.text = ""
-    }
-
-    companion object {
-        private var searchCounter: Int = 0
-    }
 }
