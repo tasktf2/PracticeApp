@@ -5,6 +5,7 @@ import com.setjy.practiceapp.recycler.items.EmojiUI
 import com.setjy.practiceapp.recycler.items.IncomingMessageUI
 import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
 import com.setjy.practiceapp.recycler.items.TimeUI
+import io.reactivex.rxjava3.core.Single
 
 const val DEFAULT_USER_ID: String = "1"
 
@@ -30,30 +31,70 @@ object Data {
         EmojiRemote("1f606", "6"),
         EmojiRemote("1f605", DEFAULT_USER_ID)
     )
+
     private val listOfReactions = listOfRemoteReactions.map {
         EmojiUI(
             code = it.code,
             isSelected = it.userId == DEFAULT_USER_ID
         )
     }
+    private var tempMessageDatabase: List<ViewTyped> = listOf(
+        TimeUI(System.currentTimeMillis()),
+        OutgoingMessageUI(
+            message = "getString(R.string.test_message_text)",
+            messageId = "1",
+            reactions = listOfReactions
+        ),
+        IncomingMessageUI(
+            messageId = "2",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "getString(R.string.test_message_text)",
+            reactions = listOfReactions
+        ), IncomingMessageUI(
+            messageId = "3",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "1",
+            reactions = null
+        ), IncomingMessageUI(
+            messageId = "4",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "2",
+            reactions = null
+        ), IncomingMessageUI(
+            messageId = "5",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "3",
+            reactions = null
+        ), IncomingMessageUI(
+            messageId = "6",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "4",
+            reactions = null
+        ), IncomingMessageUI(
+            messageId = "7",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "5",
+            reactions = null
+        ), IncomingMessageUI(
+            messageId = "8",
+            avatar = R.drawable.ic_launcher_background,
+            username = "Denis Mashkov",
+            message = "6",
+            reactions = null
+        )
+    ).asReversed()
 
-    fun getMessages(): List<ViewTyped> =
-        listOf(
-            TimeUI(System.currentTimeMillis()),
-            OutgoingMessageUI(
-                message = "getString(R.string.test_message_text)",
-                messageId = "2",
-                reactions = listOfReactions
-            ),
-            IncomingMessageUI(
-                messageId = "1",
-                avatar = R.drawable.ic_launcher_background,
-                username = "Denis Mashkov",
-                message = "getString(R.string.test_message_text)",
-                reactions = listOfReactions
-            )
+    fun getMessages(): Single<List<ViewTyped>> = Single.just(tempMessageDatabase)
 
-        ).asReversed()
+    fun saveMessage(item: List<ViewTyped>) {
+        tempMessageDatabase = item + tempMessageDatabase
+    }
 
     val emojiUISet = listOf(
         // Smileys & Emotion

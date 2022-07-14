@@ -41,5 +41,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     implementation 'com.github.kirich1409:viewbindingpropertydelegate:1.4.6'
 
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.4'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
 }

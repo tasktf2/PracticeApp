@@ -34,6 +34,23 @@
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/item_topic.xml" value="0.4" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/layout/view_avatar.xml" value="0.4" />
         <entry key="..\:/Users/second/AndroidStudioProjects/PracticeApp/app/src/main/res/menu/bottom_menu.xml" value="0.1" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/bg_rounded_send.xml" value="0.1145" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/down.xml" value="0.1395" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_delete_24_selector.xml" value="0.1385" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_arrow_down_24.xml" value="0.2105" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_arrow_down_24_selector.xml" value="0.119" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_arrow_down_inactive_24.xml" value="0.128" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_arrow_up_24.xml" value="0.2105" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_arrow_up_inactive_24.xml" value="0.208" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_round_delete_24.xml" value="0.1" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/ic_up_rename.xml" value="0.1105" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/item_bottom_fragment_rounded_42.xml" value="0.1145" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/sample.xml" value="0.1385" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/drawable/test.xml" value="0.1145" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/layout/fragment_chat.xml" value="0.1" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/layout/fragment_search.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/layout/item_msg_outgoing.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/setJy/StudioProjects/PracticeApp/app/src/main/res/menu/fragment_chat_menu.xml" value="0.264" />
       </map>
     </option>
   </component>
