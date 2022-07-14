@@ -2,6 +2,7 @@ package com.setjy.practiceapp
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.setjy.practiceapp.chat.ChatFragment
 
 class MainActivity : AppCompatActivity() {
 

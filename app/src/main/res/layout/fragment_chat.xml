@@ -72,29 +72,12 @@
         app:layout_constraintTop_toTopOf="@id/et_send"
         app:srcCompat="@drawable/btn_add" />
 
-    <View
-        android:id="@+id/search_background_top"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginStart="56dp"
-        android:background="@color/app_cyan"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <View
-        android:id="@+id/search_background_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@color/app_cyan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <EditText
         android:id="@+id/et_search"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginStart="56dp"
-        android:layout_marginEnd="40dp"
+        android:paddingEnd="52dp"
         android:background="@color/app_cyan"
         android:hint="Поиск"
         android:inputType="textLongMessage"
@@ -108,42 +91,44 @@
         android:id="@+id/iv_search_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="18dp"
         android:layout_marginEnd="14dp"
         android:background="@color/app_cyan"
         android:src="@drawable/ic_round_delete_24"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_search_results"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:background="@color/app_cyan"
+        android:gravity="center_vertical"
+        android:paddingStart="40dp"
+        android:paddingEnd="124dp"
         android:textColor="@color/white"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
-        android:id="@+id/iv_search_up"
+        android:id="@+id/iv_search_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="60dp"
         android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_round_arrow_up_24_selector"
+        android:src="@drawable/ic_round_arrow_next_24_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
-        android:id="@+id/iv_search_down"
+        android:id="@+id/iv_search_prev"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_round_arrow_down_24_selector"
+        android:src="@drawable/ic_round_arrow_prev_24_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -159,5 +144,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        app:constraint_referenced_ids="iv_search_up, iv_search_down,iv_search_delete, et_search,tv_search_results,search_background_bottom,search_background_top" />
+        app:constraint_referenced_ids="iv_search_next, iv_search_prev, et_search,tv_search_results" />
 </androidx.constraintlayout.widget.ConstraintLayout>
