@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.chat
+package com.setjy.practiceapp.topic
 
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.IncomingMessageUI

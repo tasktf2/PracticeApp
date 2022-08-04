@@ -1,18 +1,10 @@
-package com.setjy.practiceapp.hw_4.channels
+package com.setjy.practiceapp.recycler.holders
 
 import android.view.View
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.ItemTopicBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.recycler.base.ViewTyped
-
-//todo в айтемы
-class TopicItemUI(
-    val topicName: String,
-    val messageCount: Int,
-    override val viewType: Int = R.layout.item_topic
-) : ViewTyped
+import com.setjy.practiceapp.recycler.items.TopicItemUI
 
 class TopicItemViewHolder(val view: View) : BaseViewHolder<TopicItemUI>(view) {
 

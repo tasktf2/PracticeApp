@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.chat
+package com.setjy.practiceapp.topic
 
 enum class SearchAction {
     START,

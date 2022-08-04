@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.hw_4.profile
+package com.setjy.practiceapp.profile
 
 import android.os.Bundle
 import android.view.LayoutInflater

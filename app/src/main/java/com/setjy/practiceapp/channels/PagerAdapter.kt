@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.hw_4.channels
+package com.setjy.practiceapp.channels
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

@@ -8,7 +8,7 @@ data class OutgoingMessageUI(
     val messageId: String,
     val user_id: String = DEFAULT_USER_ID,
     val message: String,
-    val reactions: List<EmojiUI>? = listOf(),
+    val reactions: List<EmojiUI> = listOf(),
     val isFound:Boolean = false,
     override val viewType: Int = R.layout.item_msg_outgoing
 ) : ViewTyped

@@ -1,29 +1,30 @@
-package com.setjy.practiceapp.chat
+package com.setjy.practiceapp.topic
 
-import android.app.Activity
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.Data
 import com.setjy.practiceapp.R
-import com.setjy.practiceapp.databinding.FragmentChatBinding
+import com.setjy.practiceapp.channels.StreamListFragment
+import com.setjy.practiceapp.databinding.FragmentTopicBinding
 import com.setjy.practiceapp.recycler.Adapter
-import com.setjy.practiceapp.recycler.ChatHolderFactory
+import com.setjy.practiceapp.recycler.TopicHolderFactory
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.bottom_sheet_fragment.BottomSheetFragment
 import com.setjy.practiceapp.recycler.items.EmojiUI
 import com.setjy.practiceapp.recycler.items.IncomingMessageUI
 import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
+import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -31,11 +32,11 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
-class ChatFragment : Fragment() {
+class TopicFragment : Fragment() {
 
-    private val binding: FragmentChatBinding by viewBinding()
+    private val binding: FragmentTopicBinding by viewBinding()
 
-    private val holderFactory: ChatHolderFactory = ChatHolderFactory(
+    private val holderFactory: TopicHolderFactory = TopicHolderFactory(
         this::onEmojiClick,
         this::onAddEmojiClick
     )
@@ -49,7 +50,7 @@ class ChatFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_chat, container, false)
+        return inflater.inflate(R.layout.fragment_topic, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -60,11 +61,24 @@ class ChatFragment : Fragment() {
                 LinearLayoutManager(context, RecyclerView.VERTICAL, true)
             tbStream.setNavigationIcon(R.drawable.ic_round_arrow_back_24)
         }
+        setStreamAndTopicName()
         getMessagesFromDatabase()
         initClicks()
         initSearch()
         subscribeToSearchResults()
         setButtonVisibility()
+    }
+
+    private fun setStreamAndTopicName() {
+        val streamAndTopicNames = arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
+        if (streamAndTopicNames != null) {
+            binding.tbStream.title = streamAndTopicNames[StreamListFragment.STREAM_ARRAY_INDEX]
+            binding.tvTopicName.text =
+                "Topic: ${streamAndTopicNames[StreamListFragment.TOPIC_ARRAY_INDEX]}"
+        } else {
+            Log.d("xxx", "args are null, throw exception later ")
+        }
+
     }
 
     override fun onDestroy() {
@@ -83,9 +97,15 @@ class ChatFragment : Fragment() {
     private fun initClicks() {
         with(binding) {
             ivSend.setOnClickListener { setMessageSender() }
-            val searchMenuItem = tbStream.menu.findItem(R.id.search_button_chat)
-            tbStream.setNavigationOnClickListener { //back pressing to hide search group
-                searchSubject.onNext(SearchAction.CANCEL)
+            val searchMenuItem = tbStream.menu.findItem(R.id.search_button_topic)
+            tbStream.setNavigationOnClickListener {
+                //back pressing to hide search group
+                if (groupSearch.isVisible) {
+                    searchSubject.onNext(SearchAction.CANCEL)
+                } else {
+                    findNavController().navigate(R.id.action_topicFragment_to_channels_fragment)
+//                    findNavController().navigateUp()
+                }
             }
             ivSearchDelete.setOnClickListener { //delete text in search field
                 etSearch.text.clear()
@@ -249,11 +269,6 @@ class ChatFragment : Fragment() {
         }
     }
 
-    private fun Fragment.hideKeyboard() {
-        val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(view?.windowToken, 0)
-    }
-
     private fun deleteAppearingAnimation(text: Editable?) {
         if (!binding.ivSearchDelete.isVisible) {
             binding.ivSearchDelete.animate().apply {
@@ -264,8 +279,7 @@ class ChatFragment : Fragment() {
         }
         if (!text.isNullOrEmpty()) {
             binding.ivSearchDelete.isVisible = true
-        }
-        else {
+        } else {
             binding.ivSearchDelete.callOnClick()
         }
     }
@@ -295,10 +309,10 @@ class ChatFragment : Fragment() {
         adapter.items = adapter.items.map { item ->
             when {
                 item is IncomingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions?.toMutableList()
+                    val mutableReactions = item.reactions.toMutableList()
                     val removed =
-                        mutableReactions?.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed!!) {
+                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed) {
                         item.copy(reactions = mutableReactions)
                     } else {
                         item.copy(
@@ -312,10 +326,10 @@ class ChatFragment : Fragment() {
                     }
                 }
                 item is OutgoingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions?.toMutableList()
+                    val mutableReactions = item.reactions.toMutableList()
                     val removed =
-                        mutableReactions?.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed!!) {
+                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed) {
                         item.copy(reactions = mutableReactions)
                     } else {
                         item.copy(

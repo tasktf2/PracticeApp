@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottom_nav"
     app:startDestination="@id/channels_fragment">
 
     <fragment
         android:id="@+id/channels_fragment"
-        android:name="com.setjy.practiceapp.hw_4.channels.ChannelsFragment"
+        android:name="com.setjy.practiceapp.channels.ChannelsFragment"
         android:label="ChannelsFragment" >
         <action
-            android:id="@+id/action_channels_fragment_to_chatFragment2"
-            app:destination="@id/chatFragment"
+            android:id="@+id/action_channels_fragment_to_topicFragment"
+            app:destination="@id/topicFragment"
             app:launchSingleTop="false"
             app:popUpToInclusive="false" />
     </fragment>
     <fragment
         android:id="@+id/people_fragment"
-        android:name="com.setjy.practiceapp.hw_4.people.PeopleFragment"
+        android:name="com.setjy.practiceapp.people.PeopleFragment"
         android:label="PeopleFragment" />
     <fragment
         android:id="@+id/profile_fragment"
-        android:name="com.setjy.practiceapp.hw_4.profile.ProfileFragment"
+        android:name="com.setjy.practiceapp.profile.ProfileFragment"
         android:label="ProfileFragment" />
     <fragment
-        android:id="@+id/chatFragment"
-        android:name="com.setjy.practiceapp.ChatFragment"
-        android:label="ChatFragment" >
+        android:id="@+id/topicFragment"
+        android:name="com.setjy.practiceapp.topic.TopicFragment"
+        android:label="TopicFragment">
         <argument
             android:name="streamAndTopicNames"
             app:argType="string[]" />
         <action
-            android:id="@+id/action_chatFragment_to_channels_fragment2"
-            app:destination="@id/channels_fragment" />
+            android:id="@+id/action_topicFragment_to_channels_fragment"
+            app:destination="@id/channels_fragment"
+            app:popUpTo="@id/channels_fragment" />
     </fragment>
 </navigation>

@@ -7,13 +7,13 @@
 
     <EditText
         android:id="@+id/et_search"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginHorizontal="54dp"
-        android:layout_marginStart="54dp"
-        android:layout_marginEnd="54dp"
         android:background="@color/bg_bottom_nav_view_black"
         android:hint="Search..."
+        android:inputType="textLongMessage"
+        android:paddingStart="56dp"
+        android:paddingEnd="80dp"
         android:textColor="@color/text_white"
         android:textColorHint="@color/text_white"
         android:textSize="24sp"
@@ -25,11 +25,10 @@
         android:id="@+id/iv_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="54dp"
+        android:layout_marginEnd="28dp"
         android:src="@drawable/ic_vector_search_24"
         app:layout_constraintBottom_toBottomOf="@+id/et_search"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/et_search"
         app:layout_constraintTop_toTopOf="@+id/et_search" />
 
     <com.google.android.material.tabs.TabLayout

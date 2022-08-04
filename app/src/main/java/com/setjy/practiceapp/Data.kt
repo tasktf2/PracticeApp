@@ -1,10 +1,7 @@
 package com.setjy.practiceapp
 
 import com.setjy.practiceapp.recycler.base.ViewTyped
-import com.setjy.practiceapp.recycler.items.EmojiUI
-import com.setjy.practiceapp.recycler.items.IncomingMessageUI
-import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
-import com.setjy.practiceapp.recycler.items.TimeUI
+import com.setjy.practiceapp.recycler.items.*
 import io.reactivex.rxjava3.core.Single
 
 const val DEFAULT_USER_ID: String = "1"
@@ -17,6 +14,46 @@ data class EmojiRemote(
 )
 
 object Data {
+
+    private val listOfStreams: List<StreamItemUI> = listOf(
+        StreamItemUI(
+            "#general", true, listOfTopics = listOf(
+                TopicItemUI(
+                    "Testing",
+                    1240
+                ), TopicItemUI(
+                    "bruh1",
+                    123
+                ), TopicItemUI(
+                    "bruh2",
+                    123
+                )
+            )
+        ),
+        StreamItemUI(
+            "#Development", listOfTopics = listOf(
+                TopicItemUI(
+                    "bruh3",
+                    123
+                )
+            )
+        ), StreamItemUI(
+            "#Design", listOfTopics = listOf(
+                TopicItemUI(
+                    "bruh4",
+                    123
+                )
+            )
+        ), StreamItemUI(
+            "#PR", true, listOfTopics = listOf(
+                TopicItemUI(
+                    "bruh5",
+                    123
+                )
+            )
+        )
+    )
+
 
     private val listOfRemoteReactions = listOf(
         EmojiRemote("1f600", DEFAULT_USER_ID),
@@ -56,39 +93,44 @@ object Data {
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "1",
-            reactions = null
+            reactions = listOf()
         ), IncomingMessageUI(
             messageId = "4",
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "2",
-            reactions = null
+            reactions = listOf()
         ), IncomingMessageUI(
             messageId = "5",
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "3",
-            reactions = null
+            reactions = listOf()
         ), IncomingMessageUI(
             messageId = "6",
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "4",
-            reactions = null
+            reactions = listOf()
         ), IncomingMessageUI(
             messageId = "7",
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "5",
-            reactions = null
+            reactions = listOf()
         ), IncomingMessageUI(
             messageId = "8",
             avatar = R.drawable.ic_launcher_background,
             username = "Denis Mashkov",
             message = "6",
-            reactions = null
+            reactions = listOf()
         )
     ).asReversed()
+
+    fun getStreams(): Single<List<ViewTyped>> = Single.just(listOfStreams)
+
+    fun getStreamByName(streamName: String): Single<StreamItemUI> =
+        Single.just(listOfStreams.find { it.streamName == streamName }!!)
 
     fun getMessages(): Single<List<ViewTyped>> = Single.just(tempMessageDatabase)
 

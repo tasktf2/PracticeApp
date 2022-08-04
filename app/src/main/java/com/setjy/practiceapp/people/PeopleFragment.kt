@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.hw_4.people
+package com.setjy.practiceapp.people
 
 import android.os.Bundle
 import android.view.LayoutInflater
