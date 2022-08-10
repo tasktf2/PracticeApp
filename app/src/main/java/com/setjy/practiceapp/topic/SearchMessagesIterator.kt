@@ -21,13 +21,11 @@ class SearchMessagesIterator {
     }
 
     fun nextIndex(): Int {
-        index++
-        return index
+        return ++index
     }
 
     fun previousIndex(): Int {
-        index--
-        return index
+        return --index
     }
 
     fun currentIndex(): Int = index

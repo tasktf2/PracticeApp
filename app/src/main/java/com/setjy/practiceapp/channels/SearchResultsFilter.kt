@@ -31,12 +31,14 @@ class SearchResultsFilter {
         mutableItems = mutableItems.map { item ->
             when (item) {
                 is StreamItemUI -> {
-                    item.copy(isFound =
-                    item.streamName.contains(query, ignoreCase = true)
-                            || item.listOfTopics.any {
-                        (it as TopicItemUI).topicName.contains(query, ignoreCase = true)
-                    })
-
+                    item.isExpanded = !item.isExpanded
+                    item.copy(
+                        isFound =
+                        item.streamName.contains(query, ignoreCase = true)
+                                || item.listOfTopics.any {
+                            it.topicName.contains(query, ignoreCase = true)
+                        }
+                    )
                 }
                 is TopicItemUI -> if (item.topicName.contains(query, ignoreCase = true)) {
                     item.copy(isFound = true)

@@ -1,9 +1,7 @@
 package com.setjy.practiceapp.channels
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -11,18 +9,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentChannelsBinding
 
-class ChannelsFragment : Fragment() {
+class ChannelsFragment : Fragment(R.layout.fragment_channels) {
 
     private val binding: FragmentChannelsBinding by viewBinding()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_channels, container, false)
-    }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
