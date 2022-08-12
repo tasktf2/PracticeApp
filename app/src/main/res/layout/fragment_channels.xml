@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_bottom_nav_view_black">
+
+    <EditText
+        android:id="@+id/et_search"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/bg_bottom_nav_view_black"
+        android:hint="Search..."
+        android:inputType="textLongMessage"
+        android:paddingStart="56dp"
+        android:paddingEnd="80dp"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_white"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="28dp"
+        android:src="@drawable/ic_vector_search_24"
+        app:layout_constraintBottom_toBottomOf="@+id/et_search"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/et_search" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tl_streams"
+        android:layout_width="match_parent"
+        android:layout_height="78dp"
+        android:background="@color/bg_bottom_nav_view_black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_search"
+        app:tabIndicatorColor="@color/text_white"
+        app:tabTextColor="@color/text_white" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vp_streams"
+        android:layout_width="411dp"
+        android:layout_height="0dp"
+        android:background="@color/background_black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tl_streams" />
+</androidx.constraintlayout.widget.ConstraintLayout>

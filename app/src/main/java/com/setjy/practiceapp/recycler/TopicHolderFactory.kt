@@ -1,6 +1,5 @@
 package com.setjy.practiceapp.recycler
 
-import android.util.Log
 import android.view.View
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
@@ -9,7 +8,7 @@ import com.setjy.practiceapp.recycler.holders.IncomingMessageViewHolder
 import com.setjy.practiceapp.recycler.holders.OutgoingMessageViewHolder
 import com.setjy.practiceapp.recycler.holders.TimeDividerViewHolder
 
-class ChatHolderFactory(
+class TopicHolderFactory(
     private val onEmojiClickAction: (messageId: String, emojiCode: String) -> Unit,
     private val onAddEmojiClickAction: (messageId: String) -> Unit
 ) : HolderFactory() {

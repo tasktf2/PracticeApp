@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.recycler
 
+import android.annotation.SuppressLint
 import androidx.recyclerview.widget.DiffUtil
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.IncomingMessageUI
@@ -19,6 +20,7 @@ class DiffCallback : DiffUtil.ItemCallback<ViewTyped>() {
         }
     }
 
+    @SuppressLint("DiffUtilEquals")
     override fun areContentsTheSame(oldItem: ViewTyped, newItem: ViewTyped): Boolean {
         return oldItem == newItem
     }
