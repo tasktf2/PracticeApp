@@ -70,7 +70,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { items ->
-                if (page?.name == Page.SUBSCRIBED.name) {
+                if (page == Page.SUBSCRIBED) {
                     items.forEach { stream ->
                         if ((stream as StreamItemUI).isSubscribed) {
                             mutableList.add(stream)
@@ -122,12 +122,8 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         const val STREAM_ARRAY_INDEX: Int = 0
         const val TOPIC_ARRAY_INDEX: Int = 1
 
-        fun newInstance(page: Page): StreamListFragment {
-            val args = Bundle()
-            args.putSerializable(ARG_PAGE, page)
-            val fragment = StreamListFragment()
-            fragment.arguments = args
-            return fragment
+        fun newInstance(page: Page)= StreamListFragment().apply {
+            arguments = bundleOf(ARG_PAGE to page)
         }
     }
 
