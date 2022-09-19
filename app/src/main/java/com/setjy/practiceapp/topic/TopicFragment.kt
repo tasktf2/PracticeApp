@@ -1,11 +1,12 @@
 package com.setjy.practiceapp.topic
 
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -13,9 +14,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.setjy.practiceapp.Data
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.channels.StreamListFragment
+import com.setjy.practiceapp.data.Data
 import com.setjy.practiceapp.databinding.FragmentTopicBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.TopicHolderFactory
@@ -32,7 +33,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
-class TopicFragment : Fragment() {
+class TopicFragment : Fragment(R.layout.fragment_topic) {
 
     private val binding: FragmentTopicBinding by viewBinding()
 
@@ -43,16 +44,19 @@ class TopicFragment : Fragment() {
     private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
 
     private val searchSubject: PublishSubject<SearchAction> = PublishSubject.create()
+
     private var disposable: CompositeDisposable = CompositeDisposable()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_topic, container, false)
+    private val topicName: String by lazy {
+        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
+            ?.get(StreamListFragment.TOPIC_ARRAY_INDEX) as String
+    }
+    private val streamName: String by lazy {
+        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
+            ?.get(StreamListFragment.STREAM_ARRAY_INDEX) as String
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
@@ -62,23 +66,39 @@ class TopicFragment : Fragment() {
             tbStream.setNavigationIcon(R.drawable.ic_round_arrow_back_24)
         }
         setStreamAndTopicName()
-        getMessagesFromDatabase()
+        getOwnUser()
         initClicks()
         initSearch()
         subscribeToSearchResults()
         setButtonVisibility()
+        subscribeToMessageEvents(streamName, topicName)
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun subscribeToMessageEvents(streamName: String, topicName: String) {
+        disposable += Data.getMessagesFromEventsQueue(streamName, topicName)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doAfterNext {
+                binding.rvListOfMessages.smoothScrollToPosition(0)
+                subscribeToMessageEvents(streamName, topicName)
+            }
+            .subscribe({ response ->
+                adapter.items = response
+                Log.d("xxx", "get success: (messages) $response")
+            },
+                { e -> Log.d("xxx", "get error: $e") }
+            )
     }
 
     private fun setStreamAndTopicName() {
-        val streamAndTopicNames = arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
-        if (streamAndTopicNames != null) {
-            binding.tbStream.title = streamAndTopicNames[StreamListFragment.STREAM_ARRAY_INDEX]
-            binding.tvTopicName.text =
-                "Topic: ${streamAndTopicNames[StreamListFragment.TOPIC_ARRAY_INDEX]}"
+        if (arguments != null) {
+            binding.tbStream.title = streamName
+            binding.tvTopicName.text = "Topic: $topicName"
         } else {
             Log.d("xxx", "args are null, throw exception later ")
         }
-
     }
 
     override fun onDestroy() {
@@ -86,14 +106,34 @@ class TopicFragment : Fragment() {
         disposable.dispose()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getMessagesFromDatabase() {
-        Data.getMessages()
+        disposable += Data.getMessages(streamName, topicName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result -> adapter.items = result },
-                { error -> Log.d("xxx", "the error is: $error") })
+            .doAfterSuccess { hideLoading() }
+            .doOnSubscribe { showLoading() }
+            .subscribe({ result ->
+                adapter.items = result
+                Log.d("qwer", "$result")
+            },
+                { error ->
+                    hideLoading()
+                    Log.d("xxx", "the error is: $error")
+                })
     }
 
+    private fun showLoading() {
+        binding.shimmer.showShimmer(true)
+    }
+
+    private fun hideLoading() {
+        binding.shimmer.apply {
+            stopShimmer()
+        }.isVisible = false
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun initClicks() {
         with(binding) {
             ivSend.setOnClickListener { setMessageSender() }
@@ -104,7 +144,6 @@ class TopicFragment : Fragment() {
                     searchSubject.onNext(SearchAction.CANCEL)
                 } else {
                     findNavController().navigate(R.id.action_topicFragment_to_channels_fragment)
-//                    findNavController().navigateUp()
                 }
             }
             ivSearchDelete.setOnClickListener { //delete text in search field
@@ -293,146 +332,188 @@ class TopicFragment : Fragment() {
         }.withEndAction { view.isVisible = false }
     }
 
-    private fun onAddEmojiClick(messageId: String) {
+    private fun onAddEmojiClick(messageId: Int) {
         BottomSheetFragment().show(parentFragmentManager, null)
         parentFragmentManager.setFragmentResultListener(
             BottomSheetFragment.REQUEST_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
-            val emojiCode = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
-            addReactionToMessage(messageId, emojiCode)
-        }
-    }
-
-    //todo refactor this
-    private fun onEmojiClick(messageId: String, emojiCode: String) {
-        adapter.items = adapter.items.map { item ->
-            when {
-                item is IncomingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions.toMutableList()
-                    val removed =
-                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed) {
-                        item.copy(reactions = mutableReactions)
-                    } else {
-                        item.copy(
-                            reactions = mutableReactions + listOf(
-                                EmojiUI(
-                                    code = emojiCode,
-                                    isSelected = true
-                                )
-                            )
-                        )
-                    }
-                }
-                item is OutgoingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions.toMutableList()
-                    val removed =
-                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed) {
-                        item.copy(reactions = mutableReactions)
-                    } else {
-                        item.copy(
-                            reactions = mutableReactions + listOf(
-                                EmojiUI(
-                                    code = emojiCode,
-                                    isSelected = true
-                                )
-                            )
-                        )
-                    }
-                }
-                else -> item
-            }
-        }
-    }
-
-    //todo refactor this
-    private fun addReactionToMessage(messageId: String, emojiCode: String) {
-        adapter.items = adapter.items.map { item ->
-            when {
-                item is IncomingMessageUI && item.messageId == messageId -> {
-                    when {
-                        item.reactions.isNullOrEmpty() -> {
-                            item.copy(
-                                reactions = listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
-                            item.copy(
-                                reactions = item.reactions + listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        else -> {
-                            item.copy(
-                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
-                            )
-                        }
-                    }
-                }
-                item is OutgoingMessageUI && item.messageId == messageId -> {
-                    when {
-                        item.reactions.isNullOrEmpty() -> {
-                            item.copy(
-                                reactions = listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
-                            item.copy(
-                                reactions = item.reactions + listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        else -> {
-                            item.copy(
-                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
-                            )
-                        }
-                    }
-                }
-                else -> item
-            }
-        }
-    }
-
-    private fun setMessageSender() {
-        val messageText = binding.etSend.text.toString()
-        val outgoingMessage = listOf(
-            OutgoingMessageUI(
-                message = messageText,
-                messageId = adapter.itemCount.toString(),
-                reactions = listOf()
+            val emoji = bundle.getStringArray(BottomSheetFragment.BUNDLE_KEY).orEmpty()
+            addReactionToMessage(
+                messageId,
+                emoji[BottomSheetFragment.EMOJI_NAME_INDEX],
+                emoji[BottomSheetFragment.EMOJI_CODE_INDEX]
             )
-        )
-        Data.saveMessage(outgoingMessage)
-        binding.etSend.text.clear()
-        Data.getMessages()
+        }
+    }
+
+    //todo refactor this
+    private fun onEmojiClick(messageId: Int, emojiName: String, emojiCode: String) {
+        adapter.items = adapter.items.map { item ->
+            when {
+                item is IncomingMessageUI && item.messageId == messageId -> {
+                    val mutableReactions = item.reactions.toMutableList()
+                    val removed =
+                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed) {
+                        deleteReaction(messageId, emojiName)
+                        item.copy(reactions = mutableReactions)
+                    } else {
+                        addReaction(messageId, emojiName)
+                        item.copy(
+                            reactions = mutableReactions + listOf(
+                                EmojiUI(
+                                    emojiName = emojiName,
+                                    code = emojiCode,
+                                    isSelected = true
+                                )
+                            )
+                        )
+                    }
+                }
+                item is OutgoingMessageUI && item.messageId == messageId -> {
+                    val mutableReactions = item.reactions.toMutableList()
+                    val removed =
+                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
+                    if (removed) {
+                        deleteReaction(messageId, emojiName)
+                        item.copy(reactions = mutableReactions)
+                    } else {
+                        addReaction(messageId, emojiName)
+                        item.copy(
+                            reactions = mutableReactions + listOf(
+                                EmojiUI(
+                                    emojiName = emojiName,
+                                    code = emojiCode,
+                                    isSelected = true
+                                )
+                            )
+                        )
+                    }
+                }
+                else -> item
+            }
+        }
+    }
+
+    private fun deleteReaction(messageId: Int, emojiName: String) {
+        disposable += Data.deleteReaction(messageId, emojiName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
+                { e -> Log.d("emoji_send", e.toString()) })
+
+    }
+
+    //todo refactor this
+    private fun addReactionToMessage(messageId: Int, emojiName: String, emojiCode: String) {
+        addReaction(messageId, emojiName)
+        adapter.items = adapter.items.map { item ->
+            when {
+                item is IncomingMessageUI && item.messageId == messageId -> {
+                    when {
+                        item.reactions.isNullOrEmpty() -> {
+                            item.copy(
+                                reactions = listOf(
+                                    EmojiUI(
+                                        emojiName = emojiName,
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
+                            item.copy(
+                                reactions = item.reactions + listOf(
+                                    EmojiUI(
+                                        emojiName = emojiName,
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        else -> {
+                            item.copy(
+                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
+                            )
+                        }
+                    }
+                }
+                item is OutgoingMessageUI && item.messageId == messageId -> {
+                    when {
+                        item.reactions.isNullOrEmpty() -> {
+                            item.copy(
+                                reactions = listOf(
+                                    EmojiUI(
+                                        emojiName = emojiName,
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
+                            item.copy(
+                                reactions = item.reactions + listOf(
+                                    EmojiUI(
+                                        emojiName = emojiName,
+                                        code = emojiCode,
+                                        isSelected = true
+                                    )
+                                )
+                            )
+                        }
+                        else -> {
+                            item.copy(
+                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
+                            )
+                        }
+                    }
+                }
+                else -> item
+            }
+        }
+    }
+
+    private fun addReaction(messageId: Int, emojiName: String) {
+        disposable += Data.addReaction(messageId, emojiName)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
+                { e -> Log.d("emoji_send", e.toString()) })
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getOwnUser() {
+        Data.getOwnUser()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doAfterSuccess { getMessagesFromDatabase() }
+            .doOnSubscribe { showLoading() }
+            .subscribe()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setMessageSender() {
+        val messageText = binding.etSend.text.toString()
+        saveMessage(messageText)
+        binding.etSend.text.clear()
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun saveMessage(messageText: String) {
+        disposable += Data.sendMessage(streamName, topicName, messageText)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doAfterSuccess { binding.rvListOfMessages.smoothScrollToPosition(0) }
             .subscribe({ result ->
-                adapter.setItemsWithCommitCallback(
-                    result
-                ) { binding.rvListOfMessages.smoothScrollToPosition(0) }
-            },
-                { error -> Log.d("xxx", "the error is: $error") })
+                adapter.items = result
+            }, {
+                Toast.makeText(context, "Error sending message!", Toast.LENGTH_SHORT).show()
+                Log.d("message_send", it.toString())
+            })
     }
 }

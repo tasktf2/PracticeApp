@@ -4,6 +4,7 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.base.ViewTyped
 
 data class StreamItemUI(
+    val streamId:Int,
     val streamName: String,
     val isSubscribed: Boolean = false,
     val listOfTopics: List<TopicItemUI> = listOf(),

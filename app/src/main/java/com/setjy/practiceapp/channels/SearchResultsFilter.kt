@@ -31,8 +31,7 @@ class SearchResultsFilter {
         mutableItems = mutableItems.map { item ->
             when (item) {
                 is StreamItemUI -> {
-                    item.isExpanded = !item.isExpanded
-                    item.copy(
+                    item.copy(isExpanded = true,
                         isFound =
                         item.streamName.contains(query, ignoreCase = true)
                                 || item.listOfTopics.any {

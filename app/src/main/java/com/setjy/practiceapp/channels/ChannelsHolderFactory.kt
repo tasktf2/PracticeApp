@@ -9,7 +9,7 @@ import com.setjy.practiceapp.recycler.holders.TopicItemViewHolder
 
 class ChannelsHolderFactory(
     private val onStreamClickAction: (streamName: String) -> Unit,
-    private val onTopicNameClickAction: (topicName: String) -> Unit
+    private val onTopicNameClickAction: (topicName: String, streamName: String) -> Unit
 ) : HolderFactory() {
     override fun createViewHolder(view: View, viewType: Int): BaseViewHolder<*>? {
         return when (viewType) {

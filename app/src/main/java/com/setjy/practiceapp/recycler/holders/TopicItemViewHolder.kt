@@ -10,13 +10,13 @@ class TopicItemViewHolder(val view: View) : BaseViewHolder<TopicItemUI>(view) {
 
     private val binding: ItemTopicBinding by viewBinding()
 
-    var onTopicClick: ((topicName: String) -> Unit)? = null
+    var onTopicClick: ((topicName: String, streamName: String) -> Unit)? = null
 
     override fun bind(item: TopicItemUI) {
         binding.tvTopicName.text = item.topicName
         binding.tvMessageCount.text = item.messageCount.toString()
         binding.topicContainer.setOnClickListener {
-            onTopicClick?.invoke(item.topicName)
+            onTopicClick?.invoke(item.topicName, item.parent)
         }
     }
 }

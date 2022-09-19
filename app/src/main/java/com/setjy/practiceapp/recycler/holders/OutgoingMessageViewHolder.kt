@@ -10,23 +10,26 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
 
     private val binding: ItemMsgOutgoingBinding = ItemMsgOutgoingBinding.bind(view)
 
-    var currentMessageId: String? = null
+    var currentMessageId: Int? = null
 
-    var onEmojiClick: ((messageId: String, emojiCode: String) -> Unit)? = null
+    var onEmojiClick: ((messageId: Int, emojiName: String, emojiCode: String) -> Unit)? = null
 
-    var onAddEmojiClick: ((messageId: String) -> Unit)? = null
+    var onAddEmojiClick: ((messageId: Int) -> Unit)? = null
 
     override fun bind(item: OutgoingMessageUI) {
         currentMessageId = item.messageId
-        binding.tvMessage.text = item.message
+        with(binding) {
+            tvMessage.text = item.message
+            tvTimestamp.text = item.timestamp
 
-        if (!item.reactions.isNullOrEmpty()) {
-            binding.flexbox.setEmojis(item.reactions)
-            binding.flexbox.onEmojiClick =
-                { emojiCode -> onEmojiClick?.invoke(item.messageId, emojiCode) }
-            binding.flexbox.onAddEmojiClick = { onAddEmojiClick?.invoke(item.messageId) }
-        } else {
-            binding.flexbox.removeAllViews()
+            if (!item.reactions.isNullOrEmpty()) {
+                flexbox.setEmojis(item.reactions)
+                flexbox.onEmojiClick =
+                    {emojiName, emojiCode -> onEmojiClick?.invoke(item.messageId,emojiName, emojiCode) }
+                flexbox.onAddEmojiClick = { onAddEmojiClick?.invoke(item.messageId) }
+            } else {
+                flexbox.removeAllViews()
+            }
         }
     }
 

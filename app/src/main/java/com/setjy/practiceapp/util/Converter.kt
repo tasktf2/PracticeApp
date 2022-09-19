@@ -2,9 +2,13 @@ package com.setjy.practiceapp.util
 
 import android.content.Context
 import android.content.res.Resources
+import android.os.Build
 import androidx.annotation.Px
+import androidx.annotation.RequiresApi
+import com.setjy.practiceapp.data.Data
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
+import java.time.ZoneId
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -50,5 +54,24 @@ fun getTimeStamp(timeStamp: Long): String {
     )
     dfs.shortMonths = shortMonths.toTypedArray()
     sdf.dateFormatSymbols = dfs
+    return sdf.format(date)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getMessageTimeStampSeconds(timeStamp: Long): String {
+    val zone = ZoneId.of(Data.getTimeZone())
+    val secondsToMillisMultiplier = 1000L
+    val date = Date(timeStamp * secondsToMillisMultiplier)
+    val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
+    sdf.timeZone = TimeZone.getTimeZone(zone)
+    return sdf.format(date)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getMessageTimeStampMillis(timeStamp: Long): String {
+    val zone = ZoneId.of(Data.getTimeZone())
+    val date = Date(timeStamp)
+    val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
+    sdf.timeZone = TimeZone.getTimeZone(zone)
     return sdf.format(date)
 }

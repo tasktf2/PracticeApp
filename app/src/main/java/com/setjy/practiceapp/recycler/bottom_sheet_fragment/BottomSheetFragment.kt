@@ -4,13 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.setjy.practiceapp.Data.emojiUISet
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.data.Data.emojiUISet
 import com.setjy.practiceapp.databinding.FragmentBottomSheetBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.base.ViewTyped
@@ -42,11 +41,13 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun onEmojiClick(emojiCode: String) {
-        val pressedEmojiCode: String? =
-            emojiUISet.find { it.code == emojiCode }?.code
+        val pressedEmoji =
+            emojiUISet.find { it.code == emojiCode }!!
+        val emojiCode = pressedEmoji.code
+        val emojiName = pressedEmoji.emojiName
         parentFragmentManager.setFragmentResult(
             REQUEST_KEY,
-            bundleOf(BUNDLE_KEY to pressedEmojiCode)
+            bundleOf(BUNDLE_KEY to arrayOf(emojiName,emojiCode))
         )
         dismiss()
     }
@@ -54,6 +55,8 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
     companion object {
         internal const val REQUEST_KEY: String = "bottom_fragment"
         internal const val BUNDLE_KEY: String = "bundleKey"
+        internal const val EMOJI_NAME_INDEX: Int = 0
+        internal const val EMOJI_CODE_INDEX: Int = 1
     }
 
 }
