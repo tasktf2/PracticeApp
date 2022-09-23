@@ -7,7 +7,8 @@ data class TopicItemUI(
     val topicId: Int,
     val topicName: String,
     val messageCount: Int = 0,
-    val parent:String,
+    val parent: String,
+    val backgroundColor: String?,
     val isFound: Boolean = false,
     override val viewType: Int = R.layout.item_topic
 ) : ViewTyped

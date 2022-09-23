@@ -2,9 +2,7 @@ package com.setjy.practiceapp.util
 
 import android.content.Context
 import android.content.res.Resources
-import android.os.Build
 import androidx.annotation.Px
-import androidx.annotation.RequiresApi
 import com.setjy.practiceapp.data.Data
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
@@ -57,7 +55,6 @@ fun getTimeStamp(timeStamp: Long): String {
     return sdf.format(date)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun getMessageTimeStampSeconds(timeStamp: Long): String {
     val zone = ZoneId.of(Data.getTimeZone())
     val secondsToMillisMultiplier = 1000L
@@ -67,7 +64,6 @@ fun getMessageTimeStampSeconds(timeStamp: Long): String {
     return sdf.format(date)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun getMessageTimeStampMillis(timeStamp: Long): String {
     val zone = ZoneId.of(Data.getTimeZone())
     val date = Date(timeStamp)

@@ -47,7 +47,7 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
         val emojiName = pressedEmoji.emojiName
         parentFragmentManager.setFragmentResult(
             REQUEST_KEY,
-            bundleOf(BUNDLE_KEY to arrayOf(emojiName,emojiCode))
+            bundleOf(BUNDLE_KEY to arrayOf(emojiName, emojiCode))
         )
         dismiss()
     }

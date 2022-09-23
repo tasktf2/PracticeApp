@@ -4,8 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import com.setjy.practiceapp.R
-import com.setjy.practiceapp.recycler.holders.TimeDividerViewHolder
 
 abstract class HolderFactory : (ViewGroup, Int) -> BaseViewHolder<ViewTyped> {
 

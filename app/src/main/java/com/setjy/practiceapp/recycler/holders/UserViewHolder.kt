@@ -1,6 +1,7 @@
 package com.setjy.practiceapp.recycler.holders
 
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.databinding.ItemUserBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
@@ -15,11 +16,9 @@ class UserViewHolder(val view: View) : BaseViewHolder<UserItemUI>(view) {
         with(binding) {
             tvFullName.text = item.fullName
             userEmail.text = item.userEmail
-            ivIndicator.setImageResource(item.status.color) //fix later
+            vIndicator.foreground =
+                ResourcesCompat.getDrawable(view.resources, item.status.color, null)
             getImageViewFromUrl(view, item.avatarUrl, ivAvatar)
         }
-
     }
-
-
 }

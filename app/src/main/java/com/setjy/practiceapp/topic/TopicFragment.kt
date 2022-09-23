@@ -1,12 +1,10 @@
 package com.setjy.practiceapp.topic
 
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -56,7 +54,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
             ?.get(StreamListFragment.STREAM_ARRAY_INDEX) as String
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
@@ -71,18 +68,21 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
         initSearch()
         subscribeToSearchResults()
         setButtonVisibility()
-        subscribeToMessageEvents(streamName, topicName)
+        subscribeToEvents(streamName, topicName)
     }
 
+    override fun onStop() {
+        super.onStop()
+        disposable.dispose()
+    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun subscribeToMessageEvents(streamName: String, topicName: String) {
+    private fun subscribeToEvents(streamName: String, topicName: String) {
         disposable += Data.getMessagesFromEventsQueue(streamName, topicName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doAfterNext {
                 binding.rvListOfMessages.smoothScrollToPosition(0)
-                subscribeToMessageEvents(streamName, topicName)
+                subscribeToEvents(streamName, topicName)
             }
             .subscribe({ response ->
                 adapter.items = response
@@ -106,7 +106,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
         disposable.dispose()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun getMessagesFromDatabase() {
         disposable += Data.getMessages(streamName, topicName)
             .subscribeOn(Schedulers.io())
@@ -133,7 +132,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
         }.isVisible = false
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun initClicks() {
         with(binding) {
             ivSend.setOnClickListener { setMessageSender() }
@@ -485,9 +483,8 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
                 { e -> Log.d("emoji_send", e.toString()) })
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun getOwnUser() {
-        Data.getOwnUser()
+        disposable += Data.getOwnUser()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doAfterSuccess { getMessagesFromDatabase() }
@@ -495,7 +492,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
             .subscribe()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setMessageSender() {
         val messageText = binding.etSend.text.toString()
         saveMessage(messageText)
@@ -503,7 +499,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun saveMessage(messageText: String) {
         disposable += Data.sendMessage(streamName, topicName, messageText)
             .subscribeOn(Schedulers.io())

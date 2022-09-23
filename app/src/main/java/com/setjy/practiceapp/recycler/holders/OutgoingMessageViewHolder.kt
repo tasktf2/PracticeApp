@@ -25,7 +25,13 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
             if (!item.reactions.isNullOrEmpty()) {
                 flexbox.setEmojis(item.reactions)
                 flexbox.onEmojiClick =
-                    {emojiName, emojiCode -> onEmojiClick?.invoke(item.messageId,emojiName, emojiCode) }
+                    { emojiName, emojiCode ->
+                        onEmojiClick?.invoke(
+                            item.messageId,
+                            emojiName,
+                            emojiCode
+                        )
+                    }
                 flexbox.onAddEmojiClick = { onAddEmojiClick?.invoke(item.messageId) }
             } else {
                 flexbox.removeAllViews()

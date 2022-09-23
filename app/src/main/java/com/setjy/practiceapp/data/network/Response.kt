@@ -9,7 +9,7 @@ data class StreamsSubscribedResponse(val subscriptions: List<StreamsRemote>)
 data class StreamsRemote(
     @SerializedName("stream_id") val streamId: Int,
     @SerializedName("name") val streamName: String,
-    @SerializedName("color") val streamColor: String
+    @SerializedName("color") val streamColor: String?
 )
 
 data class TopicsResponse(val topics: List<TopicsRemote>)
@@ -17,15 +17,6 @@ data class TopicsResponse(val topics: List<TopicsRemote>)
 data class TopicsRemote(
     @SerializedName("max_id") val topicId: Int,
     @SerializedName("name") val topicName: String
-)
-
-data class UserOwnResponse(
-    @SerializedName("user_id") val userId: Int,
-    @SerializedName("full_name") val fullName: String,
-    @SerializedName("is_active") val isActive: Boolean,
-    @SerializedName("is_admin") val isAdmin: Boolean,
-    @SerializedName("avatar_url") val avatarUrl: String,
-    @SerializedName("timezone") val userTimeZone: String
 )
 
 data class MessagesResponse(
@@ -52,8 +43,7 @@ data class ReactionsResponse(
     @SerializedName("emoji_code") val emojiCode: String,
     @SerializedName("emoji_name") val emojiName: String,
     @SerializedName("user_id") val userId: Int,
-
-    )
+)
 
 data class EmojiRemote(
     val code: String,
@@ -66,28 +56,21 @@ data class UsersResponse(val members: List<UsersRemote>)
 data class UsersRemote(
     @SerializedName("user_id") val userId: Int,
     @SerializedName("full_name") val fullName: String,
-    @SerializedName("is_active") val isActive: Boolean,
     @SerializedName("avatar_url") val avatarUrl: String,
     @SerializedName("delivery_email") val userEmail: String,
     @SerializedName("timezone") val userTimeZone: String
-
 )
 
 data class UserResponse(
     @SerializedName("id") val userId: Int,
     @SerializedName("email") val email: String,
     @SerializedName("full_name") val fullName: String,
-//    @SerializedName("is_mirror_dummy") val isMirrorDummy: Boolean
 )
 
 data class Narrow(
     @SerializedName("operator") val operator: String,
     @SerializedName("operand") val operand: String,
 )
-
-class GetUserResponse {
-//TODO
-}
 
 data class UserStatusPresence(
     val presence: UserStatusResponse
@@ -118,14 +101,11 @@ data class MessageSendResponse(
 data class SendEventResponse(
     @SerializedName("last_event_id") val lastEventId: Int,
     @SerializedName("queue_id") val queueId: String,
-//    @SerializedName("message") val message: Lis.<>
-//    @SerializedName("realm_emoji") val realmEmoji:List<>
 )
 
 data class GetEventResponse(
     val events: List<GetEventRemote>,
     @SerializedName("queue_id") val queueId: String
-
 )
 
 data class GetEventRemote(
@@ -134,10 +114,9 @@ data class GetEventRemote(
     @SerializedName("message") val message: MessagesRemote,
 
     @SerializedName("op") val operation: String,
-    @SerializedName("user_id") val userId:Int,
+    @SerializedName("user_id") val userId: Int,
     @SerializedName("user") val user: UserResponse,
     @SerializedName("message_id") val messageId: Int,
     @SerializedName("emoji_name") val emojiName: String,
-    @SerializedName("emoji_code") val emojiCode:String
+    @SerializedName("emoji_code") val emojiCode: String
 )
-

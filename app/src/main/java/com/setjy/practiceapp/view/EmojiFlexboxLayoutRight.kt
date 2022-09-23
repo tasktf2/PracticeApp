@@ -11,7 +11,7 @@ class EmojiFlexboxLayoutRight @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : FlexboxLayoutRight(context, attrs, defStyleAttr, defStyleRes) {
 
-    var onEmojiClick: ((emojiName:String, emojiCode: String) -> Unit)? = null
+    var onEmojiClick: ((emojiName: String, emojiCode: String) -> Unit)? = null
 
     var onAddEmojiClick: (() -> Unit)? = null
 

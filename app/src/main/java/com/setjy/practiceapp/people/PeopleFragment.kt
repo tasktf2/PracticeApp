@@ -36,6 +36,11 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
         getAllUsers()
     }
 
+    override fun onStop() {
+        super.onStop()
+        disposable.dispose()
+    }
+
     private fun initUserSearch() {
         val adapterItems = adapter.items
         binding.etSearch.addTextChangedListener { text ->
@@ -66,10 +71,5 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
 
     private fun hideLoading() {
         binding.shimmer.apply { stopShimmer() }.isVisible = false
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disposable.dispose()
     }
 }

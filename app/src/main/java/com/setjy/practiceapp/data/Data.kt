@@ -1,12 +1,8 @@
 package com.setjy.practiceapp.data
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.setjy.practiceapp.data.network.*
-import com.setjy.practiceapp.profile.UserOwnItemUI
-import com.setjy.practiceapp.profile.UserStatus
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.*
 import com.setjy.practiceapp.util.getMessageTimeStampMillis
@@ -16,10 +12,9 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.time.Instant
 
-
 object Data {
 
-    private var userOwnUI: UserOwnItemUI? = null
+    private var userOwnUI: UserItemUI? = null
 
     private var listOfStreams: List<StreamItemUI> = mutableListOf()
 
@@ -36,8 +31,6 @@ object Data {
     private const val EVENT_OPERATION_ADD = "add"
 
     private const val EVENT_MESSAGE = "message"
-
-    private const val EVENT_REACTION = "reaction"
 
     private const val ANCHOR_NEWEST = "newest"
 
@@ -59,7 +52,7 @@ object Data {
                             }.toList()
                     }.doAfterSuccess { listOfSubscribedStreams = it }
             subscribedOnly -> Single.just(listOfSubscribedStreams.onEach { it.isExpanded = false })
-            !subscribedOnly && listOfStreams.isEmpty() -> NetworkService.zulipService.getAllStreams()
+            listOfStreams.isEmpty() && !subscribedOnly -> NetworkService.zulipService.getAllStreams()
                 .flatMap {
                     Observable.fromIterable(it.streams)
                         .flatMapSingle { streamRemote ->
@@ -88,12 +81,12 @@ object Data {
                 TopicItemUI(
                     topicId = it.topicId,
                     topicName = it.topicName,
-                    parent = remoteStream.streamName
+                    parent = remoteStream.streamName,
+                    backgroundColor = remoteStream.streamColor
                 )
             })
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun getOwnUser(): Single<UserOwnItemUI> =
+    fun getOwnUser(): Single<UserItemUI> =
         if (userOwnUI == null) {
             NetworkService.zulipService.getOwnUser()
                 .flatMap {
@@ -104,14 +97,15 @@ object Data {
         }
 
     private fun ownUserToPresentation(
-        userOwnResponse: UserOwnResponse,
+        userOwnResponse: UsersRemote,
         status: String
     ) = with(userOwnResponse) {
-        UserOwnItemUI(
+        UserItemUI(
             userId = userId,
-            userFullName = fullName,
+            fullName = fullName,
             avatarUrl = avatarUrl,
             timezone = userTimeZone,
+            userEmail = userEmail,
             status = when (status) {
                 UserStatus.ACTIVE.name.lowercase() -> UserStatus.ACTIVE
                 UserStatus.IDLE.name.lowercase() -> UserStatus.IDLE
@@ -146,8 +140,9 @@ object Data {
             UserItemUI(
                 userId = userId,
                 fullName = fullName,
-                userEmail = userEmail,
                 avatarUrl = avatarUrl,
+                timezone = userTimeZone,
+                userEmail = userEmail,
                 status = when (userStatus) {
                     UserStatus.ACTIVE.name.lowercase() -> UserStatus.ACTIVE
                     UserStatus.IDLE.name.lowercase() -> UserStatus.IDLE
@@ -156,7 +151,6 @@ object Data {
             )
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun getMessages(streamName: String, topicName: String): Single<List<ViewTyped>> =
         if (tempMessageDatabase[streamName + topicName].isNullOrEmpty()) {
             NetworkService.zulipService.getMessages(
@@ -171,30 +165,7 @@ object Data {
                 )
             ).map { response ->
                 response.messages.map { message ->
-                    with(message) {
-                        when (senderId) {
-                            getUserOwnId() -> {
-                                OutgoingMessageUI(
-                                    messageId = messageId,
-                                    userId = getUserOwnId(),
-                                    message = content,
-                                    timestamp = getMessageTimeStampSeconds(timestamp),
-                                    reactions = getListOfEmojiUI(this)
-                                )
-                            }
-                            else -> {
-                                IncomingMessageUI(
-                                    messageId = messageId,
-                                    userId = senderId,
-                                    username = senderFullName,
-                                    message = content,
-                                    avatarUrl = avatarUrl,
-                                    timestamp = getMessageTimeStampSeconds(timestamp),
-                                    reactions = getListOfEmojiUI(this)
-                                )
-                            }
-                        }
-                    }
+                    putMessage(message)
                 }.asReversed()
             }.doAfterSuccess { tempMessageDatabase[streamName + topicName] = it.toMutableList() }
         } else {
@@ -204,25 +175,28 @@ object Data {
     private fun getUserOwnId(): Int = userOwnUI!!.userId
 
     private fun getListOfEmojiUI(messagesRemote: MessagesRemote): List<EmojiUI> =
-        messagesRemote.reactions.map { response ->
-            with(response) {
-                EmojiRemote(
-                    code = emojiCode,
-                    name = emojiName,
-                    userId = userId
-                )
+        if (messagesRemote.reactions.isNotEmpty()) {
+            messagesRemote.reactions.map { response ->
+                with(response) {
+                    EmojiRemote(
+                        code = emojiCode,
+                        name = emojiName,
+                        userId = userId
+                    )
+                }
+            }.map { emojiRemote ->
+                with(emojiRemote) {
+                    EmojiUI(
+                        emojiName = name,
+                        code = code,
+                        isSelected = userId == getUserOwnId()
+                    )
+                }
             }
-        }.map { emojiRemote ->
-            with(emojiRemote) {
-                EmojiUI(
-                    emojiName = name,
-                    code = code,
-                    isSelected = userId == getUserOwnId()
-                )
-            }
+        } else {
+            listOf()
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun sendMessage(
         streamName: String,
         topicName: String,
@@ -236,7 +210,6 @@ object Data {
                 ) { response, list -> messagesToPresentation(response, list, message) }
             }.doAfterSuccess { tempMessageDatabase[streamName + topicName] = it.toMutableList() }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun messagesToPresentation(
         response: MessageSendResponse,
         messages: List<ViewTyped>,
@@ -269,8 +242,7 @@ object Data {
                 Log.d("xxx", "register success: $it")
             }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun getMessagesFromEventsQueue(
+    fun getMessagesFromEventsQueue( //todo rename
         streamName: String,
         topicName: String
     ): Observable<List<ViewTyped>> = NetworkService.zulipService.getEventsQueue(
@@ -293,6 +265,20 @@ object Data {
         .doAfterNext { tempMessageDatabase[streamName + topicName] = it.toMutableList() }
         .doOnError { e -> Log.d("xxx", "get error, resume next?: (messages) $e") }
         .retry()
+
+    private fun messagesFromEventsQueueToPresentation(
+        eventsRemote: List<GetEventRemote>,
+        databaseMessages: List<ViewTyped>
+    ): Pair<List<GetEventRemote>, List<ViewTyped>> = Pair(eventsRemote,
+        eventsRemote.filter { it.type == EVENT_MESSAGE }
+            .filterNot { eventRemote ->
+                tempMessageDatabase[eventRemote.message.streamName + eventRemote.message.topicName]
+                    ?.find { item -> item is OutgoingMessageUI && item.messageId == eventRemote.message.messageId } != null
+            }
+            .map { event ->
+                putMessage(event.message)
+            }.asReversed() + databaseMessages
+    )
 
     private fun reactionsFromEventsQueueToPresentation(
         eventsAndMessages: Pair<List<GetEventRemote>, List<ViewTyped>>
@@ -353,43 +339,31 @@ object Data {
             }
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun messagesFromEventsQueueToPresentation(
-        eventsRemote: List<GetEventRemote>,
-        databaseMessages: List<ViewTyped>
-    ): Pair<List<GetEventRemote>, List<ViewTyped>> = Pair(eventsRemote
-//        .filter { it.type== EVENT_REACTION }
-        ,
-        eventsRemote.filter { it.type == EVENT_MESSAGE }
-            .filterNot { eventRemote ->
-                tempMessageDatabase[eventRemote.message.streamName + eventRemote.message.topicName]
-                    ?.find { item -> item is OutgoingMessageUI && item.messageId == eventRemote.message.messageId } != null
-            }
-            .map { event ->
-                with(event.message) {
-                    when (senderId) { //todo можно засунуть в метод, чтобы не было повторений
-                        getUserOwnId() -> {
-                            OutgoingMessageUI(
-                                messageId = messageId,
-                                userId = getUserOwnId(),
-                                message = content,
-                                timestamp = getMessageTimeStampSeconds(timestamp),
-                            )
-                        }
-                        else -> {
-                            IncomingMessageUI(
-                                messageId = messageId,
-                                userId = senderId,
-                                username = senderFullName,
-                                message = content,
-                                avatarUrl = avatarUrl,
-                                timestamp = getMessageTimeStampSeconds(timestamp),
-                            )
-                        }
-                    }
+    private fun putMessage(messageRemote: MessagesRemote) =
+        with(messageRemote) {
+            when (senderId) {
+                getUserOwnId() -> {
+                    OutgoingMessageUI(
+                        messageId = messageId,
+                        userId = getUserOwnId(),
+                        message = content,
+                        timestamp = getMessageTimeStampSeconds(timestamp),
+                        reactions = getListOfEmojiUI(this)
+                    )
                 }
-            }.asReversed() + databaseMessages
-    )
+                else -> {
+                    IncomingMessageUI(
+                        messageId = messageId,
+                        userId = senderId,
+                        username = senderFullName,
+                        message = content,
+                        avatarUrl = avatarUrl,
+                        timestamp = getMessageTimeStampSeconds(timestamp),
+                        reactions = getListOfEmojiUI(this)
+                    )
+                }
+            }
+        }
 
     val emojiUISet = listOf(
 

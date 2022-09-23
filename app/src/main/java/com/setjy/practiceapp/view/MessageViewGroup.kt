@@ -119,7 +119,7 @@ class MessageViewGroup @JvmOverloads constructor(
         binding.flexbox.setEmojis(items)
     }
 
-    fun setOnEmojiClickListener(onClick: (emojiName:String, emojiCode: String) -> Unit) {
+    fun setOnEmojiClickListener(onClick: (emojiName: String, emojiCode: String) -> Unit) {
         binding.flexbox.onEmojiClick = onClick
     }
 

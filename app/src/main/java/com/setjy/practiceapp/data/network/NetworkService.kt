@@ -45,7 +45,6 @@ object NetworkService {
         .addInterceptor(interceptor)
         .addNetworkInterceptor(httpLoggingInterceptor)
         .build()
-
     private val retrofit: Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .baseUrl(BASE_URL)

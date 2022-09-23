@@ -4,7 +4,7 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.base.ViewTyped
 
 data class EmojiUI(
-    val emojiName:String,
+    val emojiName: String,
     val code: String,
     val isSelected: Boolean = false,
     override val viewType: Int = R.layout.item_emoji

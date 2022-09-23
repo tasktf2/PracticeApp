@@ -18,7 +18,8 @@ fun Fragment.getImageViewFromUrl(url: String, view: ImageView) {
         .centerCrop()
         .into(view)
 }
-fun getImageViewFromUrl(view:View,url: String, imageView: ImageView) {
+
+fun getImageViewFromUrl(view: View, url: String, imageView: ImageView) {
     Glide.with(view)
         .load(url)
         .centerCrop()

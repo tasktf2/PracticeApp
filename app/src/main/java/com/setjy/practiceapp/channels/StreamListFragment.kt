@@ -45,6 +45,11 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         subscribeToSearch()
     }
 
+    override fun onStop() {
+        super.onStop()
+        disposable.dispose()
+    }
+
     //todo fix bugs
     private fun subscribeToSearch() {
         parentFragmentManager.setFragmentResultListener(
@@ -64,7 +69,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         }
     }
 
-    private fun Adapter<ViewTyped>.putItems(page: Page?) {
+    private fun Adapter<ViewTyped>.putItems(page: Page) {
         disposable += Data.getStreamsAndTopics(page == Page.SUBSCRIBED)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -114,7 +119,6 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         findNavController().navigate(R.id.action_channels_fragment_to_topicFragment, bundle)
     }
 
-
     companion object {
         private const val ARG_PAGE: String = "ARG_PAGE"
         const val STREAM_BUNDLE_KEY: String = "STREAM_BUNDLE_KEY"
@@ -124,10 +128,5 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         fun newInstance(page: Page) = StreamListFragment().apply {
             arguments = bundleOf(ARG_PAGE to page)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disposable.dispose()
     }
 }

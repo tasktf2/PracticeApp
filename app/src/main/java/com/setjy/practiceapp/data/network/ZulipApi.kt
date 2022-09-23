@@ -18,7 +18,7 @@ interface ZulipApi {
     fun getTopicsById(@Path("stream_id") streamId: Int): Single<TopicsResponse>
 
     @GET("users/me")
-    fun getOwnUser(): Single<UserOwnResponse>
+    fun getOwnUser(): Single<UsersRemote>
 
     @GET("messages")
     fun getMessages(
