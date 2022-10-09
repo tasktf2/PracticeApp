@@ -40,14 +40,13 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
         adapter.items = emojiUISet
     }
 
-    private fun onEmojiClick(emojiCode: String) {
+    private fun onEmojiClick(emojiName: String) {
         val pressedEmoji =
-            emojiUISet.find { it.code == emojiCode }!!
-        val emojiCode = pressedEmoji.code
-        val emojiName = pressedEmoji.emojiName
+            emojiUISet.find { it.emojiName == emojiName }!!
+        val pressedEmojiName = pressedEmoji.emojiName
         parentFragmentManager.setFragmentResult(
             REQUEST_KEY,
-            bundleOf(BUNDLE_KEY to arrayOf(emojiName, emojiCode))
+            bundleOf(BUNDLE_KEY to pressedEmojiName)
         )
         dismiss()
     }
@@ -55,8 +54,6 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
     companion object {
         internal const val REQUEST_KEY: String = "bottom_fragment"
         internal const val BUNDLE_KEY: String = "bundleKey"
-        internal const val EMOJI_NAME_INDEX: Int = 0
-        internal const val EMOJI_CODE_INDEX: Int = 1
     }
 
 }

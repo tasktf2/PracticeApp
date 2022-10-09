@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.data.network
 
+import androidx.room.Entity
 import com.google.gson.annotations.SerializedName
 
 data class StreamsResponse(val streams: List<StreamsRemote>)
@@ -45,10 +46,13 @@ data class ReactionsResponse(
     @SerializedName("user_id") val userId: Int,
 )
 
+@Entity(tableName = "reaction", primaryKeys = ["messageId", "userId", "code"])
 data class EmojiRemote(
+
     val code: String,
     val name: String,
-    val userId: Int
+    val userId: Int,
+    val messageId: Int
 )
 
 data class UsersResponse(val members: List<UsersRemote>)

@@ -1,9 +1,13 @@
 package com.setjy.practiceapp.recycler.items
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.recycler.base.ViewTyped
 
+@Entity(tableName = "user")
 data class UserItemUI(
+    @PrimaryKey
     val userId: Int,
     val avatarUrl: String,
     val fullName: String,

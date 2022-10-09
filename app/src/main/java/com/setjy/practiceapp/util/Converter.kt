@@ -56,18 +56,16 @@ fun getTimeStamp(timeStamp: Long): String {
 }
 
 fun getMessageTimeStampSeconds(timeStamp: Long): String {
-    val zone = ZoneId.of(Data.getTimeZone())
     val secondsToMillisMultiplier = 1000L
     val date = Date(timeStamp * secondsToMillisMultiplier)
     val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
-    sdf.timeZone = TimeZone.getTimeZone(zone)
+    sdf.timeZone = TimeZone.getDefault()
     return sdf.format(date)
 }
 
 fun getMessageTimeStampMillis(timeStamp: Long): String {
-    val zone = ZoneId.of(Data.getTimeZone())
     val date = Date(timeStamp)
     val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
-    sdf.timeZone = TimeZone.getTimeZone(zone)
+    sdf.timeZone = TimeZone.getDefault()
     return sdf.format(date)
 }

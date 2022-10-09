@@ -3,10 +3,10 @@ package com.setjy.practiceapp.recycler.holders
 import android.view.View
 import com.setjy.practiceapp.databinding.ItemMsgOutgoingBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
+import com.setjy.practiceapp.recycler.items.MessageUI
 
 
-class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessageUI>(view) {
+class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<MessageUI>(view) {
 
     private val binding: ItemMsgOutgoingBinding = ItemMsgOutgoingBinding.bind(view)
 
@@ -16,13 +16,12 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
 
     var onAddEmojiClick: ((messageId: Int) -> Unit)? = null
 
-    override fun bind(item: OutgoingMessageUI) {
+    override fun bind(item: MessageUI) {
         currentMessageId = item.messageId
         with(binding) {
             tvMessage.text = item.message
             tvTimestamp.text = item.timestamp
-
-            if (!item.reactions.isNullOrEmpty()) {
+            if (item.reactions.isNotEmpty()) {
                 flexbox.setEmojis(item.reactions)
                 flexbox.onEmojiClick =
                     { emojiName, emojiCode ->
@@ -38,6 +37,4 @@ class OutgoingMessageViewHolder(val view: View) : BaseViewHolder<OutgoingMessage
             }
         }
     }
-
-
 }

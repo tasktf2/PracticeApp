@@ -2,11 +2,11 @@ package com.setjy.practiceapp.recycler.holders
 
 import android.view.View
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.recycler.items.IncomingMessageUI
+import com.setjy.practiceapp.recycler.items.MessageUI
 import com.setjy.practiceapp.util.getImageViewFromUrl
 import com.setjy.practiceapp.view.MessageViewGroup
 
-class IncomingMessageViewHolder(val view: View) : BaseViewHolder<IncomingMessageUI>(view) {
+class IncomingMessageViewHolder(val view: View) : BaseViewHolder<MessageUI>(view) {
 
     private val messageView: MessageViewGroup = view as MessageViewGroup
 
@@ -16,15 +16,17 @@ class IncomingMessageViewHolder(val view: View) : BaseViewHolder<IncomingMessage
 
     var onAddEmojiClick: ((messageId: Int) -> Unit)? = null
 
-    override fun bind(item: IncomingMessageUI) {
+    override fun bind(item: MessageUI) {
         currentMessageId = item.messageId
         with(messageView.binding) {
-            getImageViewFromUrl(view, item.avatarUrl, ivAvatar)
+            if (!item.isOutgoingMessage) {
+                getImageViewFromUrl(view, item.avatarUrl!!, ivAvatar)
+            }
             tvUsername.text = item.username
             tvMessage.text = item.message
             tvTimestamp.text = item.timestamp
         }
-        if (!item.reactions.isNullOrEmpty()) {
+        if (item.reactions.isNotEmpty()) {
             messageView.setEmojis(item.reactions)
 
             messageView.setOnEmojiClickListener { emojiName, emojiCode ->

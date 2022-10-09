@@ -24,7 +24,7 @@ class TopicItemViewHolder(val view: View) : BaseViewHolder<TopicItemUI>(view) {
                 topicContainer.setBackgroundColor(view.resources.getColor(R.color.app_cyan, null))
             }
             topicContainer.setOnClickListener {
-                onTopicClick?.invoke(item.topicName, item.parent)
+                onTopicClick?.invoke(item.topicName, item.parentName)
             }
         }
     }
