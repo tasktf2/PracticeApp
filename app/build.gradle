@@ -6,14 +6,21 @@ plugins {
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 30
+    compileSdk 32
 
     defaultConfig {
         applicationId "com.setjy.practiceapp"
         minSdk 26
-        targetSdk 30
+        targetSdk 32
         versionCode 1
         versionName "1.0"
+    }
+
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+
     }
 
     buildFeatures {
@@ -47,15 +54,20 @@ dependencies {
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
 
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    //navigation
+    def navigation = "2.3.5"
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigation"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigation"
 
     //retrofit
     def retrofit = "2.9.0"
     implementation "com.squareup.retrofit2:retrofit:$retrofit"
     implementation "com.squareup.retrofit2:adapter-rxjava3:$retrofit"
     implementation "com.squareup.retrofit2:converter-gson:2.4.0"
-    implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
+
+    def okhttp = "5.0.0-alpha.2"
+    implementation "com.squareup.okhttp3:okhttp:$okhttp"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp"
 
     //glide
     def glide = "4.13.2"
@@ -65,9 +77,8 @@ dependencies {
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
     //room
-    def room="2.3.0"
+    def room = "2.3.0"
     kapt("androidx.room:room-compiler:$room")
     implementation("androidx.room:room-runtime:$room")
-    annotationProcessor("androidx.room:room-compiler:$room")
     implementation("androidx.room:room-rxjava3:$room")
 }

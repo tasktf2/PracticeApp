@@ -15,6 +15,7 @@ data class MessageUI(
     val reactions: List<EmojiUI> = listOf(),
     val isFound: Boolean = false,
     val isOutgoingMessage: Boolean,
+    override val uid: Int = messageId,
     override val viewType: Int = if (isOutgoingMessage) {
         R.layout.item_msg_outgoing
     } else {

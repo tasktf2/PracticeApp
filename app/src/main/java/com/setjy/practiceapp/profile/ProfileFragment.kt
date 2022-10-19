@@ -5,11 +5,11 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.data.Data
-import com.setjy.practiceapp.databinding.FragmentProfileBinding
 import com.setjy.practiceapp.recycler.items.UserItemUI
-import com.setjy.practiceapp.util.getImageViewFromUrl
+import com.setjy.practiceapp.databinding.FragmentProfileBinding
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -26,57 +26,46 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         getOwnUser()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroyView() {
+        super.onDestroyView()
         disposable.dispose()
+
     }
 
     private fun getOwnUser() {
-        disposable += Data.getOwnUserFromDatabase()
+        disposable += Data.getOwnUser()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doAfterSuccess { hideLoading() }
+            .doAfterNext { hideLoading() }
             .doOnSubscribe { showLoading() }
-            .subscribe { users ->
-                if (users.isEmpty()) {
-                    disposable += Data.getOwnUser()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { user ->
-                            insertUserToDB(user)
-                            bindUser(user)
-                        }
-                } else {
-                    bindUser(users[0])
-                }
-            }
-    }
-
-    private fun insertUserToDB(user: UserItemUI) {
-        disposable += Data.insertUser(user)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
+            .subscribe { user -> bindUser(user) }
     }
 
     private fun bindUser(user: UserItemUI) {
         with(binding) {
-            getImageViewFromUrl(user.avatarUrl, ivAvatar)
             tvFullName.text = user.fullName
             tvStatus.apply {
                 text = user.status.name.lowercase()
                 setTextColor(resources.getColor(user.status.color, null))
             }
+            Glide.with(requireContext())
+                .load(user.avatarUrl)
+                .centerCrop()
+                .into(ivAvatar)
         }
     }
 
     private fun hideLoading() {
-        binding.shimmer.root.apply {
+        with(binding.shimmer.root) {
             stopShimmer()
-        }.isVisible = false
+            isVisible = false
+        }
     }
 
     private fun showLoading() {
-        binding.shimmer.root.showShimmer(true)
+        with(binding.shimmer.root) {
+            startShimmer()
+            isVisible = true
+        }
     }
 }

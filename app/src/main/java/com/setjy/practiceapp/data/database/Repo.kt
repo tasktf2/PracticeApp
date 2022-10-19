@@ -2,10 +2,11 @@ package com.setjy.practiceapp.data.database
 
 import android.content.Context
 import androidx.room.Room
-import com.setjy.practiceapp.data.Data
-import com.setjy.practiceapp.data.network.EmojiRemote
+import com.setjy.practiceapp.data.database.entity.*
+import com.setjy.practiceapp.data.network.response.EmojiRemote
+import com.setjy.practiceapp.data.network.response.MessagesRemote
 import com.setjy.practiceapp.recycler.items.*
-import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 
 class ZulipRepo private constructor(context: Context) {
@@ -23,97 +24,59 @@ class ZulipRepo private constructor(context: Context) {
 
     private val reactionsDao = database.reactionsDao()
 
-    private val usersDao = database.usersDao()
+    fun getStreams(isSubscribed: Boolean): Single<List<StreamItemDB>> =
+        Single.fromCallable { streamDao.getStreams(isSubscribed) }
 
-    fun getAllStreams(): Single<List<StreamItemUI>> =
-        Single.fromCallable { streamDao.getAllStreams() }
-
-    fun getSubscribedStreams(): Single<List<StreamItemUI>> =
-        Single.fromCallable { streamDao.getSubscribedStreams() }
-
-    fun insertAllStreams(streams: List<StreamItemUI>): Single<Unit> =
-        Single.fromCallable { streamDao.insertAllStreams(streams) }
+    fun insertAllStreams(streams: List<StreamItemDB>) = streamDao.insertAllStreams(streams)
 
     fun getTopicsByStreamId(streamId: Int): Single<List<TopicItemUI>> =
         Single.fromCallable { topicDao.getTopicsByStreamId(streamId) }
 
-    fun insertTopics(topics: List<TopicItemUI>): Single<Unit> =
-        Single.fromCallable { topicDao.insertTopics(topics) }
+    fun insertTopics(topics: List<TopicItemUI>) = topicDao.insertTopics(topics)
 
-    fun getMessages(streamName: String, topicName: String): Single<List<MessageDB>> =
+    fun getMessages(streamName: String, topicName: String): Single<List<MessageWithReactionsDB>> =
         Single.fromCallable { messagesDao.getMessages(streamName, topicName) }
 
-    fun insertMessages(messages: List<MessageDB>): Completable =
-        Completable.fromCallable { messagesDao.insertMessages(messages) }
+    fun insertMessages(messages: List<MessageDB>) = messagesDao.insertMessages(messages)
 
-    fun insertMessage(message: MessageDB): Completable =
-        Completable.fromCallable { messagesDao.insertMessage(message) }
+    fun insertMessage(message: MessageDB) = messagesDao.insertMessage(message)
 
-    fun deleteMessages(messages: List<MessageDB>): Completable =
-        Completable.fromCallable { messagesDao.deleteMessages(messages) }
+    fun deleteMessages(messages: List<MessageDB>) = messagesDao.deleteMessages(messages)
 
-    fun getUser(): Single<List<UserItemUI>> =
-        Single.fromCallable { usersDao.getUser() }
+    fun deleteAllMessages(streamName: String, topicName: String) =
+        messagesDao.deleteAllMessages(streamName, topicName)
 
-    fun insertUser(user: UserItemUI): Completable =
-        Completable.fromCallable { usersDao.insertUser(user) }
-
-    fun getReactionsByMessageId(messageId: Int): Single<List<EmojiUI>> =
-        Single.fromCallable { reactionsDao.getReactionsByMessageId(messageId) }.map { emojiRemote ->
-            emojiRemote.map {
-                EmojiUI(
-                    emojiName = it.name,
-                    code = it.code,
-                    isSelected = it.userId == Data.getUserOwnId()
-                )
-            }
-        }
-
-    fun insertReactions(reactions: List<EmojiUI>, messageId: Int, userId: Int): Single<Unit> =
-        Single.fromCallable {
-            reactionsDao.insertReactions(reactions.map {
+    fun insertReactions(messages: List<MessagesRemote>) = messages.forEach { message ->
+        reactionsDao.insertReactions(
+            message.reactions.map { reaction ->
                 EmojiRemote(
-                    code = it.code,
-                    name = it.emojiName,
-                    userId = userId,
-                    messageId = messageId
+                    code = reaction.emojiCode,
+                    name = reaction.emojiName,
+                    messageId = message.messageId,
+                    userId = reaction.userId
                 )
             })
-        }
-    fun insertReaction(reaction: EmojiUI, messageId: Int, userId: Int): Completable =
-        Completable.fromCallable {
-            reactionsDao.insertReaction(
-                EmojiRemote(
-                    code = reaction.code,
-                    name = reaction.emojiName,
-                    userId = userId,
-                    messageId = messageId
-                )
-            )
-        }
+    }
 
-    fun deleteReactions(reactions: List<EmojiUI>, messageId: Int, userId: Int): Completable =
-        Completable.fromCallable {
-            reactionsDao.deleteReactions(reactions.map {
-                EmojiRemote(
-                    code = it.code,
-                    name = it.emojiName,
-                    userId = userId,
-                    messageId = messageId
-                )
-            })
-        }
-    fun deleteReaction(reaction: EmojiUI, messageId: Int, userId: Int): Completable =
-        Completable.fromCallable {
-            reactionsDao.deleteReaction(
-                EmojiRemote(
-                    code = reaction.code,
-                    name = reaction.emojiName,
-                    userId = userId,
-                    messageId = messageId
-                )
+    fun insertReaction(reaction: EmojiUI, messageId: Int, userId: Int) =
+        reactionsDao.insertReaction(
+            EmojiRemote(
+                code = reaction.code,
+                name = reaction.emojiName,
+                userId = userId,
+                messageId = messageId
             )
-        }
+        )
+
+    fun deleteReaction(reaction: EmojiUI, messageId: Int, userId: Int) =
+        reactionsDao.deleteReaction(
+            EmojiRemote(
+                code = reaction.code,
+                name = reaction.emojiName,
+                userId = userId,
+                messageId = messageId
+            )
+        )
 
     companion object {
         private var REPO_INSTANCE: ZulipRepo? = null

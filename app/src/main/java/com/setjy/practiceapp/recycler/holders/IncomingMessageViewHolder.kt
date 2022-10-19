@@ -1,9 +1,9 @@
 package com.setjy.practiceapp.recycler.holders
 
 import android.view.View
+import com.bumptech.glide.Glide
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
 import com.setjy.practiceapp.recycler.items.MessageUI
-import com.setjy.practiceapp.util.getImageViewFromUrl
 import com.setjy.practiceapp.view.MessageViewGroup
 
 class IncomingMessageViewHolder(val view: View) : BaseViewHolder<MessageUI>(view) {
@@ -20,7 +20,10 @@ class IncomingMessageViewHolder(val view: View) : BaseViewHolder<MessageUI>(view
         currentMessageId = item.messageId
         with(messageView.binding) {
             if (!item.isOutgoingMessage) {
-                getImageViewFromUrl(view, item.avatarUrl!!, ivAvatar)
+                Glide.with(view)
+                    .load(item.avatarUrl)
+                    .centerCrop()
+                    .into(ivAvatar)
             }
             tvUsername.text = item.username
             tvMessage.text = item.message

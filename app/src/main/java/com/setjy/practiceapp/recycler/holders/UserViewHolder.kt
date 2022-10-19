@@ -3,10 +3,10 @@ package com.setjy.practiceapp.recycler.holders
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bumptech.glide.Glide
 import com.setjy.practiceapp.databinding.ItemUserBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
 import com.setjy.practiceapp.recycler.items.UserItemUI
-import com.setjy.practiceapp.util.getImageViewFromUrl
 
 class UserViewHolder(val view: View) : BaseViewHolder<UserItemUI>(view) {
 
@@ -18,7 +18,11 @@ class UserViewHolder(val view: View) : BaseViewHolder<UserItemUI>(view) {
             userEmail.text = item.userEmail
             vIndicator.foreground =
                 ResourcesCompat.getDrawable(view.resources, item.status.color, null)
-            getImageViewFromUrl(view, item.avatarUrl, ivAvatar)
+            Glide.with(view)
+                .load(item.avatarUrl)
+                .centerCrop()
+                .into(ivAvatar)
+
         }
     }
 }

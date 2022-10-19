@@ -36,9 +36,10 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
         getAllUsers()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroyView() {
+        super.onDestroyView()
         disposable.dispose()
+
     }
 
     private fun initUserSearch() {
@@ -59,7 +60,7 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
         disposable += Data.getAllUsers()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doAfterSuccess {
+            .doAfterNext {
                 hideLoading()
                 initUserSearch()
             }

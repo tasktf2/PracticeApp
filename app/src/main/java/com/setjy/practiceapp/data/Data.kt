@@ -2,36 +2,30 @@ package com.setjy.practiceapp.data
 
 import android.util.Log
 import com.google.gson.Gson
+import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.data.database.ZulipRepo
-import com.setjy.practiceapp.data.network.*
+import com.setjy.practiceapp.data.database.entity.MessageDB
+import com.setjy.practiceapp.data.database.entity.StreamItemDB
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
+import com.setjy.practiceapp.data.network.NetworkService
+import com.setjy.practiceapp.data.network.response.*
 import com.setjy.practiceapp.recycler.items.*
-import com.setjy.practiceapp.util.getMessageTimeStampMillis
-import com.setjy.practiceapp.util.getMessageTimeStampSeconds
+import com.setjy.practiceapp.util.getMessageTimeStamp
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
-import java.time.Instant
 
 object Data {
 
     private val zulipRepo by lazy { ZulipRepo.get() }
 
-    private var userOwnUI: UserItemUI? = null //todo delete?
+    private const val COUNT_OF_MESSAGES_TO_LOAD = 20
 
-    private var listOfUsers: List<UserItemUI> = mutableListOf() //todo delete?
+    private const val KEY_OWN_USER_ID = "KEY_OWN_USER_ID"
 
-    private const val START_EVENT_ID = -1
-
-    private var lastEventId = START_EVENT_ID
-
-    private var queueId = ""
-
-    const val EVENT_OPERATION_ADD = "add"
-
-    const val EVENT_MESSAGE = "message"
-
-    const val EVENT_REACTION = "reaction"
+    private const val COUNT_OF_MESSAGES_TO_SAVE: Int = 50
 
     private const val ANCHOR_NEWEST = "newest"
 
@@ -39,32 +33,94 @@ object Data {
 
     private const val NARROW_TOPIC = "topic"
 
-    fun getAllStreamsFromDB() = zulipRepo.getAllStreams()
-
-    fun getSubscribedStreamsFromDB() = zulipRepo.getSubscribedStreams()
-
-    fun insertAllStreamsToDB(streams: List<StreamItemUI>) = zulipRepo.insertAllStreams(streams)
-
-    fun getTopicsByStreamIdFromDB(streamId: Int) = zulipRepo.getTopicsByStreamId(streamId)
-
-    fun insertTopicsToDB(topics: List<TopicItemUI>) = zulipRepo.insertTopics(topics)
-
-    fun insertUser(user: UserItemUI) = zulipRepo.insertUser(user)
-
-    fun getOwnUserFromDatabase(): Single<List<UserItemUI>> =
-        zulipRepo.getUser().doAfterSuccess { if (it.isNotEmpty()) userOwnUI = it[0] }
-
-    fun getMessagesFromDB(streamName: String, topicName: String): Single<MutableList<MessageUI>> =
-        zulipRepo.getMessages(streamName, topicName)
-            .flatMap { messages ->
-                Observable.fromIterable(messages).flatMapSingle { messageDB ->
+    fun getStreams(isSubscribed: Boolean): Observable<MutableList<StreamItemUI>> =
+        zulipRepo.getStreams(isSubscribed)
+            .flatMap { dbStreams ->
+                Observable.fromIterable(dbStreams).flatMapSingle { streamItemDB ->
                     Single.zip(
-                        Single.just(messageDB),
-                        zulipRepo.getReactionsByMessageId(messageDB.messageId),
-                        ::messageToPresentation
+                        Single.just(streamItemDB),
+                        zulipRepo.getTopicsByStreamId(streamItemDB.streamId),
+                        ::streamDBToPresentation
                     )
                 }.toList()
+            }.flatMapObservable { dbStreams ->
+                if (dbStreams.isEmpty()
+                    || dbStreams.all { it.isSubscribed } && !isSubscribed
+                    || dbStreams.all { !it.isSubscribed } && isSubscribed
+                ) {
+                    getStreamsNW(isSubscribed).flatMapObservable { nwStreams ->
+                        Observable.fromIterable(nwStreams).flatMap { streamItemUI ->
+                            Observable.zip(
+                                Observable.just(streamItemUI),
+                                getTopics(streamItemUI),
+                                ::streamNWToPresentation
+                            )
+                        }.toList()
+                            .toObservable()
+                    }.retry()
+                        .flatMap { nwStreams ->
+                            insertStreamsToDB(nwStreams)
+                            insertTopicsToDB(nwStreams)
+                            Observable.just(nwStreams)
+                        }
+                } else {
+                    Observable.just(dbStreams)
+                }
             }
+
+    private fun streamDBToPresentation(
+        streamItemDB: StreamItemDB,
+        topics: List<TopicItemUI>
+    ): StreamItemUI =
+        with(streamItemDB) {
+            StreamItemUI(streamId, streamName, isSubscribed, backgroundColor, topics)
+        }
+
+    private fun streamNWToPresentation(
+        streamItemUI: StreamItemUI,
+        topics: List<TopicItemUI>
+    ): StreamItemUI =
+        streamItemUI.copy(listOfTopics = topics)
+
+
+    private fun insertStreamsToDB(streams: List<StreamItemUI>) =
+        zulipRepo.insertAllStreams(streams.map {
+            with(it) {
+                StreamItemDB(streamId, streamName, isSubscribed, backgroundColor)
+            }
+        })
+
+    private fun insertTopicsToDB(streams: List<StreamItemUI>) = streams.forEach { stream ->
+        zulipRepo.insertTopics(stream.listOfTopics)
+    }
+
+    fun getMessagesOnLaunch(streamName: String, topicName: String): Flowable<List<MessageUI>> =
+        Single.concatArrayEager(
+            getMessagesFromDB(streamName, topicName),
+            Single.fromObservable(getMessages(streamName, topicName, ANCHOR_NEWEST))
+        )
+
+    private fun getMessagesFromDB(
+        streamName: String,
+        topicName: String
+    ): Single<List<MessageUI>> =
+        zulipRepo.getMessages(streamName, topicName)
+            .map { messages ->
+                messages.map { message ->
+                    messageToPresentation(
+                        message.messageDB,
+                        message.reactions.toEmojiUI()
+                    )
+                }.asReversed()
+            }
+
+    private fun List<EmojiRemote>.toEmojiUI() = map {
+        EmojiUI(
+            emojiName = it.name,
+            code = it.code,
+            isSelected = it.userId == getUserOwnId()
+        )
+    }
 
     private fun messageToPresentation(messageDB: MessageDB, reactions: List<EmojiUI>): MessageUI =
         with(messageDB) {
@@ -78,60 +134,55 @@ object Data {
                 streamName,
                 topicName,
                 reactions,
-                isFound,
-                isOutgoingMessage,
-                viewType,
+                isOutgoingMessage = isOutgoingMessage
             )
         }
 
-    fun insertReactionsToDB(messages: List<MessageUI>): Single<MutableList<Unit>> =
-        Observable.fromIterable(messages)
-            .flatMapSingle { message ->
-                zulipRepo.insertReactions(
-                    messageId = message.messageId,
-                    reactions = message.reactions,
-                    userId = message.userId
+    private fun insertMessagesToDB(messages: List<MessagesRemote>) {
+        zulipRepo.insertMessages(messages.toMessageDB())
+        zulipRepo.insertReactions(messages)
+    }
+
+    private fun List<MessagesRemote>.toMessageDB() =
+        map {
+            with(it) {
+                MessageDB(
+                    userId = it.senderId,
+                    messageId = it.messageId,
+                    avatarUrl = it.avatarUrl,
+                    username = senderFullName,
+                    message = content,
+                    timestamp = getMessageTimeStamp(timestamp),
+                    streamName = streamName,
+                    topicName = topicName,
+                    isOutgoingMessage = senderId == getUserOwnId()
                 )
-            }.toList()
 
-    fun insertReactionToDB(reaction: EmojiUI, messageId: Int, userId: Int): Completable =
-        zulipRepo.insertReaction(
-            messageId = messageId,
-            reaction = reaction,
-            userId = userId
-        )
+            }
+        }
 
-    fun insertMessagesToDB(messages: List<MessageUI>) = zulipRepo.insertMessages(
-        toMessageDB(messages)
-    )
-
-    fun insertMessageToDB(message: MessagesRemote) = zulipRepo.insertMessage(
-        toMessageDB(
+    private fun insertMessageToDB(message: MessagesRemote) =
+        zulipRepo.insertMessage(
             with(message) {
                 listOf(
                     MessageUI(
-                        userId = user.userId,
+                        userId = senderId,
                         messageId = messageId,
                         avatarUrl = avatarUrl,
-                        username = user.fullName,
+                        username = senderFullName,
                         message = content,
-                        timestamp = getMessageTimeStampMillis(message.timestamp),
+                        timestamp = getMessageTimeStamp(timestamp),
                         streamName = streamName,
                         topicName = topicName,
                         reactions = listOf(),
-                        isFound = false,
-                        isOutgoingMessage = user.userId == getUserOwnId()
+                        isOutgoingMessage = senderId == getUserOwnId()
                     )
                 )
-            })[0]
-    )
+            }.toMessagesDB()[0]
+        )
 
-    fun deleteMessagesFromDB(messages: List<MessageUI>) = zulipRepo.deleteMessages(
-        toMessageDB(messages)
-    )
-
-    private fun toMessageDB(messages: List<MessageUI>) =
-        messages.map {
+    private fun List<MessageUI>.toMessagesDB() =
+        map {
             with(it) {
                 MessageDB(
                     userId,
@@ -142,43 +193,21 @@ object Data {
                     timestamp,
                     streamName,
                     topicName,
-                    isFound,
-                    isOutgoingMessage,
-                    viewType
+                    isOutgoingMessage
                 )
             }
         }
 
-    fun deleteReactionsFromDB(messages: List<MessageUI>): Completable =
-        Observable.fromIterable(messages)
-            .flatMapCompletable {
-                zulipRepo.deleteReactions(
-                    reactions = it.reactions,
-                    messageId = it.messageId,
-                    userId = it.userId
-                )
-            }
-
-    fun deleteReactionFromDB(reaction: EmojiUI, messageId: Int, userId: Int): Completable =
-        zulipRepo.deleteReaction(
-            reaction = reaction,
-            messageId = messageId,
-            userId = userId
-        )
-
-    fun getStreams(subscribedOnly: Boolean): Single<List<StreamItemUI>> =
-        if (subscribedOnly) NetworkService.zulipService.getSubscribedStreams()
-            .flatMap {
-                Observable.fromIterable(it.subscriptions)
-                    .flatMapSingle { streamRemote ->
-                        Single.just(streamsToPresentation(streamRemote, subscribedOnly))
-                    }.toList()
-            }
-        else NetworkService.zulipService.getAllStreams()
+    private fun getStreamsNW(subscribedOnly: Boolean): Single<List<StreamItemUI>> =
+        if (subscribedOnly) {
+            NetworkService.zulipService.getSubscribedStreams()
+        } else {
+            NetworkService.zulipService.getAllStreams()
+        }
             .flatMap {
                 Observable.fromIterable(it.streams)
-                    .flatMapSingle { streamRemote ->
-                        Single.just(streamsToPresentation(streamRemote, subscribedOnly))
+                    .flatMap { streamRemote ->
+                        Observable.just(streamsToPresentation(streamRemote, subscribedOnly))
                     }.toList()
             }
 
@@ -193,13 +222,13 @@ object Data {
             backgroundColor = remoteStream.streamColor
         )
 
-    fun getTopics(stream: StreamItemUI): Single<MutableList<TopicItemUI>> =
+    private fun getTopics(stream: StreamItemUI): Observable<MutableList<TopicItemUI>> =
         NetworkService.zulipService.getTopicsById(stream.streamId)
             .flatMap {
                 Observable.fromIterable(it.topics)
                     .flatMapSingle { topicRemote ->
                         Single.just(topicsToPresentation(topicRemote, stream))
-                    }.toList()
+                    }.toList().toObservable()
             }
 
     private fun topicsToPresentation(topic: TopicsRemote, stream: StreamItemUI) =
@@ -211,15 +240,22 @@ object Data {
             backgroundColor = stream.backgroundColor
         )
 
-    fun getOwnUser(): Single<UserItemUI> =
+    fun getOwnUser(): Observable<UserItemUI> =
         NetworkService.zulipService.getOwnUser()
-            .flatMap {
-                Single.zip(Single.just(it), getUserStatus(it.userId), ::ownUserToPresentation)
-            }.doAfterSuccess { userOwnUI = it }
+            .flatMap { user ->
+                getUserStatus(user.userId).map { status ->
+                    ownUserToPresentation(user, status)
+                }
+            }.doAfterNext { user ->
+                if (ZulipApp.preferences.getInt(KEY_OWN_USER_ID, 0) == 0) {
+                    ZulipApp.editor.putInt(KEY_OWN_USER_ID, user.userId).commit()
+                }
+            }
+            .retry()
 
     private fun ownUserToPresentation(
         userOwnResponse: UsersRemote,
-        status: String
+        status: UserStatus
     ) = with(userOwnResponse) {
         UserItemUI(
             userId = userId,
@@ -227,36 +263,29 @@ object Data {
             avatarUrl = avatarUrl,
             timezone = userTimeZone,
             userEmail = userEmail,
-            status = when (status) {
-                UserStatus.ACTIVE.name.lowercase() -> UserStatus.ACTIVE
-                UserStatus.IDLE.name.lowercase() -> UserStatus.IDLE
-                else -> UserStatus.OFFLINE
-            }
+            status = status
         )
     }
 
-    private fun getUserStatus(userId: Int): Single<String> =
+    private fun getUserStatus(userId: Int): Observable<UserStatus> =
         NetworkService.zulipService.getUserStatus(userId).subscribeOn(Schedulers.io())
             .map { it.presence.statusAndTimestamp.status }
 
-    fun getAllUsers(): Single<List<UserItemUI>> =
-        if (listOfUsers.isEmpty()) {
-            NetworkService.zulipService.getAllUsers()
-                .flatMap { usersResponse ->
-                    Observable.fromIterable(usersResponse.members)
-                        .flatMapSingle { userRemote ->
-                            Single.zip(
-                                Single.just(userRemote),
-                                getUserStatus(userRemote.userId),
-                                ::usersToPresentation
-                            )
-                        }.toList()
-                }.doAfterSuccess { listOfUsers = it }
-        } else {
-            Single.just(listOfUsers)
-        }
+    fun getAllUsers(): Observable<List<UserItemUI>> =
+        NetworkService.zulipService.getAllUsers()
+            .flatMap { usersResponse ->
+                Observable.fromIterable(usersResponse.members)
+                    .flatMap { userRemote ->
+                        Observable.zip(
+                            Observable.just(userRemote),
+                            getUserStatus(userRemote.userId),
+                            ::usersToPresentation
+                        )
+                    }.toList()
+                    .toObservable()
+            }.retry()
 
-    private fun usersToPresentation(userRemote: UsersRemote, userStatus: String) =
+    private fun usersToPresentation(userRemote: UsersRemote, userStatus: UserStatus) =
         with(userRemote) {
             UserItemUI(
                 userId = userId,
@@ -264,113 +293,63 @@ object Data {
                 avatarUrl = avatarUrl,
                 timezone = userTimeZone,
                 userEmail = userEmail,
-                status = when (userStatus) {
-                    UserStatus.ACTIVE.name.lowercase() -> UserStatus.ACTIVE
-                    UserStatus.IDLE.name.lowercase() -> UserStatus.IDLE
-                    else -> UserStatus.OFFLINE
-                }
+                status = userStatus
             )
         }
 
-    fun getNewestMessages(streamName: String, topicName: String): Single<List<MessageUI>> =
-        NetworkService.zulipService.getMessages(
-            anchor = ANCHOR_NEWEST,
-            numBefore = 20,
-            numAfter = 0,
-            narrow = Gson().toJson( //todo find how to fix it
-                listOf(
-                    Narrow(NARROW_STREAM, streamName),
-                    Narrow(NARROW_TOPIC, topicName)
-                )
-            )
-        ).map { response ->
-            response.messages.map { message ->
-                putMessage(message)
-            }.asReversed()
-        }
-
-    fun getMessagesByAnchor(
+    fun getMessages(
         streamName: String,
         topicName: String,
-        anchor: Int
-    ): Single<List<MessageUI>> =
-        NetworkService.zulipService.getMessages(
-            anchor = anchor.toString(),
-            numBefore = 20,
-            numAfter = 0,
-            narrow = Gson().toJson( //todo find how to fix it
-                listOf(
-                    Narrow(NARROW_STREAM, streamName),
-                    Narrow(NARROW_TOPIC, topicName)
+        anchor: String
+    ): Observable<List<MessageUI>> =
+        getMessagesFromDB(streamName, topicName).flatMapObservable { db ->
+            NetworkService.zulipService.getMessages(
+                anchor = anchor,
+                numBefore = COUNT_OF_MESSAGES_TO_LOAD,
+                numAfter = 0,
+                narrow = Gson().toJson( //todo find how to fix it
+                    listOf(
+                        Narrow(NARROW_STREAM, streamName),
+                        Narrow(NARROW_TOPIC, topicName)
+                    )
                 )
             )
-        ).map { response ->
-            response.messages.map { message ->
-                putMessage(message)
-            }.asReversed()
-        }
+                .map { response ->
+                    if (anchor != ANCHOR_NEWEST && db.size < COUNT_OF_MESSAGES_TO_SAVE) {
+                        insertMessagesToDB(
+                            response.messages.filterNot { it.messageId == anchor.toInt() }.takeLast(
+                                COUNT_OF_MESSAGES_TO_SAVE - db.size
+                            )
+                        )
+                    }
+                    if (anchor == ANCHOR_NEWEST) {
+                        zulipRepo.deleteAllMessages(streamName, topicName)
+                        insertMessagesToDB(response.messages)
+                    }
+                    response.messages.map { message -> putMessage(message) }.asReversed()
+                }
+        }.retry()
 
-    fun getUserOwnId(): Int = userOwnUI!!.userId
+
+    private fun getUserOwnId(): Int = ZulipApp.preferences.getInt(KEY_OWN_USER_ID, 0)
 
     private fun getListOfEmojiUI(messagesRemote: MessagesRemote): List<EmojiUI> =
-        if (messagesRemote.reactions.isNotEmpty()) {
-            messagesRemote.reactions.map { response ->
-                with(response) {
-                    EmojiRemote(
-                        code = emojiCode,
-                        name = emojiName,
-                        userId = userId,
-                        messageId = messagesRemote.messageId
-                    )
-                }
-            }.map { emojiRemote ->
-                with(emojiRemote) {
-                    EmojiUI(
-                        emojiName = name,
-                        code = code,
-                        isSelected = userId == getUserOwnId()
-                    )
-                }
+        messagesRemote.reactions.map { response ->
+            with(response) {
+                EmojiUI(
+                    code = emojiCode,
+                    emojiName = emojiName,
+                    isSelected = userId == getUserOwnId(),
+                )
             }
-        } else {
-            listOf()
         }
 
     fun sendMessage(
         streamName: String,
         topicName: String,
         message: String
-    ): Single<List<MessageUI>> =
+    ): Completable =
         NetworkService.zulipService.sendMessage(streamName, topicName, message)
-            .map { response ->
-                outgoingMessageToPresentation(
-                    response,
-                    message,
-                    streamName,
-                    topicName
-                )
-            }
-
-    private fun outgoingMessageToPresentation(
-        response: MessageSendResponse,
-        message: String,
-        streamName: String,
-        topicName: String
-    ): List<MessageUI> = listOf(
-        MessageUI(
-            userId = getUserOwnId(),
-            message = message,
-            messageId = response.messageId,
-            streamName = streamName,
-            topicName = topicName,
-            timestamp = getMessageTimeStampMillis(
-                Instant.now().toEpochMilli()
-            ),
-            isOutgoingMessage = true,
-            avatarUrl = null,
-            username = null
-        )
-    )
 
     fun addReaction(messageId: Int, emojiName: String): Single<EmojiToggleResponse> =
         NetworkService.zulipService.addReaction(messageId, emojiName)
@@ -378,77 +357,85 @@ object Data {
     fun deleteReaction(messageId: Int, emojiName: String): Single<EmojiToggleResponse> =
         NetworkService.zulipService.deleteReaction(messageId, emojiName)
 
-    fun registerEventQueue(): Single<SendEventResponse> =
-        NetworkService.zulipService.registerEventQueue()
-            .doAfterSuccess {
-                lastEventId = it.lastEventId
-                queueId = it.queueId
-                Log.d("xxx", "register success: $it")
-            }
-
     fun getMessagesFromEventsQueue(
         streamName: String,
         topicName: String
-    ): Observable<Pair<List<GetEventRemote>, List<MessageUI>>> =
-        NetworkService.zulipService.getEventsQueue(
-            queueId,
-            lastEventId
-        )
-            .flatMap { response ->
-                if (response.events.isEmpty()) {
-                    Observable.empty()
-                } else {
-                    lastEventId = response.events.last().eventId
-                    Observable.zip(
-                        Observable.just(response.events),
-                        Observable.fromSingle(
-                            getMessagesFromDB(streamName, topicName)
-                        ),
-                        ::messagesFromEventsQueueToPresentation
+    ): Observable<List<MessageUI>> = NetworkService.zulipService.registerEventQueue()
+        .flatMap {
+            NetworkService.zulipService.getEventsQueue(
+                it.queueId,
+                it.lastEventId
+            )
+                .flatMap { response ->
+                    if (response.events.isEmpty()) {
+                        Observable.empty()
+                    } else {
+                        Observable.zip(
+                            Observable.just(response.events),
+                            Observable.fromSingle(getMessagesFromDB(streamName, topicName)),
+                            ::messagesFromEventsQueueToPresentation
+                        )
+                    }
+                }
+                .map { (events, messages) ->
+                    reactionsFromEventsQueueToPresentation(
+                        events,
+                        messages
                     )
                 }
-            }
-            .map { eventsAndMessages -> reactionsFromEventsQueueToPresentation(eventsAndMessages) }
-            .doOnError { e -> Log.d("xxx", "get error, resume next?: (messages) $e") }
-            .retry()
+                .doOnError { e -> Log.d("xxx", "get error, resume next?: (messages) $e") }
+                .retry()
+        }
 
     private fun messagesFromEventsQueueToPresentation(
         eventsRemote: List<GetEventRemote>,
         databaseMessages: List<MessageUI>
     ): Pair<List<GetEventRemote>, List<MessageUI>> = Pair(eventsRemote,
-        (eventsRemote.filter { it.type == EVENT_MESSAGE }
+        (eventsRemote
+            .filter { it.type == EventType.MESSAGE }
             .map { event ->
+                if (databaseMessages.size == COUNT_OF_MESSAGES_TO_SAVE) {
+                    zulipRepo.deleteMessages(
+                        databaseMessages.toMessagesDB().takeLast(1)
+                    )
+                }
+                insertMessageToDB(event.message)
                 putMessage(event.message)
-            }.asReversed() + databaseMessages.asReversed()
+            }.asReversed() + databaseMessages
                 )
     )
 
     private fun reactionsFromEventsQueueToPresentation(
-        eventsAndMessages: Pair<List<GetEventRemote>, List<MessageUI>>
-    ): Pair<List<GetEventRemote>, List<MessageUI>> = Pair(eventsAndMessages.first,
-        eventsAndMessages.first.flatMap { event ->
-            eventsAndMessages.second.map { message ->
+        events: List<GetEventRemote>, messages: List<MessageUI>
+    ): List<MessageUI> =
+        events.flatMap { event ->
+            messages.map { message ->
                 when (message.messageId) {
                     event.messageId -> {
-                        if (event.operation == EVENT_OPERATION_ADD) {
-                            message.copy(
-                                reactions = message.reactions + listOf(
-                                    EmojiUI(
-                                        emojiName = event.emojiName,
-                                        code = event.emojiCode,
-                                        isSelected = getUserOwnId() == event.userId
+                        when (event.operation) {
+                            EventOperation.ADD -> {
+                                insertReactionByEvent(event)
+                                message.copy(
+                                    reactions = message.reactions + listOf(
+                                        EmojiUI(
+                                            emojiName = event.emojiName,
+                                            code = event.emojiCode,
+                                            isSelected = getUserOwnId() == event.userId
+                                        )
                                     )
                                 )
-                            )
-                        } else {
-                            if (event.userId == getUserOwnId()) {
-                                message.copy(reactions = message.reactions.filterNot { emoji ->
-                                    emoji.code == event.emojiCode && emoji.isSelected
-                                })
-                            } else {
-                                val reactions = message.reactions.toMutableList()
-                                reactions.remove(reactions.find { emoji -> emoji.code == event.emojiCode && !emoji.isSelected })
-                                message.copy(reactions = reactions)
+                            }
+                            EventOperation.REMOVE -> {
+                                deleteReactionByEvent(event)
+                                if (event.userId == getUserOwnId()) {
+                                    message.copy(reactions = message.reactions.filterNot { emoji ->
+                                        emoji.code == event.emojiCode && emoji.isSelected
+                                    })
+                                } else {
+                                    val reactions = message.reactions.toMutableList()
+                                    reactions.remove(reactions.find { emoji -> emoji.code == event.emojiCode && !emoji.isSelected })
+                                    message.copy(reactions = reactions)
+                                }
                             }
                         }
                     }
@@ -458,7 +445,29 @@ object Data {
                 }
             }
         }
-    )
+
+    private fun deleteReactionByEvent(event: GetEventRemote) {
+        zulipRepo.deleteReaction(
+            reaction = EmojiUI(
+                emojiName = event.emojiName,
+                code = event.emojiCode,
+                isSelected = event.userId == getUserOwnId()
+            ), messageId = event.messageId,
+            userId = event.userId
+        )
+    }
+
+    private fun insertReactionByEvent(event: GetEventRemote) {
+        zulipRepo.insertReaction(
+            messageId = event.messageId,
+            reaction = EmojiUI(
+                emojiName = event.emojiName,
+                code = event.emojiCode,
+                isSelected = event.userId == getUserOwnId()
+            ),
+            userId = event.userId
+        )
+    }
 
     private fun putMessage(messageRemote: MessagesRemote): MessageUI =
         with(messageRemote) {
@@ -468,9 +477,9 @@ object Data {
                 username = senderFullName,
                 message = content,
                 avatarUrl = avatarUrl,
-                timestamp = getMessageTimeStampSeconds(timestamp),
-                streamName = messageRemote.streamName,
-                topicName = messageRemote.topicName,
+                timestamp = getMessageTimeStamp(timestamp),
+                streamName = streamName,
+                topicName = topicName,
                 isOutgoingMessage = senderId == getUserOwnId(),
                 reactions = getListOfEmojiUI(messageRemote)
             )

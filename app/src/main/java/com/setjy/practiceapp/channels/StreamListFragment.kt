@@ -15,8 +15,7 @@ import com.setjy.practiceapp.databinding.FragmentStreamListBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.StreamItemUI
-import com.setjy.practiceapp.recycler.items.TopicItemUI
-import com.setjy.practiceapp.recycler.items.TopicItemUIShimmer
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
 import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -42,12 +41,12 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
 
         binding.rvStreamList.layoutManager = LinearLayoutManager(context)
         binding.rvStreamList.adapter = adapter
-        adapter.getStreams(page)
+        getStreams(page)
         subscribeToSearch()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroyView() {
+        super.onDestroyView()
         disposable.dispose()
     }
 
@@ -64,149 +63,58 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
                 searchResultsFilter.filterItems(query)
                 adapter.items = searchResultsFilter.isFoundItems
             } else {
-                adapter.getStreams(page)
+                getStreams(page)
             }
             hideKeyboard()
         }
     }
 
-    private fun Adapter<ViewTyped>.getStreams(page: Page) {
-        if (page == Page.SUBSCRIBED) {
-            getSubscribedStreams()
-        } else {
-            getAllStreams()
-        }
-    }
-
-    private fun Adapter<ViewTyped>.getSubscribedStreams() {
-        disposable += Data.getSubscribedStreamsFromDB()
+    private fun getStreams(page: Page) {
+        val isSubscribed = page == Page.SUBSCRIBED
+        disposable += Data.getStreams(isSubscribed)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doAfterSuccess { result ->
-                if (result.isEmpty() || result.all { !it.isSubscribed }) {
-                    Log.d("xxx", "result is false")
-                    disposable += Data.getStreams(true)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doAfterSuccess {
-                            hideStreamsLoading()
-                            insertStreams(it)
-                        }
-                        .doOnSubscribe { showStreamsLoading() }
-                        .subscribe({ items -> this.items = items },
-                            { error ->
-                                hideStreamsLoading()
-                                Log.d("xxx", "get streams and topics error: $error")
-                            }
-                        )
-                }
-            }
-            .subscribe({ result ->
-                Log.d("xxx", "result in get is: $result")
-                this.items = result
-            }, { error -> Log.d("xxx", "room get sub streams error: $error") })
-    }
-
-    private fun Adapter<ViewTyped>.getAllStreams() {
-        disposable += Data.getAllStreamsFromDB()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterSuccess { result ->
-                if (result.isEmpty() || result.all { it.isSubscribed }) {
-                    Log.d("xxx", "result is false")
-                    disposable += Data.getStreams(false)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doAfterSuccess {
-                            hideStreamsLoading()
-                            insertStreams(it)
-                        }
-                        .doOnSubscribe { showStreamsLoading() }
-                        .subscribe({ items -> this.items = items },
-                            { error ->
-                                hideStreamsLoading()
-                                Log.d("xxx", "get streams and topics error: $error")
-                            }
-                        )
-                }
-            }
-            .subscribe({ result ->
-                Log.d("xxx", "result in get from db is: $result")
-                this.items = result
-            }, { error -> Log.d("xxx", "room get sub streams error: $error") })
-    }
-
-    private fun insertStreams(streams: List<StreamItemUI>) {
-        disposable += Data.insertAllStreamsToDB(streams)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ Log.d("xxx", "success in insert:$streams") },
-                { e -> Log.d("xxx", "error in putStreams $e") })
+            .doOnSubscribe { showStreamsLoading() }
+            .doAfterNext { hideStreamsLoading() }
+            .subscribe(
+                { streams -> adapter.items = streams },
+                { error ->
+                    Log.d("xxx", "get streams and topics error: $error")
+                })
     }
 
     private fun hideStreamsLoading() {
-        binding.shimmer.apply { stopShimmer() }.isVisible = false
+        with(binding.shimmer) {
+            stopShimmer()
+            isVisible = false
+        }
     }
 
     private fun showStreamsLoading() {
-        binding.shimmer.showShimmer(true)
+        with(binding.shimmer) {
+            startShimmer()
+            isVisible = true
+        }
     }
 
     private fun onStreamClick(streamItemUI: StreamItemUI) {
         val stream = adapter.items.filterIsInstance<StreamItemUI>()
             .find { it.streamId == streamItemUI.streamId }!!
             .apply { isExpanded = !isExpanded }
-        val shimmer = TopicItemUIShimmer()
         val adapterItems: MutableList<ViewTyped> = adapter.items.toMutableList()
         val topicIndex: Int = adapter.items.indexOf(stream) + 1 // topic goes below stream
-
-        disposable += Data.getTopicsByStreamIdFromDB(streamItemUI.streamId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterSuccess { result ->
-                if (result.isEmpty()) {
-                    disposable += Data.getTopics(stream)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doOnSubscribe {
-                            if (stream.isExpanded) {
-                                adapterItems.add(topicIndex, shimmer)
-                                adapter.items = adapterItems
-                            }
-                        }
-                        .doAfterSuccess { topics ->
-                            adapter.items = adapterItems.filterNot { it == shimmer }
-                            disposable += Data.insertTopicsToDB(topics)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe({ Log.d("xxx", "insert topics successful: $topics") },
-                                    { error -> Log.d("xxx", "error insert topics:$error ") })
-                        }
-                        .subscribe { topics ->
-                            adapter.apply {
-                                adapterItems.addAll(topicIndex, topics)
-                                items = adapterItems
-                            }
-                        }
+        adapter.apply {
+            if (stream.isExpanded) {
+                adapterItems.addAll(topicIndex, stream.listOfTopics)
+            } else {
+                stream.listOfTopics.forEach { topic ->
+                    adapterItems.removeIf {
+                        it is TopicItemUI && it.topicId == topic.topicId
+                    }
                 }
             }
-            .subscribe({ result ->
-                adapter.apply {
-                    if (stream.isExpanded) {
-                        adapter.items = adapterItems.filterNot { it == shimmer }
-                        adapterItems.addAll(topicIndex, result)
-                    } else {
-                        adapter.items = adapterItems.filterNot { it == shimmer }
-                        result.forEach { topic ->
-                            adapterItems.removeIf {
-                                it is TopicItemUI && it.topicId == topic.topicId
-                            }
-                        }
-                    }
-                    items = adapterItems
-                }
-            },
-                { error -> Log.d("xxx", "error in get topics from db: $error") })
+            items = adapterItems
+        }
     }
 
     private fun onTopicClick(topicNameFromClick: String, streamName: String) {

@@ -49,7 +49,7 @@ class SearchMessagesIterator {
         }
     }
 
-    fun getMessageId(index: Int): Int = when (isFoundItems[index]) {
+    fun getMessageId(index: Int): Int = when (isFoundItems[index]) { //todo fix (messageId)
         is MessageUI -> (isFoundItems[index] as MessageUI).messageId
         else -> 0 // think about exception
     }

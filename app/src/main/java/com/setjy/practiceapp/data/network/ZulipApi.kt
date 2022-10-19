@@ -1,5 +1,7 @@
 package com.setjy.practiceapp.data.network
 
+import com.setjy.practiceapp.data.network.response.*
+import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.*
@@ -12,13 +14,13 @@ interface ZulipApi {
     ): Single<StreamsResponse>
 
     @GET("users/me/subscriptions")
-    fun getSubscribedStreams(): Single<StreamsSubscribedResponse>
+    fun getSubscribedStreams(): Single<StreamsResponse>
 
     @GET("users/me/{stream_id}/topics")
-    fun getTopicsById(@Path("stream_id") streamId: Int): Single<TopicsResponse>
+    fun getTopicsById(@Path("stream_id") streamId: Int): Observable<TopicsResponse>
 
     @GET("users/me")
-    fun getOwnUser(): Single<UsersRemote>
+    fun getOwnUser(): Observable<UsersRemote>
 
     @GET("messages")
     fun getMessages(
@@ -27,13 +29,13 @@ interface ZulipApi {
         @Query("num_after") numAfter: Int,
         @Query("narrow") narrow: String? = null,
         @Query("apply_markdown") applyMarkDown: Boolean = false
-    ): Single<MessagesResponse>
+    ): Observable<MessagesResponse>
 
     @GET("users")
-    fun getAllUsers(): Single<UsersResponse>
+    fun getAllUsers(): Observable<UsersResponse>
 
     @GET("users/{user_id_or_email}/presence")
-    fun getUserStatus(@Path("user_id_or_email") userId: Int): Single<UserStatusPresence>
+    fun getUserStatus(@Path("user_id_or_email") userId: Int): Observable<UserStatusPresence>
 
     @POST("messages/{message_id}/reactions")
     fun addReaction(
@@ -53,13 +55,13 @@ interface ZulipApi {
         @Query("topic") topicName: String,
         @Query("content") message: String,
         @Query("type") typeOfMessage: String = "stream"
-    ): Single<MessageSendResponse>
+    ): Completable
 
     @POST("register")
     fun registerEventQueue(
         @Query("apply_markdown") applyMarkDown: Boolean = false,
         @Query("slim_presence") slimPresence: Boolean = true, //if true will be used user_id instead of email
-    ): Single<SendEventResponse>
+    ): Observable<SendEventResponse>
 
     @GET("events")
     fun getEventsQueue(

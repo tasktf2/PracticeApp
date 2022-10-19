@@ -3,10 +3,8 @@ package com.setjy.practiceapp.util
 import android.content.Context
 import android.content.res.Resources
 import androidx.annotation.Px
-import com.setjy.practiceapp.data.Data
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
-import java.time.ZoneId
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -55,16 +53,9 @@ fun getTimeStamp(timeStamp: Long): String {
     return sdf.format(date)
 }
 
-fun getMessageTimeStampSeconds(timeStamp: Long): String {
+fun getMessageTimeStamp(timeStamp: Long): String {
     val secondsToMillisMultiplier = 1000L
     val date = Date(timeStamp * secondsToMillisMultiplier)
-    val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
-    sdf.timeZone = TimeZone.getDefault()
-    return sdf.format(date)
-}
-
-fun getMessageTimeStampMillis(timeStamp: Long): String {
-    val date = Date(timeStamp)
     val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
     sdf.timeZone = TimeZone.getDefault()
     return sdf.format(date)

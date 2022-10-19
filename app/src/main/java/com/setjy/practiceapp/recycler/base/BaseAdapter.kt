@@ -20,13 +20,18 @@ abstract class BaseAdapter<T : ViewTyped>(internal val holderFactory: HolderFact
         position: Int,
         payloads: MutableList<Any>
     ) {
-        if (payloads.isNotEmpty()) holder.bind(items[position], payloads)
-        else onBindViewHolder(holder, position)
+        if (payloads.isNotEmpty()) {
+            holder.bind(items[position], payloads)
+        } else {
+            onBindViewHolder(holder, position)
+        }
     }
 
     override fun getItemCount(): Int = items.size
 
     override fun getItemViewType(position: Int): Int = items[position].viewType
+
+    override fun getItemId(position: Int): Long = items[position].uid.toLong()
 
     fun isEmpty(): Boolean = items.isEmpty()
 }

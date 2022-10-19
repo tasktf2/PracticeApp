@@ -6,7 +6,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.ItemTopicBinding
 import com.setjy.practiceapp.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.recycler.items.TopicItemUI
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
 
 class TopicItemViewHolder(val view: View) : BaseViewHolder<TopicItemUI>(view) {
 
