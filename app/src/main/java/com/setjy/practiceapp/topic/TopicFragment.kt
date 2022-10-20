@@ -3,9 +3,8 @@ package com.setjy.practiceapp.topic
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -13,17 +12,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.setjy.practiceapp.Data
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.channels.StreamListFragment
+import com.setjy.practiceapp.data.Data
 import com.setjy.practiceapp.databinding.FragmentTopicBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.TopicHolderFactory
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.bottom_sheet_fragment.BottomSheetFragment
-import com.setjy.practiceapp.recycler.items.EmojiUI
-import com.setjy.practiceapp.recycler.items.IncomingMessageUI
-import com.setjy.practiceapp.recycler.items.OutgoingMessageUI
+import com.setjy.practiceapp.recycler.items.MessageUI
 import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -32,26 +29,31 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
-class TopicFragment : Fragment() {
+class TopicFragment : Fragment(R.layout.fragment_topic) {
 
     private val binding: FragmentTopicBinding by viewBinding()
 
     private val holderFactory: TopicHolderFactory = TopicHolderFactory(
-        this::onEmojiClick,
-        this::onAddEmojiClick
+        this::onEmojiClick, this::onAddEmojiClick
     )
     private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
 
     private val searchSubject: PublishSubject<SearchAction> = PublishSubject.create()
+
     private var disposable: CompositeDisposable = CompositeDisposable()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_topic, container, false)
+    private val topicName: String by lazy {
+        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
+            ?.get(StreamListFragment.TOPIC_ARRAY_INDEX).orEmpty()
     }
+    private val streamName: String by lazy {
+        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
+            ?.get(StreamListFragment.STREAM_ARRAY_INDEX).orEmpty()
+    }
+
+    private var isLoading: Boolean = false
+
+    private var isLastPage: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -62,36 +64,102 @@ class TopicFragment : Fragment() {
             tbStream.setNavigationIcon(R.drawable.ic_round_arrow_back_24)
         }
         setStreamAndTopicName()
-        getMessagesFromDatabase()
         initClicks()
         initSearch()
         subscribeToSearchResults()
         setButtonVisibility()
+        subscribeToEvents(streamName, topicName)
+        getMessagesOnLaunch()
+        initScrollListener()
     }
 
-    private fun setStreamAndTopicName() {
-        val streamAndTopicNames = arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
-        if (streamAndTopicNames != null) {
-            binding.tbStream.title = streamAndTopicNames[StreamListFragment.STREAM_ARRAY_INDEX]
-            binding.tvTopicName.text =
-                "Topic: ${streamAndTopicNames[StreamListFragment.TOPIC_ARRAY_INDEX]}"
-        } else {
-            Log.d("xxx", "args are null, throw exception later ")
-        }
+    private fun initScrollListener() {
+        binding.rvListOfMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
+                if (!isLoading && !isLastPage && dy != 0) {
+                    val visibleItemsCount = recyclerView.childCount
+                    val totalItemsCount = adapter.itemCount
+                    val pastVisibleItem =
+                        (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+                    if (visibleItemsCount + pastVisibleItem + PAGINATION_NUMBER > totalItemsCount) {
+                        isLoading = true
+                        loadOlderMessages((adapter.items[adapter.items.lastIndex] as MessageUI).messageId)
+                    }
+                }
+                super.onScrolled(recyclerView, dx, dy)
+            }
+        })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun loadOlderMessages(anchor: Int) {
+        disposable += Data.getMessages(streamName, topicName, anchor.toString())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doAfterNext { isLoading = false }
+            .subscribe({ nwMessages ->
+                if (nwMessages.size < 20) {
+                    isLastPage = true
+                }
+                adapter.items =
+                    adapter.items + (nwMessages as List<MessageUI>).filterNot { it.messageId == anchor }
+            }, {
+                isLoading = false
+                Log.d("xxx", "load older messages error " + it.stackTraceToString())
+            })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
         disposable.dispose()
     }
 
-    private fun getMessagesFromDatabase() {
-        Data.getMessages()
+    private fun subscribeToEvents(streamName: String, topicName: String) {
+        disposable += Data.getMessagesFromEventsQueue(streamName, topicName)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result -> adapter.items = result },
-                { error -> Log.d("xxx", "the error is: $error") })
+            .doAfterNext { binding.rvListOfMessages.smoothScrollToPosition(0) }
+            .subscribe(
+                { messages ->
+                    adapter.items = messages
+                    subscribeToEvents(streamName, topicName)
+                },
+                { e -> Log.d("xxx", "get error: $e") })
+    }
+
+    private fun setStreamAndTopicName() {
+        binding.tbStream.title = streamName
+        binding.tvTopicName.text = "Topic: $topicName"
+    }
+
+    private fun getMessagesOnLaunch() {
+        disposable += Data.getMessagesOnLaunch(streamName, topicName)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe { showLoading() }
+            .doFinally { hideLoading() }
+            .subscribe({ messages ->
+                adapter.items = messages
+                if (messages.isNotEmpty()) {
+                    hideLoading()
+                    binding.rvListOfMessages.smoothScrollToPosition(0)
+                }
+            },
+                { e -> Log.d("xxx", "launch mes:${e.printStackTrace()} ") })
+    }
+
+
+    private fun showLoading() {
+        binding.shimmer.apply {
+            isVisible = true
+            showShimmer(true)
+        }
+    }
+
+    private fun hideLoading() {
+        binding.shimmer.apply {
+            stopShimmer()
+        }.isVisible = false
     }
 
     private fun initClicks() {
@@ -104,7 +172,6 @@ class TopicFragment : Fragment() {
                     searchSubject.onNext(SearchAction.CANCEL)
                 } else {
                     findNavController().navigate(R.id.action_topicFragment_to_channels_fragment)
-//                    findNavController().navigateUp()
                 }
             }
             ivSearchDelete.setOnClickListener { //delete text in search field
@@ -130,22 +197,14 @@ class TopicFragment : Fragment() {
                 if (query.isBlank()) {
                     adapter.items = adapter.items.map {
                         when (it) {
-                            is IncomingMessageUI -> it.copy(isFound = false)
-                            is OutgoingMessageUI -> it.copy(isFound = false)
+                            is MessageUI -> it.copy(isFound = false)
                             else -> it
                         }
                     }
                 } else {
                     adapter.items = adapter.items.map { item ->
                         when (item) {
-                            is IncomingMessageUI -> {
-                                if (item.message.contains(query, ignoreCase = true)) {
-                                    item.copy(isFound = true)
-                                } else {
-                                    item
-                                }
-                            }
-                            is OutgoingMessageUI -> {
+                            is MessageUI -> {
                                 if (item.message.contains(query, ignoreCase = true)) {
                                     item.copy(isFound = true)
                                 } else {
@@ -164,59 +223,60 @@ class TopicFragment : Fragment() {
 
     private fun subscribeToSearchResults() {
         val searchIterator = SearchMessagesIterator()
-        disposable += searchSubject
-            .debounce(1000, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-            .subscribe { action ->
-                when (action) {
-                    SearchAction.START -> {
-                        searchIterator.apply {
-                            resetIndex()
-                            setItems(adapter.items)
-                            totalFound()
-                        }
-                        if (searchIterator.isFoundItems.isNotEmpty()) {
-                            val messageId =
-                                searchIterator.getMessageId(searchIterator.currentIndex())
-                            binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
-                        }
+        disposable += searchSubject.debounce(
+            1000,
+            TimeUnit.MILLISECONDS,
+            AndroidSchedulers.mainThread()
+        ).subscribe { action ->
+            when (action) {
+                SearchAction.START -> {
+                    searchIterator.apply {
+                        resetIndex()
+                        setItems(adapter.items)
+                        totalFound()
                     }
-                    SearchAction.NEXT -> {
-                        if (searchIterator.hasNext()) {
-                            val messageId = searchIterator.getMessageId(searchIterator.nextIndex())
-                            binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
-                        }
+                    if (searchIterator.isFoundItems.isNotEmpty()) { //todo fix (messageId)
+                        val messageId =
+                            searchIterator.getMessageId(searchIterator.currentIndex())
+                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
                     }
-                    SearchAction.PREV -> {
-                        if (searchIterator.hasPrevious()) {
-                            val messageId =
-                                searchIterator.getMessageId(searchIterator.previousIndex())
-                            binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
-                        }
+                }
+                SearchAction.NEXT -> {
+                    if (searchIterator.hasNext()) {
+                        val messageId = searchIterator.getMessageId(searchIterator.nextIndex())
+                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
                     }
-                    SearchAction.CANCEL -> {
-                        searchIterator.apply {
-                            resetIndex()
-                            setItems(emptyList())
-                        }
-                        with(binding) {
-                            groupSearch.isVisible = false
-                            groupSend.isVisible = true
-                            etSearch.text.clear()
-                            tvSearchResults.text = ""
-                            hideKeyboard()
-                            adapter.items = adapter.items.map {
-                                when (it) {
-                                    is IncomingMessageUI -> it.copy(isFound = false)
-                                    is OutgoingMessageUI -> it.copy(isFound = false)
-                                    else -> it
-                                }
+                }
+                SearchAction.PREV -> {
+                    if (searchIterator.hasPrevious()) {
+                        val messageId =
+                            searchIterator.getMessageId(searchIterator.previousIndex())
+                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
+                    }
+                }
+                SearchAction.CANCEL -> {
+                    searchIterator.apply {
+                        resetIndex()
+                        setItems(emptyList())
+                    }
+                    with(binding) {
+                        groupSearch.isVisible = false
+                        groupSend.isVisible = true
+                        etSearch.text.clear()
+                        tvSearchResults.text = ""
+                        hideKeyboard()
+                        adapter.items = adapter.items.map {
+                            when (it) {
+                                is MessageUI -> it.copy(isFound = false)
+                                else -> it
                             }
                         }
                     }
                 }
-                toggleSearchArrowsClickability(searchIterator)
-                setSearchResultsText(searchIterator)
             }
+            toggleSearchArrowsClickability(searchIterator)
+            setSearchResultsText(searchIterator)
+        }
     }
 
     private fun setButtonVisibility() {
@@ -280,7 +340,7 @@ class TopicFragment : Fragment() {
         if (!text.isNullOrEmpty()) {
             binding.ivSearchDelete.isVisible = true
         } else {
-            binding.ivSearchDelete.callOnClick()
+            onDeleteDisappearAnimation(binding.ivSearchDelete)
         }
     }
 
@@ -293,53 +353,29 @@ class TopicFragment : Fragment() {
         }.withEndAction { view.isVisible = false }
     }
 
-    private fun onAddEmojiClick(messageId: String) {
+    private fun onAddEmojiClick(messageId: Int) {
         BottomSheetFragment().show(parentFragmentManager, null)
         parentFragmentManager.setFragmentResultListener(
-            BottomSheetFragment.REQUEST_KEY,
-            viewLifecycleOwner
+            BottomSheetFragment.REQUEST_KEY, viewLifecycleOwner
         ) { _, bundle ->
-            val emojiCode = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
-            addReactionToMessage(messageId, emojiCode)
+            val emojiName = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
+            addReaction(messageId, emojiName)
         }
     }
 
-    //todo refactor this
-    private fun onEmojiClick(messageId: String, emojiCode: String) {
+    private fun onEmojiClick(messageId: Int, emojiName: String, emojiCode: String) {
         adapter.items = adapter.items.map { item ->
             when {
-                item is IncomingMessageUI && item.messageId == messageId -> {
+                item is MessageUI && item.messageId == messageId -> {
                     val mutableReactions = item.reactions.toMutableList()
                     val removed =
                         mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
                     if (removed) {
-                        item.copy(reactions = mutableReactions)
+                        deleteReaction(messageId, emojiName)
+                        item
                     } else {
-                        item.copy(
-                            reactions = mutableReactions + listOf(
-                                EmojiUI(
-                                    code = emojiCode,
-                                    isSelected = true
-                                )
-                            )
-                        )
-                    }
-                }
-                item is OutgoingMessageUI && item.messageId == messageId -> {
-                    val mutableReactions = item.reactions.toMutableList()
-                    val removed =
-                        mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
-                    if (removed) {
-                        item.copy(reactions = mutableReactions)
-                    } else {
-                        item.copy(
-                            reactions = mutableReactions + listOf(
-                                EmojiUI(
-                                    code = emojiCode,
-                                    isSelected = true
-                                )
-                            )
-                        )
+                        addReaction(messageId, emojiName)
+                        item
                     }
                 }
                 else -> item
@@ -347,92 +383,40 @@ class TopicFragment : Fragment() {
         }
     }
 
-    //todo refactor this
-    private fun addReactionToMessage(messageId: String, emojiCode: String) {
-        adapter.items = adapter.items.map { item ->
-            when {
-                item is IncomingMessageUI && item.messageId == messageId -> {
-                    when {
-                        item.reactions.isNullOrEmpty() -> {
-                            item.copy(
-                                reactions = listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
-                            item.copy(
-                                reactions = item.reactions + listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        else -> {
-                            item.copy(
-                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
-                            )
-                        }
-                    }
-                }
-                item is OutgoingMessageUI && item.messageId == messageId -> {
-                    when {
-                        item.reactions.isNullOrEmpty() -> {
-                            item.copy(
-                                reactions = listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        item.reactions.all { !(it.code == emojiCode && it.isSelected) } -> {
-                            item.copy(
-                                reactions = item.reactions + listOf(
-                                    EmojiUI(
-                                        code = emojiCode,
-                                        isSelected = true
-                                    )
-                                )
-                            )
-                        }
-                        else -> {
-                            item.copy(
-                                reactions = item.reactions.filterNot { it.code == emojiCode && it.isSelected }
-                            )
-                        }
-                    }
-                }
-                else -> item
-            }
-        }
+    private fun deleteReaction(messageId: Int, emojiName: String) {
+        disposable += Data.deleteReaction(messageId, emojiName)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
+                { e -> Log.d("emoji_send", e.toString()) })
+
+    }
+
+    private fun addReaction(messageId: Int, emojiName: String) {
+        disposable += Data.addReaction(messageId, emojiName)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
+                { e -> Log.d("emoji_send", e.toString()) })
     }
 
     private fun setMessageSender() {
         val messageText = binding.etSend.text.toString()
-        val outgoingMessage = listOf(
-            OutgoingMessageUI(
-                message = messageText,
-                messageId = adapter.itemCount.toString(),
-                reactions = listOf()
-            )
-        )
-        Data.saveMessage(outgoingMessage)
+        sendMessage(messageText)
         binding.etSend.text.clear()
-        Data.getMessages()
+    }
+
+    private fun sendMessage(messageText: String) {
+        disposable += Data.sendMessage(streamName, topicName, messageText)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                adapter.setItemsWithCommitCallback(
-                    result
-                ) { binding.rvListOfMessages.smoothScrollToPosition(0) }
-            },
-                { error -> Log.d("xxx", "the error is: $error") })
+            .subscribe({}, {
+                Toast.makeText(context, "Error sending message!", Toast.LENGTH_SHORT).show()
+                Log.d("message_send", it.toString())
+            })
+    }
+
+    companion object {
+        private const val PAGINATION_NUMBER: Int = 4
     }
 }

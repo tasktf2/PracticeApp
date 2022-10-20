@@ -1,27 +1,28 @@
 package com.setjy.practiceapp.channels
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.setjy.practiceapp.Data
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.data.Data
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
 import com.setjy.practiceapp.databinding.FragmentStreamListBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.StreamItemUI
-import com.setjy.practiceapp.recycler.items.TopicItemUI
 import com.setjy.practiceapp.util.hideKeyboard
+import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
-
-    private var streamName: String = ""
 
     private val holderFactory: ChannelsHolderFactory = ChannelsHolderFactory(
         this::onStreamClick,
@@ -31,7 +32,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
 
     private val page: Page by lazy { arguments?.getSerializable(ARG_PAGE) as Page }
 
-    private lateinit var disposable: Disposable
+    private var disposable: CompositeDisposable = CompositeDisposable()
 
     private val binding: FragmentStreamListBinding by viewBinding()
 
@@ -40,8 +41,13 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
 
         binding.rvStreamList.layoutManager = LinearLayoutManager(context)
         binding.rvStreamList.adapter = adapter
-        adapter.putItems(page)
+        getStreams(page)
         subscribeToSearch()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        disposable.dispose()
     }
 
     //todo fix bugs
@@ -57,61 +63,64 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
                 searchResultsFilter.filterItems(query)
                 adapter.items = searchResultsFilter.isFoundItems
             } else {
-                adapter.putItems(page)
+                getStreams(page)
             }
             hideKeyboard()
         }
     }
 
-    private fun Adapter<ViewTyped>.putItems(page: Page?) {
-        val mutableList: MutableList<ViewTyped> = mutableListOf()
-
-        disposable = Data.getStreams()
+    private fun getStreams(page: Page) {
+        val isSubscribed = page == Page.SUBSCRIBED
+        disposable += Data.getStreams(isSubscribed)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { items ->
-                if (page == Page.SUBSCRIBED) {
-                    items.forEach { stream ->
-                        if ((stream as StreamItemUI).isSubscribed) {
-                            mutableList.add(stream)
-                        }
+            .doOnSubscribe { showStreamsLoading() }
+            .doFinally { hideStreamsLoading() }
+            .subscribe(
+                { streams ->
+                    adapter.items = streams
+                    if (streams.isNotEmpty()) {
+                        hideStreamsLoading()
                     }
-                } else {
-                    items.forEach { stream ->
-                        mutableList.add(stream)
-                    }
-                }
-                this.items = mutableList
-            }
+                },
+                { error ->
+                    Log.d("xxx", "get streams and topics error: $error")
+                })
     }
 
-    private fun onStreamClick(streamNameFromClick: String) {
-
-        streamName = streamNameFromClick
-
-        adapter.items.apply {
-            val stream = filterIsInstance<StreamItemUI>()
-                .find { it.streamName == streamNameFromClick }!!
-                .apply { isExpanded = !isExpanded }
-
-            val currentTopics: List<TopicItemUI> = stream.listOfTopics
-            val topicIndex: Int = indexOf(stream) + 1 // topic goes below stream
-            val adapterItems: MutableList<ViewTyped> = this.toMutableList()
-
-            if (stream.isExpanded) {
-                adapterItems.addAll(topicIndex, currentTopics)
-            } else {
-                currentTopics.forEach { topic ->
-                    adapterItems.removeIf {
-                        it is TopicItemUI && it.topicName == topic.topicName
-                    }
-                }
-            }
-            adapter.items = adapterItems
+    private fun hideStreamsLoading() {
+        with(binding.shimmer) {
+            stopShimmer()
+            isVisible = false
         }
     }
 
-    private fun onTopicClick(topicNameFromClick: String) {
+    private fun showStreamsLoading() {
+        with(binding.shimmer) {
+            startShimmer()
+            isVisible = true
+        }
+    }
+
+    private fun onStreamClick(streamItemUI: StreamItemUI) {
+        val stream = adapter.items.filterIsInstance<StreamItemUI>()
+            .find { it.streamId == streamItemUI.streamId }!!
+            .apply { isExpanded = !isExpanded }
+        val adapterItems: MutableList<ViewTyped> = adapter.items.toMutableList()
+        val topicIndex: Int = adapter.items.indexOf(stream) + 1 // topic goes below stream
+        if (stream.isExpanded) {
+            adapterItems.addAll(topicIndex, stream.listOfTopics)
+        } else {
+            stream.listOfTopics.forEach { topic ->
+                adapterItems.removeIf {
+                    it is TopicItemUI && it.topicId == topic.topicId
+                }
+            }
+        }
+        adapter.items = adapterItems
+    }
+
+    private fun onTopicClick(topicNameFromClick: String, streamName: String) {
         val bundle: Bundle = bundleOf(STREAM_BUNDLE_KEY to arrayOf(streamName, topicNameFromClick))
         findNavController().navigate(R.id.action_channels_fragment_to_topicFragment, bundle)
     }
@@ -122,13 +131,8 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
         const val STREAM_ARRAY_INDEX: Int = 0
         const val TOPIC_ARRAY_INDEX: Int = 1
 
-        fun newInstance(page: Page)= StreamListFragment().apply {
+        fun newInstance(page: Page) = StreamListFragment().apply {
             arguments = bundleOf(ARG_PAGE to page)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disposable.dispose()
     }
 }

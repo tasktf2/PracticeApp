@@ -12,7 +12,7 @@ class BottomSheetHolderFactory(private val onEmojiClickAction: (emojiCode: Strin
     override fun createViewHolder(view: View, viewType: Int): BaseViewHolder<*>? {
         return when (viewType) {
             R.layout.item_emoji -> EmojiViewHolder(view).apply {
-                view.setOnClickListener { currentEmojiCode?.let(onEmojiClickAction) }
+                view.setOnClickListener { currentEmojiName?.let(onEmojiClickAction) }
             }
             else -> null
         }

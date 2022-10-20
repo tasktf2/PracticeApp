@@ -2,7 +2,7 @@ package com.setjy.practiceapp.channels
 
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.StreamItemUI
-import com.setjy.practiceapp.recycler.items.TopicItemUI
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
 
 class SearchResultsFilter {
 
@@ -31,8 +31,7 @@ class SearchResultsFilter {
         mutableItems = mutableItems.map { item ->
             when (item) {
                 is StreamItemUI -> {
-                    item.isExpanded = !item.isExpanded
-                    item.copy(
+                    item.copy(isExpanded = true,
                         isFound =
                         item.streamName.contains(query, ignoreCase = true)
                                 || item.listOfTopics.any {

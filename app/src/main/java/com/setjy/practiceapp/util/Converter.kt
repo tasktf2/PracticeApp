@@ -52,3 +52,11 @@ fun getTimeStamp(timeStamp: Long): String {
     sdf.dateFormatSymbols = dfs
     return sdf.format(date)
 }
+
+fun getMessageTimeStamp(timeStamp: Long): String {
+    val secondsToMillisMultiplier = 1000L
+    val date = Date(timeStamp * secondsToMillisMultiplier)
+    val sdf = SimpleDateFormat("HH:mm", Locale("ru"))
+    sdf.timeZone = TimeZone.getDefault()
+    return sdf.format(date)
+}

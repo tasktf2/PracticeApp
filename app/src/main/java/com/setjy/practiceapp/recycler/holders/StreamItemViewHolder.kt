@@ -10,14 +10,14 @@ class StreamItemViewHolder(val view: View) : BaseViewHolder<StreamItemUI>(view) 
 
     private val binding: ItemStreamBinding by viewBinding()
 
-    var onStreamClick: ((streamName: String) -> Unit)? = null
+    var onStreamClick: ((stream: StreamItemUI) -> Unit)? = null
 
     override fun bind(item: StreamItemUI) {
         with(binding) {
             ivArrow.isSelected = item.isExpanded
             tvStream.text = item.streamName
             streamContainer.setOnClickListener {
-                onStreamClick?.invoke(item.streamName)
+                onStreamClick?.invoke(item)
                 ivArrow.isSelected = item.isExpanded
             }
         }

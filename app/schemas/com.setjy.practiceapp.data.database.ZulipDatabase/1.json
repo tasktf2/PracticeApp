@@ -1,0 +1,240 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "6c6aa3213d1e5195770ba1cf0a778a48",
+    "entities": [
+      {
+        "tableName": "stream",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stream_id` INTEGER NOT NULL, `stream_name` TEXT NOT NULL, `is_subscribed` INTEGER NOT NULL, `background_color` TEXT, PRIMARY KEY(`stream_id`))",
+        "fields": [
+          {
+            "fieldPath": "streamId",
+            "columnName": "stream_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "streamName",
+            "columnName": "stream_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSubscribed",
+            "columnName": "is_subscribed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backgroundColor",
+            "columnName": "background_color",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "stream_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "topic",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`topic_id` INTEGER NOT NULL, `topic_name` TEXT NOT NULL, `message_count` INTEGER NOT NULL, `parent_id` INTEGER NOT NULL, `parent_name` TEXT NOT NULL, `background_color` TEXT, `is_found` INTEGER NOT NULL, `uid` INTEGER NOT NULL, `view_type` INTEGER NOT NULL, PRIMARY KEY(`topic_id`))",
+        "fields": [
+          {
+            "fieldPath": "topicId",
+            "columnName": "topic_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topicName",
+            "columnName": "topic_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageCount",
+            "columnName": "message_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parentId",
+            "columnName": "parent_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parentName",
+            "columnName": "parent_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backgroundColor",
+            "columnName": "background_color",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isFound",
+            "columnName": "is_found",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "viewType",
+            "columnName": "view_type",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "topic_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "message",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_id` INTEGER NOT NULL, `message_id` INTEGER NOT NULL, `avatar_url` TEXT, `username` TEXT, `message` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `stream_name` TEXT NOT NULL, `topic_name` TEXT NOT NULL, `is_outgoing_message` INTEGER NOT NULL, PRIMARY KEY(`message_id`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageId",
+            "columnName": "message_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarUrl",
+            "columnName": "avatar_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "streamName",
+            "columnName": "stream_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topicName",
+            "columnName": "topic_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isOutgoingMessage",
+            "columnName": "is_outgoing_message",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "message_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "reaction",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`emoji_code` TEXT NOT NULL, `emoji_name` TEXT NOT NULL, `user_id` INTEGER NOT NULL, `message_id` INTEGER NOT NULL, PRIMARY KEY(`message_id`, `user_id`, `emoji_code`), FOREIGN KEY(`message_id`) REFERENCES `message`(`message_id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "code",
+            "columnName": "emoji_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "emoji_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageId",
+            "columnName": "message_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "message_id",
+            "user_id",
+            "emoji_code"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "message",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "message_id"
+            ],
+            "referencedColumns": [
+              "message_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6c6aa3213d1e5195770ba1cf0a778a48')"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/background_black">
+
+    <ImageView
+        android:id="@+id/iv_avatar"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:foreground="@drawable/round_avatar_user"
+        android:src="@drawable/ic_launcher_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_indicator_bg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/item_user_indicator_bg"
+        app:layout_constraintBottom_toBottomOf="@id/iv_avatar"
+        app:layout_constraintEnd_toEndOf="@id/iv_avatar" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        app:cardCornerRadius="9dp"
+        app:layout_constraintBottom_toBottomOf="@id/iv_indicator_bg"
+        app:layout_constraintEnd_toEndOf="@id/iv_indicator_bg"
+        app:layout_constraintStart_toStartOf="@id/iv_indicator_bg"
+        app:layout_constraintTop_toTopOf="@id/iv_indicator_bg">
+
+        <View
+            android:id="@+id/v_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/tv_full_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/text_white"
+        android:textSize="22sp"
+        app:layout_constraintStart_toEndOf="@id/iv_avatar"
+        app:layout_constraintTop_toTopOf="@id/iv_avatar"
+        tools:text="@tools:sample/full_names" />
+
+    <TextView
+        android:id="@+id/user_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#A1A1A1"
+        app:layout_constraintStart_toStartOf="@id/tv_full_name"
+        app:layout_constraintTop_toBottomOf="@id/tv_full_name"
+        tools:text="@tools:sample/cities" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

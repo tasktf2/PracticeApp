@@ -8,12 +8,12 @@ import com.setjy.practiceapp.recycler.items.EmojiUI
 
 class EmojiViewHolder(view: View) : BaseViewHolder<EmojiUI>(view) {
 
-    var currentEmojiCode: String? = null
+    var currentEmojiName: String? = null
 
     private val binding: ItemEmojiBinding by viewBinding()
 
     override fun bind(item: EmojiUI) {
         binding.tvEmoji.text = item.codeString
-        currentEmojiCode = item.code
+        currentEmojiName = item.emojiName
     }
 }

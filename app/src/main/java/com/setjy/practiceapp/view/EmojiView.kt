@@ -20,6 +20,13 @@ class EmojiView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
+    var emojiName: String = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                requestLayout()
+            }
+        }
     var emojiUnicode: String = ""
         set(value) {
             if (field != value) {

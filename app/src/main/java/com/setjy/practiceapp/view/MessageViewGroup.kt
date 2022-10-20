@@ -24,6 +24,7 @@ class MessageViewGroup @JvmOverloads constructor(
     private val messageRect = Rect()
     private val flexboxRect = Rect()
     private val backgroundRect = Rect()
+    private val timeStampRect = Rect()
 
     init {
         LayoutInflater.from(context).inflate(R.layout.message_view_group, this, true)
@@ -67,6 +68,15 @@ class MessageViewGroup @JvmOverloads constructor(
             )
             usedHeight += getHeightWithMargins(tvMessage)
             measureChildWithMargins(
+                tvTimestamp,
+                widthMeasureSpec,
+                0,
+                heightMeasureSpec,
+                usedHeight
+            )
+            usedHeight += getHeightWithMargins(tvTimestamp)
+
+            measureChildWithMargins(
                 flexbox,
                 widthMeasureSpec,
                 usedWidth,
@@ -88,6 +98,11 @@ class MessageViewGroup @JvmOverloads constructor(
             cvBackground.layout(backgroundRect, avatarRect.right, 0)
             tvUsername.layout(usernameRect, 0, 0)
             tvMessage.layout(messageRect, 0, usernameRect.bottom)
+            tvTimestamp.layoutFromRightBorder(
+                timeStampRect,
+                backgroundRect.right,
+                messageRect.bottom
+            )
             flexbox.layout(flexboxRect, avatarRect.right, messageRect.bottom)
         }
     }
@@ -104,7 +119,7 @@ class MessageViewGroup @JvmOverloads constructor(
         binding.flexbox.setEmojis(items)
     }
 
-    fun setOnEmojiClickListener(onClick: (emojiCode: String) -> Unit) {
+    fun setOnEmojiClickListener(onClick: (emojiName: String, emojiCode: String) -> Unit) {
         binding.flexbox.onEmojiClick = onClick
     }
 
@@ -138,6 +153,19 @@ private fun View.layout(
     rect.left = leftBorder + viewLP.leftMargin
     rect.top = topBorder + viewLP.topMargin
     rect.right = rect.left + this.measuredWidth + viewLP.rightMargin
+    rect.bottom = rect.top + this.measuredHeight + viewLP.bottomMargin
+    this.layout(rect)
+}
+
+private fun View.layoutFromRightBorder(
+    rect: Rect,
+    rightBorder: Int,
+    topBorder: Int
+) {
+    val viewLP = this.layoutParams as ViewGroup.MarginLayoutParams
+    rect.right = rightBorder - viewLP.rightMargin
+    rect.top = topBorder + viewLP.topMargin
+    rect.left = rect.right - this.measuredWidth + viewLP.leftMargin
     rect.bottom = rect.top + this.measuredHeight + viewLP.bottomMargin
     this.layout(rect)
 }

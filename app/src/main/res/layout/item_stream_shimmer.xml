@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/stream_container"
+    android:layout_width="match_parent"
+    android:layout_height="63dp"
+    android:background="@color/background_black"
+    android:orientation="horizontal">
+
+    <View
+        android:layout_width="220dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="46dp"
+        android:background="@drawable/text_rounded_shimmer" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="42dp"
+        android:src="@drawable/arrow_stream_selector" />
+
+</FrameLayout>

@@ -11,7 +11,7 @@ class EmojiFlexboxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : FlexboxLayout(context, attrs, defStyleAttr, defStyleRes) {
 
-    var onEmojiClick: ((emojiCode: String) -> Unit)? = null
+    var onEmojiClick: ((emojiName: String, emojiCode: String) -> Unit)? = null
 
     var onAddEmojiClick: (() -> Unit)? = null
 
@@ -20,10 +20,11 @@ class EmojiFlexboxLayout @JvmOverloads constructor(
         val codeToNumber = items.groupBy { it.code }.mapValues { it.value.count() }
         items.distinctBy { it.code }.forEach { emoji ->
             val emojiView = EmojiView(context).apply {
+                emojiName = emoji.emojiName
                 emojiUnicode = emoji.codeString
                 emojiCounter = codeToNumber[emoji.code] ?: 0
                 flagIsSelected = items.any { it.code == emoji.code && it.isSelected }
-                setOnClickListener { onEmojiClick?.invoke(emoji.code) }
+                setOnClickListener { onEmojiClick?.invoke(emoji.emojiName, emoji.code) }
             }
             addView(emojiView)
         }

@@ -11,7 +11,7 @@
         android:layout_width="38dp"
         android:layout_height="38dp"
         android:layout_marginStart="12dp"
-        android:foreground="@drawable/round_avatar"
+        android:foreground="@drawable/round_avatar_messages"
         tools:src="@tools:sample/avatars" />
 
     <androidx.cardview.widget.CardView
@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="9dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginBottom="54dp"
         android:backgroundTint="@color/bg_black_secondary"
         app:cardCornerRadius="18dp">
 
@@ -39,10 +39,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="4dp"
             android:maxWidth="217dp"
             android:textColor="@color/white"
             android:textSize="16sp"
             tools:text="@tools:sample/lorem" />
+
+        <TextView
+            android:id="@+id/tv_timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="70dp"
+            android:textColor="@color/time_divider_text_grey"
+            android:textSize="12sp"
+            tools:text="15:36" />
+
     </androidx.cardview.widget.CardView>
 
     <com.setjy.practiceapp.view.EmojiFlexboxLayout
@@ -50,6 +61,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="9dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="34dp"
         android:maxWidth="265dp" />
 </merge>

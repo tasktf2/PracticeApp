@@ -9,8 +9,8 @@ import com.setjy.practiceapp.recycler.holders.OutgoingMessageViewHolder
 import com.setjy.practiceapp.recycler.holders.TimeDividerViewHolder
 
 class TopicHolderFactory(
-    private val onEmojiClickAction: (messageId: String, emojiCode: String) -> Unit,
-    private val onAddEmojiClickAction: (messageId: String) -> Unit
+    private val onEmojiClickAction: (messageId: Int, emojiName: String, emojiCode: String) -> Unit,
+    private val onAddEmojiClickAction: (messageId: Int) -> Unit
 ) : HolderFactory() {
 
     override fun createViewHolder(view: View, viewType: Int): BaseViewHolder<*>? {

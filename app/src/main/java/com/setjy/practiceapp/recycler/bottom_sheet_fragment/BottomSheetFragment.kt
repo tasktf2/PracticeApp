@@ -4,13 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.setjy.practiceapp.Data.emojiUISet
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.data.Data.emojiUISet
 import com.setjy.practiceapp.databinding.FragmentBottomSheetBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.base.ViewTyped
@@ -41,12 +40,13 @@ class BottomSheetFragment : BottomSheetDialogFragment() {
         adapter.items = emojiUISet
     }
 
-    private fun onEmojiClick(emojiCode: String) {
-        val pressedEmojiCode: String? =
-            emojiUISet.find { it.code == emojiCode }?.code
+    private fun onEmojiClick(emojiName: String) {
+        val pressedEmoji =
+            emojiUISet.find { it.emojiName == emojiName }!!
+        val pressedEmojiName = pressedEmoji.emojiName
         parentFragmentManager.setFragmentResult(
             REQUEST_KEY,
-            bundleOf(BUNDLE_KEY to pressedEmojiCode)
+            bundleOf(BUNDLE_KEY to pressedEmojiName)
         )
         dismiss()
     }
