@@ -59,10 +59,3 @@ data class EmojiToggleResponse(
     @SerializedName("code") val code: String?,
     @SerializedName("result") val result: String
 )
-
-data class MessageSendResponse(
-    @SerializedName("id") val messageId: Int,
-    @SerializedName("msg") val message: String,
-    @SerializedName("code") val code: String?,
-    @SerializedName("result") val result: String
-)

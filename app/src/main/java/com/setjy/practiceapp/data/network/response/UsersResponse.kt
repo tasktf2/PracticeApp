@@ -3,7 +3,7 @@ package com.setjy.practiceapp.data.network.response
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.recycler.items.UserStatus
 
-data class UsersResponse(val members: List<UsersRemote>)
+data class UsersResponse(@SerializedName("members") val members: List<UsersRemote>)
 
 data class UsersRemote(
     @SerializedName("user_id") val userId: Int,
@@ -20,7 +20,7 @@ data class UserResponse(
 )
 
 data class UserStatusPresence(
-    val presence: UserStatusResponse
+    @SerializedName("presence") val presence: UserStatusResponse
 )
 
 data class UserStatusResponse(

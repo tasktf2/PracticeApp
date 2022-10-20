@@ -137,13 +137,14 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { showLoading() }
-            .doAfterNext {
-                if (it.isNotEmpty()) {
+            .doFinally { hideLoading() }
+            .subscribe({ messages ->
+                adapter.items = messages
+                if (messages.isNotEmpty()) {
                     hideLoading()
                     binding.rvListOfMessages.smoothScrollToPosition(0)
                 }
-            }
-            .subscribe({ adapter.items = it },
+            },
                 { e -> Log.d("xxx", "launch mes:${e.printStackTrace()} ") })
     }
 

@@ -1,22 +1,18 @@
 package com.setjy.practiceapp
 
 import android.app.Application
-import android.content.SharedPreferences
-import android.content.SharedPreferences.Editor
+import android.content.Context
 
 class ZulipApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
-        preferences = getSharedPreferences("xxx", MODE_PRIVATE)
-        editor = preferences.edit()
+        appContext = this
     }
 
     companion object {
-
-        lateinit var preferences: SharedPreferences
-
-        lateinit var editor: Editor
+        
+        lateinit var appContext: Context
     }
 }

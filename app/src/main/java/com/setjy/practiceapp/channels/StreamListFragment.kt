@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.data.Data
+import com.setjy.practiceapp.data.database.entity.TopicItemUI
 import com.setjy.practiceapp.databinding.FragmentStreamListBinding
 import com.setjy.practiceapp.recycler.Adapter
 import com.setjy.practiceapp.recycler.base.ViewTyped
 import com.setjy.practiceapp.recycler.items.StreamItemUI
-import com.setjy.practiceapp.data.database.entity.TopicItemUI
 import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -75,9 +75,14 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { showStreamsLoading() }
-            .doAfterNext { hideStreamsLoading() }
+            .doFinally { hideStreamsLoading() }
             .subscribe(
-                { streams -> adapter.items = streams },
+                { streams ->
+                    adapter.items = streams
+                    if (streams.isNotEmpty()) {
+                        hideStreamsLoading()
+                    }
+                },
                 { error ->
                     Log.d("xxx", "get streams and topics error: $error")
                 })
@@ -103,18 +108,16 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list) {
             .apply { isExpanded = !isExpanded }
         val adapterItems: MutableList<ViewTyped> = adapter.items.toMutableList()
         val topicIndex: Int = adapter.items.indexOf(stream) + 1 // topic goes below stream
-        adapter.apply {
-            if (stream.isExpanded) {
-                adapterItems.addAll(topicIndex, stream.listOfTopics)
-            } else {
-                stream.listOfTopics.forEach { topic ->
-                    adapterItems.removeIf {
-                        it is TopicItemUI && it.topicId == topic.topicId
-                    }
+        if (stream.isExpanded) {
+            adapterItems.addAll(topicIndex, stream.listOfTopics)
+        } else {
+            stream.listOfTopics.forEach { topic ->
+                adapterItems.removeIf {
+                    it is TopicItemUI && it.topicId == topic.topicId
                 }
             }
-            items = adapterItems
         }
+        adapter.items = adapterItems
     }
 
     private fun onTopicClick(topicNameFromClick: String, streamName: String) {

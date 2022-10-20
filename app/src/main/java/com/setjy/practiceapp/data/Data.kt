@@ -1,5 +1,7 @@
 package com.setjy.practiceapp.data
 
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.setjy.practiceapp.ZulipApp
@@ -16,10 +18,21 @@ import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
 
 object Data {
 
     private val zulipRepo by lazy { ZulipRepo.get() }
+
+    private const val KEY_SHARED_PREFS = "ZULIP_APP_SHARED_PREFS"
+
+    private val sharedPreferences: SharedPreferences by lazy {
+        ZulipApp.appContext.getSharedPreferences(
+            KEY_SHARED_PREFS,
+            MODE_PRIVATE
+        )
+    }
 
     private const val COUNT_OF_MESSAGES_TO_LOAD = 20
 
@@ -33,61 +46,78 @@ object Data {
 
     private const val NARROW_TOPIC = "topic"
 
-    fun getStreams(isSubscribed: Boolean): Observable<MutableList<StreamItemUI>> =
-        zulipRepo.getStreams(isSubscribed)
-            .flatMap { dbStreams ->
-                Observable.fromIterable(dbStreams).flatMapSingle { streamItemDB ->
-                    Single.zip(
-                        Single.just(streamItemDB),
-                        zulipRepo.getTopicsByStreamId(streamItemDB.streamId),
-                        ::streamDBToPresentation
-                    )
-                }.toList()
-            }.flatMapObservable { dbStreams ->
-                if (dbStreams.isEmpty()
-                    || dbStreams.all { it.isSubscribed } && !isSubscribed
-                    || dbStreams.all { !it.isSubscribed } && isSubscribed
-                ) {
-                    getStreamsNW(isSubscribed).flatMapObservable { nwStreams ->
-                        Observable.fromIterable(nwStreams).flatMap { streamItemUI ->
-                            Observable.zip(
-                                Observable.just(streamItemUI),
-                                getTopics(streamItemUI),
-                                ::streamNWToPresentation
-                            )
-                        }.toList()
-                            .toObservable()
-                    }.retry()
-                        .flatMap { nwStreams ->
-                            insertStreamsToDB(nwStreams)
-                            insertTopicsToDB(nwStreams)
-                            Observable.just(nwStreams)
-                        }
+    fun getStreams(isSubscribed: Boolean): Flowable<List<StreamItemUI>> =
+        Single.concatArrayEager(
+            getStreamsFromDB(isSubscribed),
+            Single.fromObservable(getStreamsFromNW(isSubscribed))
+        )
+
+    private fun getStreamsFromDB(isSubscribed: Boolean) = zulipRepo.getStreams(isSubscribed)
+        .flatMap { dbStreams ->
+            Observable.fromIterable(dbStreams).flatMapSingle { streamItemDB ->
+                Single.zip(
+                    Single.just(streamItemDB),
+                    zulipRepo.getTopicsByStreamId(streamItemDB.streamId),
+                    ::streamDBToPresentation
+                )
+            }.toList()
+        }
+
+    private fun getStreamsFromNW(isSubscribed: Boolean) =
+        getStreamsNW(isSubscribed).flatMapObservable { nwStreams ->
+            Observable.fromIterable(nwStreams).flatMap { streamItemUI ->
+                Observable.zip(
+                    Observable.just(streamItemUI),
+                    getTopics(streamItemUI),
+                    ::streamNWToPresentation
+                )
+            }.toList()
+                .toObservable()
+        }.doAfterNext { nwStreams ->
+            insertStreamsToDB(nwStreams)
+            insertTopicsToDB(nwStreams)
+        }.retryWhen { observableThrowable ->
+            observableThrowable.flatMap { error ->
+                if (error is UnknownHostException) {
+                    Observable.timer(10, TimeUnit.SECONDS)
                 } else {
-                    Observable.just(dbStreams)
+                    observableThrowable
                 }
             }
+        }
 
     private fun streamDBToPresentation(
         streamItemDB: StreamItemDB,
         topics: List<TopicItemUI>
     ): StreamItemUI =
-        with(streamItemDB) {
-            StreamItemUI(streamId, streamName, isSubscribed, backgroundColor, topics)
-        }
+        StreamItemUI(
+            streamItemDB.streamId,
+            streamItemDB.streamName,
+            streamItemDB.isSubscribed,
+            streamItemDB.backgroundColor,
+            topics
+        )
 
     private fun streamNWToPresentation(
-        streamItemUI: StreamItemUI,
+        streamsRemote: StreamsRemote,
         topics: List<TopicItemUI>
     ): StreamItemUI =
-        streamItemUI.copy(listOfTopics = topics)
+        StreamItemUI(
+            streamId = streamsRemote.streamId,
+            streamName = streamsRemote.streamName,
+            backgroundColor = streamsRemote.streamColor,
+            listOfTopics = topics
+        )
 
 
     private fun insertStreamsToDB(streams: List<StreamItemUI>) =
-        zulipRepo.insertAllStreams(streams.map {
-            with(it) {
-                StreamItemDB(streamId, streamName, isSubscribed, backgroundColor)
-            }
+        zulipRepo.insertAllStreams(streams.map { stream ->
+            StreamItemDB(
+                stream.streamId,
+                stream.streamName,
+                stream.isSubscribed,
+                stream.backgroundColor
+            )
         })
 
     private fun insertTopicsToDB(streams: List<StreamItemUI>) = streams.forEach { stream ->
@@ -123,20 +153,18 @@ object Data {
     }
 
     private fun messageToPresentation(messageDB: MessageDB, reactions: List<EmojiUI>): MessageUI =
-        with(messageDB) {
-            MessageUI(
-                userId,
-                messageId,
-                avatarUrl,
-                username,
-                message,
-                timestamp,
-                streamName,
-                topicName,
-                reactions,
-                isOutgoingMessage = isOutgoingMessage
-            )
-        }
+        MessageUI(
+            messageDB.userId,
+            messageDB.messageId,
+            messageDB.avatarUrl,
+            messageDB.username,
+            messageDB.message,
+            messageDB.timestamp,
+            messageDB.streamName,
+            messageDB.topicName,
+            reactions,
+            isOutgoingMessage = messageDB.isOutgoingMessage
+        )
 
     private fun insertMessagesToDB(messages: List<MessagesRemote>) {
         zulipRepo.insertMessages(messages.toMessageDB())
@@ -144,85 +172,61 @@ object Data {
     }
 
     private fun List<MessagesRemote>.toMessageDB() =
-        map {
-            with(it) {
-                MessageDB(
-                    userId = it.senderId,
-                    messageId = it.messageId,
-                    avatarUrl = it.avatarUrl,
-                    username = senderFullName,
-                    message = content,
-                    timestamp = getMessageTimeStamp(timestamp),
-                    streamName = streamName,
-                    topicName = topicName,
-                    isOutgoingMessage = senderId == getUserOwnId()
-                )
-
-            }
+        map { messageRemote ->
+            MessageDB(
+                userId = messageRemote.senderId,
+                messageId = messageRemote.messageId,
+                avatarUrl = messageRemote.avatarUrl,
+                username = messageRemote.senderFullName,
+                message = messageRemote.content,
+                timestamp = getMessageTimeStamp(messageRemote.timestamp),
+                streamName = messageRemote.streamName,
+                topicName = messageRemote.topicName,
+                isOutgoingMessage = messageRemote.senderId == getUserOwnId()
+            )
         }
 
     private fun insertMessageToDB(message: MessagesRemote) =
         zulipRepo.insertMessage(
-            with(message) {
-                listOf(
-                    MessageUI(
-                        userId = senderId,
-                        messageId = messageId,
-                        avatarUrl = avatarUrl,
-                        username = senderFullName,
-                        message = content,
-                        timestamp = getMessageTimeStamp(timestamp),
-                        streamName = streamName,
-                        topicName = topicName,
-                        reactions = listOf(),
-                        isOutgoingMessage = senderId == getUserOwnId()
-                    )
+            listOf(
+                MessageUI(
+                    userId = message.senderId,
+                    messageId = message.messageId,
+                    avatarUrl = message.avatarUrl,
+                    username = message.senderFullName,
+                    message = message.content,
+                    timestamp = getMessageTimeStamp(message.timestamp),
+                    streamName = message.streamName,
+                    topicName = message.topicName,
+                    reactions = listOf(),
+                    isOutgoingMessage = message.senderId == getUserOwnId()
                 )
-            }.toMessagesDB()[0]
+            ).toMessagesDB()[0]
         )
 
     private fun List<MessageUI>.toMessagesDB() =
-        map {
-            with(it) {
-                MessageDB(
-                    userId,
-                    messageId,
-                    avatarUrl,
-                    username,
-                    message,
-                    timestamp,
-                    streamName,
-                    topicName,
-                    isOutgoingMessage
-                )
-            }
+        map { message ->
+            MessageDB(
+                message.userId,
+                message.messageId,
+                message.avatarUrl,
+                message.username,
+                message.message,
+                message.timestamp,
+                message.streamName,
+                message.topicName,
+                message.isOutgoingMessage
+            )
         }
 
-    private fun getStreamsNW(subscribedOnly: Boolean): Single<List<StreamItemUI>> =
+    private fun getStreamsNW(subscribedOnly: Boolean): Single<List<StreamsRemote>> =
         if (subscribedOnly) {
             NetworkService.zulipService.getSubscribedStreams()
         } else {
             NetworkService.zulipService.getAllStreams()
-        }
-            .flatMap {
-                Observable.fromIterable(it.streams)
-                    .flatMap { streamRemote ->
-                        Observable.just(streamsToPresentation(streamRemote, subscribedOnly))
-                    }.toList()
-            }
+        }.map { it.streams }
 
-    private fun streamsToPresentation(
-        remoteStream: StreamsRemote,
-        subscribedOnly: Boolean
-    ) =
-        StreamItemUI(
-            streamId = remoteStream.streamId,
-            streamName = remoteStream.streamName,
-            isSubscribed = subscribedOnly,
-            backgroundColor = remoteStream.streamColor
-        )
-
-    private fun getTopics(stream: StreamItemUI): Observable<MutableList<TopicItemUI>> =
+    private fun getTopics(stream: StreamsRemote): Observable<List<TopicItemUI>> =
         NetworkService.zulipService.getTopicsById(stream.streamId)
             .flatMap {
                 Observable.fromIterable(it.topics)
@@ -231,13 +235,13 @@ object Data {
                     }.toList().toObservable()
             }
 
-    private fun topicsToPresentation(topic: TopicsRemote, stream: StreamItemUI) =
+    private fun topicsToPresentation(topic: TopicsRemote, stream: StreamsRemote) =
         TopicItemUI(
             topicId = topic.topicId,
             topicName = topic.topicName,
             parentId = stream.streamId,
             parentName = stream.streamName,
-            backgroundColor = stream.backgroundColor
+            backgroundColor = stream.streamColor
         )
 
     fun getOwnUser(): Observable<UserItemUI> =
@@ -247,25 +251,30 @@ object Data {
                     ownUserToPresentation(user, status)
                 }
             }.doAfterNext { user ->
-                if (ZulipApp.preferences.getInt(KEY_OWN_USER_ID, 0) == 0) {
-                    ZulipApp.editor.putInt(KEY_OWN_USER_ID, user.userId).commit()
+                if (sharedPreferences.getInt(KEY_OWN_USER_ID, 0) == 0) {
+                    sharedPreferences.edit().putInt(KEY_OWN_USER_ID, user.userId).apply()
+                }
+            }.retryWhen { observableThrowable ->
+                observableThrowable.flatMap { error ->
+                    if (error is UnknownHostException) {
+                        Observable.timer(10, TimeUnit.SECONDS)
+                    } else {
+                        observableThrowable
+                    }
                 }
             }
-            .retry()
 
     private fun ownUserToPresentation(
         userOwnResponse: UsersRemote,
         status: UserStatus
-    ) = with(userOwnResponse) {
-        UserItemUI(
-            userId = userId,
-            fullName = fullName,
-            avatarUrl = avatarUrl,
-            timezone = userTimeZone,
-            userEmail = userEmail,
-            status = status
-        )
-    }
+    ) = UserItemUI(
+        userId = userOwnResponse.userId,
+        fullName = userOwnResponse.fullName,
+        avatarUrl = userOwnResponse.avatarUrl,
+        timezone = userOwnResponse.userTimeZone,
+        userEmail = userOwnResponse.userEmail,
+        status = status
+    )
 
     private fun getUserStatus(userId: Int): Observable<UserStatus> =
         NetworkService.zulipService.getUserStatus(userId).subscribeOn(Schedulers.io())
@@ -283,26 +292,32 @@ object Data {
                         )
                     }.toList()
                     .toObservable()
-            }.retry()
+            }.retryWhen { observableThrowable ->
+                observableThrowable.flatMap { error ->
+                    if (error is UnknownHostException) {
+                        Observable.timer(10, TimeUnit.SECONDS)
+                    } else {
+                        observableThrowable
+                    }
+                }
+            }
 
     private fun usersToPresentation(userRemote: UsersRemote, userStatus: UserStatus) =
-        with(userRemote) {
-            UserItemUI(
-                userId = userId,
-                fullName = fullName,
-                avatarUrl = avatarUrl,
-                timezone = userTimeZone,
-                userEmail = userEmail,
-                status = userStatus
-            )
-        }
+        UserItemUI(
+            userId = userRemote.userId,
+            fullName = userRemote.fullName,
+            avatarUrl = userRemote.avatarUrl,
+            timezone = userRemote.userTimeZone,
+            userEmail = userRemote.userEmail,
+            status = userStatus
+        )
 
     fun getMessages(
         streamName: String,
         topicName: String,
         anchor: String
     ): Observable<List<MessageUI>> =
-        getMessagesFromDB(streamName, topicName).flatMapObservable { db ->
+        getMessagesFromDB(streamName, topicName).flatMapObservable { dbMessages ->
             NetworkService.zulipService.getMessages(
                 anchor = anchor,
                 numBefore = COUNT_OF_MESSAGES_TO_LOAD,
@@ -315,10 +330,10 @@ object Data {
                 )
             )
                 .map { response ->
-                    if (anchor != ANCHOR_NEWEST && db.size < COUNT_OF_MESSAGES_TO_SAVE) {
+                    if (anchor != ANCHOR_NEWEST && dbMessages.size < COUNT_OF_MESSAGES_TO_SAVE) {
                         insertMessagesToDB(
                             response.messages.filterNot { it.messageId == anchor.toInt() }.takeLast(
-                                COUNT_OF_MESSAGES_TO_SAVE - db.size
+                                COUNT_OF_MESSAGES_TO_SAVE - dbMessages.size
                             )
                         )
                     }
@@ -326,22 +341,26 @@ object Data {
                         zulipRepo.deleteAllMessages(streamName, topicName)
                         insertMessagesToDB(response.messages)
                     }
-                    response.messages.map { message -> putMessage(message) }.asReversed()
+                    response.messages.map { message -> message.toMessageUI() }.asReversed()
                 }
-        }.retry()
+        }.retryWhen { observableThrowable ->
+            observableThrowable.flatMap {
+                if (it is UnknownHostException) Observable.timer(
+                    10,
+                    TimeUnit.SECONDS
+                ) else observableThrowable
+            }
+        }
 
-
-    private fun getUserOwnId(): Int = ZulipApp.preferences.getInt(KEY_OWN_USER_ID, 0)
+    private fun getUserOwnId(): Int = sharedPreferences.getInt(KEY_OWN_USER_ID, 0)
 
     private fun getListOfEmojiUI(messagesRemote: MessagesRemote): List<EmojiUI> =
         messagesRemote.reactions.map { response ->
-            with(response) {
-                EmojiUI(
-                    code = emojiCode,
-                    emojiName = emojiName,
-                    isSelected = userId == getUserOwnId(),
-                )
-            }
+            EmojiUI(
+                code = response.emojiCode,
+                emojiName = response.emojiName,
+                isSelected = response.userId == getUserOwnId(),
+            )
         }
 
     fun sendMessage(
@@ -361,38 +380,41 @@ object Data {
         streamName: String,
         topicName: String
     ): Observable<List<MessageUI>> = NetworkService.zulipService.registerEventQueue()
-        .flatMap {
+        .flatMap { registerResponse ->
             NetworkService.zulipService.getEventsQueue(
-                it.queueId,
-                it.lastEventId
-            )
-                .flatMap { response ->
-                    if (response.events.isEmpty()) {
-                        Observable.empty()
-                    } else {
-                        Observable.zip(
-                            Observable.just(response.events),
-                            Observable.fromSingle(getMessagesFromDB(streamName, topicName)),
-                            ::messagesFromEventsQueueToPresentation
+                registerResponse.queueId,
+                registerResponse.lastEventId
+            ).filter { it.events.isNotEmpty() }.flatMap { eventResponse ->
+                getMessagesFromDB(streamName, topicName).toObservable()
+                    .map { messages ->
+                        messagesFromEventsQueueToPresentation(
+                            eventResponse.events,
+                            messages
+                        )
+                    }.map { messages ->
+                        reactionsFromEventsQueueToPresentation(
+                            eventResponse.events,
+                            messages
                         )
                     }
+            }
+        }
+        .doOnError { e -> Log.d("xxx", "get error, resume next?: (messages) $e") }
+        .retryWhen { observableThrowable ->
+            observableThrowable.flatMap { error ->
+                if (error is UnknownHostException) {
+                    Observable.timer(10, TimeUnit.SECONDS)
+                } else {
+                    observableThrowable
                 }
-                .map { (events, messages) ->
-                    reactionsFromEventsQueueToPresentation(
-                        events,
-                        messages
-                    )
-                }
-                .doOnError { e -> Log.d("xxx", "get error, resume next?: (messages) $e") }
-                .retry()
+            }
         }
 
     private fun messagesFromEventsQueueToPresentation(
         eventsRemote: List<GetEventRemote>,
         databaseMessages: List<MessageUI>
-    ): Pair<List<GetEventRemote>, List<MessageUI>> = Pair(eventsRemote,
-        (eventsRemote
-            .filter { it.type == EventType.MESSAGE }
+    ): List<MessageUI> =
+        eventsRemote.filter { it.type == EventType.MESSAGE }
             .map { event ->
                 if (databaseMessages.size == COUNT_OF_MESSAGES_TO_SAVE) {
                     zulipRepo.deleteMessages(
@@ -400,10 +422,9 @@ object Data {
                     )
                 }
                 insertMessageToDB(event.message)
-                putMessage(event.message)
+                event.message.toMessageUI()
             }.asReversed() + databaseMessages
-                )
-    )
+
 
     private fun reactionsFromEventsQueueToPresentation(
         events: List<GetEventRemote>, messages: List<MessageUI>
@@ -469,21 +490,19 @@ object Data {
         )
     }
 
-    private fun putMessage(messageRemote: MessagesRemote): MessageUI =
-        with(messageRemote) {
-            MessageUI(
-                messageId = messageId,
-                userId = senderId,
-                username = senderFullName,
-                message = content,
-                avatarUrl = avatarUrl,
-                timestamp = getMessageTimeStamp(timestamp),
-                streamName = streamName,
-                topicName = topicName,
-                isOutgoingMessage = senderId == getUserOwnId(),
-                reactions = getListOfEmojiUI(messageRemote)
-            )
-        }
+    private fun MessagesRemote.toMessageUI(): MessageUI =
+        MessageUI(
+            messageId = messageId,
+            userId = senderId,
+            username = senderFullName,
+            message = content,
+            avatarUrl = avatarUrl,
+            timestamp = getMessageTimeStamp(timestamp),
+            streamName = streamName,
+            topicName = topicName,
+            isOutgoingMessage = senderId == getUserOwnId(),
+            reactions = getListOfEmojiUI(this)
+        )
 
     val emojiUISet = listOf(
 
@@ -1542,3 +1561,4 @@ object Data {
         EmojiUI("white_flag", "1f3f3")
     )
 }
+
