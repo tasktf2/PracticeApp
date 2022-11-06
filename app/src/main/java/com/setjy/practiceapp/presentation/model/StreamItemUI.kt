@@ -13,4 +13,4 @@ data class StreamItemUI(
     var isExpanded: Boolean = false,
     override val uid: Int = streamId,
     override val viewType: Int = R.layout.item_stream
-) : ViewTyped, Item()
+) : ViewTyped, Item

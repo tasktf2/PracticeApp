@@ -6,10 +6,10 @@ import com.setjy.practiceapp.data.local.db.dao.MessageDao
 import com.setjy.practiceapp.data.local.db.dao.ReactionDao
 import com.setjy.practiceapp.data.local.db.dao.StreamDao
 import com.setjy.practiceapp.data.local.db.dao.TopicDao
-import com.setjy.practiceapp.data.model.MessageEntity
-import com.setjy.practiceapp.data.model.ReactionEntity
-import com.setjy.practiceapp.data.model.StreamEntity
-import com.setjy.practiceapp.data.model.TopicEntity
+import com.setjy.practiceapp.data.local.model.MessageEntity
+import com.setjy.practiceapp.data.local.model.ReactionEntity
+import com.setjy.practiceapp.data.local.model.StreamEntity
+import com.setjy.practiceapp.data.local.model.TopicEntity
 
 @Database(
     entities = [

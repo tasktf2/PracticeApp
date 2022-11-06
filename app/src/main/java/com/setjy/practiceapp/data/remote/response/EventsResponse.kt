@@ -1,19 +1,18 @@
 package com.setjy.practiceapp.data.remote.response
 
 import com.google.gson.annotations.SerializedName
-import com.setjy.practiceapp.data.base.ModelEntity
-import com.setjy.practiceapp.data.model.ReactionEntity
+import com.setjy.practiceapp.data.local.model.ReactionEntity
 import com.setjy.practiceapp.domain.model.ReactionDomain
 
 data class SendEventResponse(
     @SerializedName("last_event_id") val lastEventId: Int,
     @SerializedName("queue_id") val queueId: String,
-) : ModelEntity()
+)
 
 data class GetEventResponse(
     val events: List<GetEventRemote>,
     @SerializedName("queue_id") val queueId: String
-) : ModelEntity()
+)
 
 data class GetEventRemote(
     @SerializedName("type") val type: EventType,
@@ -40,7 +39,6 @@ enum class EventOperation {
 
     @SerializedName("remove")
     REMOVE
-
 }
 
 enum class EventType {
@@ -49,5 +47,4 @@ enum class EventType {
 
     @SerializedName("reaction")
     REACTION
-
 }

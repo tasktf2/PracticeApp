@@ -5,5 +5,6 @@ import io.reactivex.rxjava3.core.Single
 
 interface ReactionRepo {
     fun addReaction(messageId: Int, emojiName: String): Single<EmojiToggleResponse>
+
     fun deleteReaction(messageId: Int, emojiName: String): Single<EmojiToggleResponse>
 }

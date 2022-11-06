@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.setjy.practiceapp.presentation.base.view.MessageViewGroup xmlns:android="http://schemas.android.com/apk/res/android"
+<com.setjy.practiceapp.presentation.view.MessageViewGroup xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/custom_vg"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />

@@ -1,8 +1,8 @@
 package com.setjy.practiceapp.data.local.db.dao
 
 import androidx.room.*
-import com.setjy.practiceapp.data.model.MessageEntity
-import com.setjy.practiceapp.data.model.MessageWithReactionsEntity
+import com.setjy.practiceapp.data.local.model.MessageEntity
+import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
 
 @Dao
 interface MessageDao {

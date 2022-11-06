@@ -10,9 +10,9 @@ data class StreamWithTopics(
     val isSubscribed: Boolean = false,
     val backgroundColor: String?,
     val topics: List<Topic>
-) : Model()
+) : Model
 
-class StreamMapper : DomainMapper<StreamItemUI, StreamWithTopics> {
+class StreamMapper : DomainMapper<StreamWithTopics, StreamItemUI> {
     override fun mapToPresentation(model: StreamWithTopics): StreamItemUI = StreamItemUI(
         streamId = model.streamId,
         streamName = model.streamName,

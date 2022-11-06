@@ -22,4 +22,4 @@ data class MessageUI(
     } else {
         R.layout.item_msg_incoming
     }
-) : ViewTyped, Item()
+) : ViewTyped, Item

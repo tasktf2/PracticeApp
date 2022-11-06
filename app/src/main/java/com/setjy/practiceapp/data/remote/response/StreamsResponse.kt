@@ -1,8 +1,6 @@
 package com.setjy.practiceapp.data.remote.response
 
 import com.google.gson.annotations.SerializedName
-import com.setjy.practiceapp.data.base.ModelEntity
-import com.setjy.practiceapp.data.base.ModelRemote
 
 data class StreamsResponse(
     @SerializedName(value = "streams", alternate = ["subscriptions"])

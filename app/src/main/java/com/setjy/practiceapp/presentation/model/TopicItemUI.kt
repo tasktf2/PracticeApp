@@ -14,4 +14,4 @@ data class TopicItemUI(
     val isFound: Boolean = false,
     override val uid: Int = topicId,
     override val viewType: Int = R.layout.item_topic
-) : ViewTyped, Item()
+) : ViewTyped, Item

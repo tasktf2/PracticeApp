@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.setjy.practiceapp.data.model.TopicEntity
+import com.setjy.practiceapp.data.local.model.TopicEntity
 
 @Dao
 interface TopicDao {

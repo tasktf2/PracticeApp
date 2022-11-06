@@ -6,7 +6,7 @@ import com.setjy.practiceapp.di.GlobalDI
 
 class ZulipApp : Application() {
 
-    val globalDI: GlobalDI by lazy { GlobalDI() }
+    val globalDI: GlobalDI by lazy { GlobalDI }
 
     override fun onCreate() {
         super.onCreate()

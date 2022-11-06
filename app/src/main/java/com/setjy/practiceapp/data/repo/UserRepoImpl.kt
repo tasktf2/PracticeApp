@@ -2,11 +2,12 @@ package com.setjy.practiceapp.data.repo
 
 import com.setjy.practiceapp.data.remote.api.UsersApi
 import com.setjy.practiceapp.data.remote.response.UsersRemote
+import com.setjy.practiceapp.data.remote.response.UsersResponse
 import com.setjy.practiceapp.domain.repo.UserRepo
-import com.setjy.practiceapp.presentation.model.UserStatus
+import com.setjy.practiceapp.presentation.ui.profile.UserStatus
 import io.reactivex.rxjava3.core.Observable
 
-class UserRepoImpl constructor(private val api: UsersApi) : UserRepo {
+class UserRepoImpl(private val api: UsersApi) : UserRepo {
 
     override fun getOwnUser(): Observable<UsersRemote> = api.getOwnUser()
 
@@ -15,5 +16,5 @@ class UserRepoImpl constructor(private val api: UsersApi) : UserRepo {
             .map { response -> response.presence.statusAndTimestamp.status }
 
     override fun getAllUsers(): Observable<List<UsersRemote>> =
-        api.getAllUsers().map { response -> response.members }
+        api.getAllUsers().map(UsersResponse::members)
 }

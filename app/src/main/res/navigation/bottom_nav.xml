@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/channels_fragment"
-        android:name="com.setjy.practiceapp.presentation.view.channels.ChannelsFragment"
+        android:name="com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment"
         android:label="ChannelsFragment">
         <action
             android:id="@+id/action_channels_fragment_to_topicFragment"
@@ -16,15 +16,15 @@
     </fragment>
     <fragment
         android:id="@+id/people_fragment"
-        android:name="com.setjy.practiceapp.presentation.view.people.PeopleFragment"
+        android:name="com.setjy.practiceapp.presentation.ui.people.PeopleFragment"
         android:label="PeopleFragment" />
     <fragment
         android:id="@+id/profile_fragment"
-        android:name="com.setjy.practiceapp.presentation.view.profile.ProfileFragment"
+        android:name="com.setjy.practiceapp.presentation.ui.profile.ProfileFragment"
         android:label="ProfileFragment" />
     <fragment
         android:id="@+id/topicFragment"
-        android:name="com.setjy.practiceapp.presentation.view.topic.TopicFragment"
+        android:name="com.setjy.practiceapp.presentation.ui.topic.TopicFragment"
         android:label="TopicFragment">
         <argument
             android:name="streamAndTopicNames"

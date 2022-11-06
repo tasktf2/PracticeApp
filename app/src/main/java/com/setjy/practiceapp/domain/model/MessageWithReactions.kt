@@ -1,6 +1,5 @@
 package com.setjy.practiceapp.domain.model
 
-import com.setjy.practiceapp.data.local.pref.AppPreferences
 import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.Model
 import com.setjy.practiceapp.presentation.model.MessageUI
@@ -16,10 +15,10 @@ data class MessageWithReactionsDomain(
     val topicName: String,
     val isOutgoingMessage: Boolean,
     val reactions: List<ReactionDomain>
-) : Model()
+) : Model
 
-class MessageMapper constructor(private val reactionMapper: ReactionMapper) :
-    DomainMapper<MessageUI, MessageWithReactionsDomain> {
+class MessageMapper(private val reactionMapper: ReactionMapper) :
+    DomainMapper<MessageWithReactionsDomain, MessageUI> {
     override fun mapToPresentation(model: MessageWithReactionsDomain): MessageUI = MessageUI(
         userId = model.userId,
         messageId = model.messageId,
@@ -29,7 +28,7 @@ class MessageMapper constructor(private val reactionMapper: ReactionMapper) :
         timestamp = model.timestamp,
         streamName = model.streamName,
         topicName = model.topicName,
-        reactions = model.reactions.map { reactionMapper.mapToPresentation(it) },
-        isOutgoingMessage = model.userId == AppPreferences().getOwnUserId()
+        reactions = model.reactions.map(reactionMapper::mapToPresentation),
+        isOutgoingMessage = model.isOutgoingMessage
     )
 }

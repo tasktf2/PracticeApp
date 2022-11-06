@@ -1,6 +1,5 @@
 package com.setjy.practiceapp.data.remote.api
 
-import com.setjy.practiceapp.data.Constants
 import com.setjy.practiceapp.data.remote.response.MessagesResponse
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
@@ -24,6 +23,10 @@ interface MessageApi {
         @Query("to") streamName: String,
         @Query("topic") topicName: String,
         @Query("content") message: String,
-        @Query("type") typeOfMessage: String = Constants.MESSAGE_SEND_TYPE
+        @Query("type") typeOfMessage: String = MESSAGE_SEND_TYPE
     ): Completable
+
+    companion object {
+        private const val MESSAGE_SEND_TYPE = "stream"
+    }
 }

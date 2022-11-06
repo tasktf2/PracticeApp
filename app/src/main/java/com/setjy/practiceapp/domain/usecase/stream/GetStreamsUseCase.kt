@@ -5,17 +5,19 @@ import com.setjy.practiceapp.domain.model.StreamMapper
 import com.setjy.practiceapp.domain.repo.StreamRepo
 import com.setjy.practiceapp.presentation.model.StreamItemUI
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Scheduler
 
-open class GetStreamsUseCase constructor(
+open class GetStreamsUseCase(
     private val repo: StreamRepo,
-    private val mapper: StreamMapper
+    private val mapper: StreamMapper,
+    private val scheduler: Scheduler
 ) :
     UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>> {
 
-
-    override fun execute(params: Params?): Flowable<List<StreamItemUI>> =
-        repo.getStreams(params!!.isSubscribed)
-            .map { streamsDomain -> streamsDomain.map { mapper.mapToPresentation(it) } }
-
     data class Params(val isSubscribed: Boolean)
+
+    override fun execute(params: Params): Flowable<List<StreamItemUI>> =
+        repo.getStreams(params.isSubscribed)
+            .subscribeOn(scheduler)
+            .map { streamsDomain -> streamsDomain.map(mapper::mapToPresentation) }
 }

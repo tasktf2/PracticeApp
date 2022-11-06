@@ -2,7 +2,10 @@ package com.setjy.practiceapp.data.remote.api
 
 import com.setjy.practiceapp.data.remote.response.EmojiToggleResponse
 import io.reactivex.rxjava3.core.Single
-import retrofit2.http.*
+import retrofit2.http.DELETE
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ReactionsApi {
 

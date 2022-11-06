@@ -19,7 +19,7 @@ interface MessageRepo {
         anchor: String
     ): Observable<List<MessageWithReactionsDomain>>
 
-    fun getMessagesOnLaunch(
+    fun getNewestMessages(
         streamName: String,
         topicName: String
     ): Flowable<List<MessageWithReactionsDomain>>

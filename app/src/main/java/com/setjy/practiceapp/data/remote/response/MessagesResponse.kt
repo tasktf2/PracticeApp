@@ -3,9 +3,8 @@ package com.setjy.practiceapp.data.remote.response
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.data.base.ModelRemote
 import com.setjy.practiceapp.data.base.RemoteMapper
-import com.setjy.practiceapp.data.local.pref.AppPreferences
-import com.setjy.practiceapp.data.model.MessageEntity
-import com.setjy.practiceapp.data.model.MessageWithReactionsEntity
+import com.setjy.practiceapp.data.local.model.MessageEntity
+import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.util.getMessageTimeStamp
 
@@ -26,11 +25,11 @@ data class MessagesRemote(
     @SerializedName("display_recipient") val streamName: String, //stream name (displayRecipient)
     @SerializedName("stream_id") val streamId: Int,
     @SerializedName("subject") val topicName: String, //topic name
-    @SerializedName("recipient_id") val recipientId: Int, //topic id??? (for hashing)
-) : ModelRemote()
+    @SerializedName("recipient_id") val recipientId: Int, //topic id
+) : ModelRemote
 
-class MessagesRemoteMapper :
-    RemoteMapper<MessageWithReactionsDomain, MessagesRemote, MessageWithReactionsEntity> {
+class MessagesRemoteMapper(private val ownUserId: Int) :
+    RemoteMapper<MessagesRemote, MessageWithReactionsDomain, MessageWithReactionsEntity> {
     override fun mapToDomain(remote: MessagesRemote): MessageWithReactionsDomain =
         MessageWithReactionsDomain(
             userId = remote.senderId,
@@ -41,7 +40,7 @@ class MessagesRemoteMapper :
             timestamp = getMessageTimeStamp(remote.timestamp),
             streamName = remote.streamName,
             topicName = remote.topicName,
-            isOutgoingMessage = remote.senderId == AppPreferences().getOwnUserId(),
+            isOutgoingMessage = remote.senderId == ownUserId,
             reactions = remote.reactions.map { it.toDomain(remote.messageId) }
         )
 
@@ -56,7 +55,7 @@ class MessagesRemoteMapper :
                 timestamp = getMessageTimeStamp(remote.timestamp),
                 streamName = remote.streamName,
                 topicName = remote.topicName,
-                isOutgoingMessage = remote.senderId == AppPreferences().getOwnUserId(),
+                isOutgoingMessage = remote.senderId == ownUserId,
             ),
             reactions = remote.reactions.map { it.toEntity(remote.messageId) }
         )

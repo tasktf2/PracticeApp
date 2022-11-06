@@ -2,15 +2,15 @@ package com.setjy.practiceapp.data.remote.response
 
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.data.base.ModelRemote
-import com.setjy.practiceapp.data.model.ReactionEntity
+import com.setjy.practiceapp.data.local.model.ReactionEntity
 import com.setjy.practiceapp.domain.model.ReactionDomain
 
 data class ReactionsResponse(
     @SerializedName("emoji_code") val emojiCode: String,
     @SerializedName("emoji_name") val emojiName: String,
     @SerializedName("user_id") val userId: Int
-) : ModelRemote() {
-    fun toDomain(messageId: Int) = ReactionDomain( //todo refactor to interface?
+) : ModelRemote {
+    fun toDomain(messageId: Int) = ReactionDomain(
         code = emojiCode, name = emojiName, userId = userId, messageId = messageId
     )
 

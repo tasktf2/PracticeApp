@@ -3,7 +3,7 @@ package com.setjy.practiceapp.data.repo
 import com.setjy.practiceapp.data.remote.api.ReactionsApi
 import com.setjy.practiceapp.domain.repo.ReactionRepo
 
-class ReactionRepoImpl constructor(private val api: ReactionsApi) : ReactionRepo {
+class ReactionRepoImpl(private val api: ReactionsApi) : ReactionRepo {
 
     override fun addReaction(messageId: Int, emojiName: String) =
         api.addReaction(messageId = messageId, emojiName = emojiName)

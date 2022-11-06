@@ -1,12 +1,8 @@
 package com.setjy.practiceapp.data.local.db.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Transaction
-import com.setjy.practiceapp.data.model.StreamEntity
-import com.setjy.practiceapp.data.model.StreamWithTopicsEntity
+import androidx.room.*
+import com.setjy.practiceapp.data.local.model.StreamEntity
+import com.setjy.practiceapp.data.local.model.StreamWithTopicsEntity
 
 @Dao
 interface StreamDao {

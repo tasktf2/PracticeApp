@@ -1,10 +1,8 @@
 package com.setjy.practiceapp.data.repo
 
-import com.setjy.practiceapp.data.Constants
-import com.setjy.practiceapp.data.local.pref.AppPreferences
+import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntityMapper
 import com.setjy.practiceapp.data.local.storage.MessageStorage
 import com.setjy.practiceapp.data.local.storage.ReactionStorage
-import com.setjy.practiceapp.data.model.MessageWithReactionsEntityMapper
 import com.setjy.practiceapp.data.remote.api.EventsApi
 import com.setjy.practiceapp.data.remote.response.EventOperation
 import com.setjy.practiceapp.data.remote.response.EventType
@@ -12,17 +10,19 @@ import com.setjy.practiceapp.data.remote.response.GetEventRemote
 import com.setjy.practiceapp.data.remote.response.MessagesRemoteMapper
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.domain.repo.EventRepo
+import com.setjy.practiceapp.domain.repo.MessageRepo
 import io.reactivex.rxjava3.core.Observable
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
-class EventRepoImpl constructor(
+class EventRepoImpl(
     private val api: EventsApi,
-    private val messageRepo: MessageRepoImpl,
+    private val messageRepo: MessageRepo,
     private val messageStorage: MessageStorage,
     private val reactionStorage: ReactionStorage,
     private val messageEntityMapper: MessageWithReactionsEntityMapper,
-    private val messageRemoteMapper: MessagesRemoteMapper
+    private val messageRemoteMapper: MessagesRemoteMapper,
+    private val ownUserId: Int
 ) : EventRepo {
 
     override fun getEvents(
@@ -59,7 +59,7 @@ class EventRepoImpl constructor(
     ) =
         events.filter { it.type == EventType.MESSAGE }
             .map { event ->
-                if (messages.size == Constants.MESSAGES_TO_SAVE) {
+                if (messages.size == MESSAGES_TO_SAVE) {
                     messageStorage.deleteMessages(
                         listOf(
                             messageEntityMapper.mapToEntity(
@@ -91,7 +91,7 @@ class EventRepoImpl constructor(
                         }
                         EventOperation.REMOVE -> {
                             reactionStorage.deleteReaction(event.toReactionEntity())
-                            if (event.userId == AppPreferences().getOwnUserId()) {
+                            if (event.userId == ownUserId) {
                                 message.copy(reactions = message.reactions.filterNot { reaction ->
                                     reaction.code == event.emojiCode && reaction.userId == event.userId
                                 })
@@ -110,5 +110,9 @@ class EventRepoImpl constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val MESSAGES_TO_SAVE = 50
     }
 }

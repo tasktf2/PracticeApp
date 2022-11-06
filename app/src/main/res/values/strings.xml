@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">PracticeApp</string>
     <string name="hint_type">Написать...</string>
-    <string name="database_name">zulip.db</string>
-
 </resources>

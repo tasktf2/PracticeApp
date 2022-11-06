@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:parentTag="com.setjy.practiceapp.presentation.base.view.MessageViewGroup">
+    tools:parentTag="com.setjy.practiceapp.presentation.view.MessageViewGroup">
 
     <ImageView
         android:id="@+id/iv_avatar"
@@ -56,7 +56,7 @@
 
     </androidx.cardview.widget.CardView>
 
-    <com.setjy.practiceapp.presentation.base.view.EmojiFlexboxLayout
+    <com.setjy.practiceapp.presentation.view.EmojiFlexboxLayout
         android:id="@+id/flexbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

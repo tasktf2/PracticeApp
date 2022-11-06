@@ -3,9 +3,9 @@ package com.setjy.practiceapp.data.remote.response
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.UserDomain
-import com.setjy.practiceapp.presentation.model.UserStatus
+import com.setjy.practiceapp.presentation.ui.profile.UserStatus
 
-data class UsersResponse(@SerializedName("members") val members: List<UsersRemote>) : ModelEntity()
+data class UsersResponse(@SerializedName("members") val members: List<UsersRemote>) : ModelEntity
 
 data class UsersRemote(
     @SerializedName("user_id") val userId: Int,
@@ -31,7 +31,7 @@ data class UserResponse(
 
 data class UserStatusPresence(
     @SerializedName("presence") val presence: UserStatusResponse
-) : ModelEntity()
+)
 
 data class UserStatusResponse(
     @SerializedName("aggregated") val statusAndTimestamp: UserStatusRemote

@@ -1,24 +1,25 @@
 package com.setjy.practiceapp.data.repo
 
+import com.setjy.practiceapp.data.local.model.StreamWithTopicsEntityMapper
 import com.setjy.practiceapp.data.local.storage.StreamStorage
 import com.setjy.practiceapp.data.local.storage.TopicStorage
-import com.setjy.practiceapp.data.model.StreamWithTopicsEntityMapper
 import com.setjy.practiceapp.data.remote.api.StreamsApi
 import com.setjy.practiceapp.data.remote.response.StreamRemote
 import com.setjy.practiceapp.data.remote.response.TopicsRemote
 import com.setjy.practiceapp.domain.model.StreamWithTopics
 import com.setjy.practiceapp.domain.repo.StreamRepo
+import com.setjy.practiceapp.domain.repo.TopicRepo
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
-class StreamRepoImpl constructor(
+class StreamRepoImpl(
     private val api: StreamsApi,
     private val streamStorage: StreamStorage,
     private val topicStorage: TopicStorage,
-    private val topicRepoImpl: TopicRepoImpl,
+    private val topicRepo: TopicRepo,
     private val mapper: StreamWithTopicsEntityMapper
 ) : StreamRepo {
 
@@ -31,7 +32,7 @@ class StreamRepoImpl constructor(
             Observable.fromIterable(it.streams).flatMap { streamRemote ->
                 Observable.zip(
                     Observable.just(streamRemote),
-                    topicRepoImpl.getRemoteTopics(streamRemote.streamId)
+                    topicRepo.getRemoteTopics(streamRemote.streamId)
                 ) { stream, topics -> remoteToDomain(stream, topics, isSubscribed) }
             }
         }
@@ -64,9 +65,7 @@ class StreamRepoImpl constructor(
         )
 
     override fun getLocalStreams(isSubscribed: Boolean): Single<List<StreamWithTopics>> =
-        streamStorage.getStreams(isSubscribed)
-            .map { list -> list.map { stream -> mapper.mapToDomain(stream) } }
-
+        streamStorage.getStreams(isSubscribed).map { list -> list.map(mapper::mapToDomain) }
 
     override fun getStreams(isSubscribed: Boolean): Flowable<List<StreamWithTopics>> =
         Single.concatArrayEager(
