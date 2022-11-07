@@ -35,7 +35,7 @@ class Store<A : BaseAction, S : BaseState>(
     fun bind(view: MviView<S>): Disposable {
         val disposable = CompositeDisposable()
         disposable += state.observeOn(AndroidSchedulers.mainThread())
-            .subscribe(view::render) //todo scheduler
+            .subscribe(view::render)
         return disposable
     }
 }

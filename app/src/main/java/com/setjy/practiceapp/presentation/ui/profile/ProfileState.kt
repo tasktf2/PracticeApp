@@ -3,8 +3,8 @@ package com.setjy.practiceapp.presentation.ui.profile
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.base.Item
-import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.base.mvi.BaseState
+import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 
 data class ProfileState(
     val userItemUI: UserItemUI? = null,

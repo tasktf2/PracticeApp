@@ -5,9 +5,9 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.base.recycler.base.BaseViewHolder
 import com.setjy.practiceapp.presentation.base.recycler.base.HolderFactory
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
+import com.setjy.practiceapp.presentation.model.StreamItemUI
 import com.setjy.practiceapp.presentation.ui.channels.holder.StreamItemViewHolder
 import com.setjy.practiceapp.presentation.ui.channels.holder.TopicItemViewHolder
-import com.setjy.practiceapp.presentation.model.StreamItemUI
 
 class ChannelsHolderFactory(
     private val onStreamClickAction: (stream: StreamItemUI) -> Unit,

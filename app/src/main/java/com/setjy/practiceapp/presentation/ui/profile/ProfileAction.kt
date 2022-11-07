@@ -4,7 +4,7 @@ import com.setjy.practiceapp.presentation.base.mvi.BaseAction
 
 sealed class ProfileAction : BaseAction {
 
-    object ShowLoading : ProfileAction() //todo uiEffects
+    object ShowLoading : ProfileAction()
 
     object LoadOwnUser : ProfileAction()
 

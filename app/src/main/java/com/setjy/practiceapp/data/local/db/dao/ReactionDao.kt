@@ -1,6 +1,9 @@
 package com.setjy.practiceapp.data.local.db.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import com.setjy.practiceapp.data.local.model.ReactionEntity
 
 @Dao

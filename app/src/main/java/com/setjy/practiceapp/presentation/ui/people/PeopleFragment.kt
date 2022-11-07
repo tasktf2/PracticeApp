@@ -5,23 +5,21 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
-import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentPeopleBinding
+import com.setjy.practiceapp.presentation.base.mvi.FragmentViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
-import com.setjy.practiceapp.util.plusAssign
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 
-class PeopleFragment : Fragment(R.layout.fragment_people) {
+class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState> {
 
-    private val getAllUsersUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.getAllUsersUseCase }
-
+    private val viewModel: FragmentViewModel<PeopleAction, PeopleState> by viewModels { PeopleViewModelFactory() }
 
     private val binding: FragmentPeopleBinding by viewBinding()
 
@@ -36,13 +34,16 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
 
         binding.rvListOfUsers.adapter = adapter
         binding.rvListOfUsers.layoutManager = LinearLayoutManager(context)
-        getAllUsers()
+        viewModel.bind(this)
+        viewModel.accept(PeopleAction.LoadUsers)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        disposable.dispose()
-
+    override fun render(state: PeopleState) {
+        binding.shimmer.isVisible = state.isLoading
+        if (state.users != null) {
+            adapter.items = state.users
+            initUserSearch()
+        }
     }
 
     private fun initUserSearch() {
@@ -59,21 +60,9 @@ class PeopleFragment : Fragment(R.layout.fragment_people) {
         }
     }
 
-    private fun getAllUsers() {
-        disposable += getAllUsersUseCase.execute(Unit)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterNext {
-                hideLoading()
-                initUserSearch()
-            }
-            .doOnSubscribe { showLoading() }
-            .subscribe { users -> adapter.items = users }
-    }
-
-    private fun showLoading() = binding.shimmer.showShimmer(true)
-
-    private fun hideLoading() {
-        binding.shimmer.apply { stopShimmer() }.isVisible = false
+    override fun onDestroyView() {
+        super.onDestroyView()
+        disposable.dispose()
+        viewModel.unbind()
     }
 }

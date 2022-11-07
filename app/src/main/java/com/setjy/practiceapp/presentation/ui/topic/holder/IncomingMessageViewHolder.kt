@@ -3,8 +3,8 @@ package com.setjy.practiceapp.presentation.ui.topic.holder
 import android.view.View
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.presentation.base.recycler.base.BaseViewHolder
-import com.setjy.practiceapp.presentation.view.MessageViewGroup
 import com.setjy.practiceapp.presentation.model.MessageUI
+import com.setjy.practiceapp.presentation.view.MessageViewGroup
 
 class IncomingMessageViewHolder(val view: View) : BaseViewHolder<MessageUI>(view) {
 
