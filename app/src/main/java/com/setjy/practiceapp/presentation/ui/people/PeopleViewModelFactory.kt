@@ -8,6 +8,7 @@ import com.setjy.practiceapp.presentation.base.mvi.FragmentViewModel
 import com.setjy.practiceapp.presentation.base.mvi.Middleware
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import com.setjy.practiceapp.presentation.ui.people.middleware.LoadUsersMiddleware
+import com.setjy.practiceapp.presentation.ui.people.middleware.SearchUsersMiddleware
 import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
 import io.reactivex.rxjava3.core.Observable
 
@@ -18,7 +19,10 @@ class PeopleViewModelFactory : ViewModelProvider.Factory {
     }
     private val reducer: Reducer<PeopleAction, PeopleState> by lazy { PeopleReducer() }
     private val middlewares: List<Middleware<PeopleState, PeopleAction>> by lazy {
-        listOf(LoadUsersMiddleware(getAllUsersUseCase))
+        listOf(
+            LoadUsersMiddleware(getAllUsersUseCase),
+            SearchUsersMiddleware()
+        )
     }
     private val initialState: PeopleState = PeopleState()
 

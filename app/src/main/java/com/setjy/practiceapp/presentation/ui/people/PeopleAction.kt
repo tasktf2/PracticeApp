@@ -12,4 +12,8 @@ sealed class PeopleAction : BaseAction {
     class ShowUsers(val users: List<UserItemUI>) : PeopleAction()
 
     class ShowError(val error: Throwable) : PeopleAction()
+
+    class SearchUsers(val query: String) : PeopleAction()
+
+    class ShowSearchResult(val visibleUsers: List<UserItemUI>) : PeopleAction()
 }

@@ -14,7 +14,6 @@ import com.setjy.practiceapp.presentation.base.mvi.FragmentViewModel
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
-import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState> {
@@ -40,23 +39,17 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState> 
 
     override fun render(state: PeopleState) {
         binding.shimmer.isVisible = state.isLoading
-        if (state.users != null) {
-            adapter.items = state.users
+
+        if (state.visibleUsers != null) {
+            adapter.items = state.visibleUsers
             initUserSearch()
         }
     }
 
     private fun initUserSearch() {
-        val adapterItems = adapter.items
         binding.etSearch.addTextChangedListener { text ->
             val query = text?.toString()?.trim().orEmpty()
-            adapter.items = if (query.isEmpty()) {
-                adapterItems
-            } else {
-                adapterItems.filter { item ->
-                    (item as UserItemUI).fullName.contains(query, ignoreCase = true)
-                }
-            }
+            viewModel.accept(PeopleAction.SearchUsers(query))
         }
     }
 
