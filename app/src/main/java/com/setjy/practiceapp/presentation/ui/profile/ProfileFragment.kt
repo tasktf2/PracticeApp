@@ -9,12 +9,13 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentProfileBinding
-import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.MviView
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 
-class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileState> {
+class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileState, BaseEffect> {
 
-    private val viewModel: MviViewModel<ProfileAction, ProfileState> by viewModels { ProfileViewModelFactory() }
+    private val viewModel: MviViewModel<ProfileAction, ProfileState, BaseEffect> by viewModels { ProfileViewModelFactory() }
 
     private val binding: FragmentProfileBinding by viewBinding()
 
@@ -25,7 +26,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileStat
         viewModel.accept(ProfileAction.LoadOwnUser)
     }
 
-    override fun render(state: ProfileState) {
+    override fun renderState(state: ProfileState) {
         binding.shimmer.root.isVisible = state.isLoading
         val user = state.userItemUI
         if (user != null) {
@@ -42,6 +43,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileStat
             }
         }
     }
+
+    override fun renderEffect(effect: BaseEffect) = Unit
 
     override fun onDestroyView() {
         super.onDestroyView()

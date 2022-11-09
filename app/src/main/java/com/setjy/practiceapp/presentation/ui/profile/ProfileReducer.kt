@@ -1,9 +1,11 @@
 package com.setjy.practiceapp.presentation.ui.profile
 
+import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
+import java.util.*
 
-class ProfileReducer : Reducer<ProfileAction, ProfileState> {
-    override fun reduce(action: ProfileAction, state: ProfileState): ProfileState {
+class ProfileReducer : Reducer<ProfileAction, ProfileState, BaseEffect> {
+    override fun reduceToState(action: ProfileAction, state: ProfileState): ProfileState {
         return when (action) {
             is ProfileAction.LoadOwnUser -> state.copy(
                 userItemUI = null,
@@ -29,5 +31,9 @@ class ProfileReducer : Reducer<ProfileAction, ProfileState> {
                 isLoading = false
             )
         }
+    }
+
+    override fun reduceToEffect(action: ProfileAction, state: ProfileState): Optional<BaseEffect> {
+        return Optional.empty()
     }
 }

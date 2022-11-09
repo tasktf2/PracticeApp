@@ -13,17 +13,21 @@ class ChannelsFragment : Fragment(R.layout.fragment_channels) {
 
     private val binding: FragmentChannelsBinding by viewBinding()
 
+    private val tabs: List<String> by lazy { listOf(getString(R.string.tab_subscribed), getString(R.string.tab_all_streams)) }
+
+    private val tabLayoutMediator by lazy {
+        TabLayoutMediator(binding.tlStreams, binding.vpStreams) { tab, position ->
+            tab.text = tabs[position]
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initQuerySender()
-        val tabs: List<String> = listOf("Subscribed", "All streams")
         val pagerAdapter = PagerAdapter(parentFragmentManager, lifecycle)
         binding.vpStreams.adapter = pagerAdapter
-
-        TabLayoutMediator(binding.tlStreams, binding.vpStreams) { tab, position ->
-            tab.text = tabs[position]
-        }.attach()
+        tabLayoutMediator.attach()
+        initQuerySender()
     }
 
     private fun initQuerySender() {
@@ -34,6 +38,11 @@ class ChannelsFragment : Fragment(R.layout.fragment_channels) {
                 bundleOf(QUERY_BUNDLE_KEY to query)
             )
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        tabLayoutMediator.detach()
     }
 
     companion object {

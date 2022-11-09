@@ -10,14 +10,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentPeopleBinding
-import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.MviView
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 
-class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState> {
+class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, BaseEffect> {
 
-    private val viewModel: MviViewModel<PeopleAction, PeopleState> by viewModels { PeopleViewModelFactory() }
+    private val viewModel: MviViewModel<PeopleAction, PeopleState, BaseEffect> by viewModels {
+        PeopleViewModelFactory()
+    }
 
     private val binding: FragmentPeopleBinding by viewBinding()
 
@@ -35,13 +38,15 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState> 
         initUserSearch()
     }
 
-    override fun render(state: PeopleState) {
+    override fun renderState(state: PeopleState) {
         binding.shimmer.isVisible = state.isLoading
 
         if (state.visibleUsers != null) {
             adapter.items = state.visibleUsers
         }
     }
+
+    override fun renderEffect(effect: BaseEffect) = Unit
 
     private fun initUserSearch() {
         binding.etSearch.addTextChangedListener { text ->

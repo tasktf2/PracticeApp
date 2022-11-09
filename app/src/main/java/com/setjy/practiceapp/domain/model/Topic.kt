@@ -1,7 +1,7 @@
 package com.setjy.practiceapp.domain.model
 
 import com.setjy.practiceapp.domain.base.Model
-import com.setjy.practiceapp.presentation.model.TopicItemUI
+import com.setjy.practiceapp.presentation.ui.channels.TopicItemUI
 
 data class Topic(
     val topicId: Int,

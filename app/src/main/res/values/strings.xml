@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">PracticeApp</string>
     <string name="hint_type">Написать...</string>
+    <string name="tab_subscribed">Subscribed</string>
+    <string name="tab_all_streams">All streams</string>
 </resources>
