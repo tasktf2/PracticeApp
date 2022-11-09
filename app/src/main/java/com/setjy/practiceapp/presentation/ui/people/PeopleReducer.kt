@@ -5,7 +5,6 @@ import com.setjy.practiceapp.presentation.base.mvi.Reducer
 class PeopleReducer : Reducer<PeopleAction, PeopleState> {
     override fun reduce(action: PeopleAction, state: PeopleState): PeopleState {
         return when (action) {
-            is PeopleAction.LoadUsers, is PeopleAction.SearchUsers -> state
 
             is PeopleAction.ShowError -> state.copy(isLoading = false, error = action.error)
 
@@ -16,6 +15,7 @@ class PeopleReducer : Reducer<PeopleAction, PeopleState> {
             )
 
             is PeopleAction.ShowSearchResult -> state.copy(visibleUsers = action.visibleUsers)
+            else -> state
         }
     }
 }

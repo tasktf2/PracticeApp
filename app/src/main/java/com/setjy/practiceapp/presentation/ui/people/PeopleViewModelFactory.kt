@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.domain.base.UseCase
-import com.setjy.practiceapp.presentation.base.mvi.FragmentViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.mvi.Middleware
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import com.setjy.practiceapp.presentation.ui.people.middleware.LoadUsersMiddleware
@@ -27,6 +27,6 @@ class PeopleViewModelFactory : ViewModelProvider.Factory {
     private val initialState: PeopleState = PeopleState()
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return FragmentViewModel(reducer, middlewares, initialState) as T
+        return MviViewModel(reducer, middlewares, initialState) as T
     }
 }

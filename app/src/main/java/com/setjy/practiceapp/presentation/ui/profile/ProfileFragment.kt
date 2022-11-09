@@ -9,18 +9,14 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentProfileBinding
-import com.setjy.practiceapp.presentation.base.mvi.FragmentViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.mvi.MviView
-import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileState> {
 
-    private val viewModel: FragmentViewModel<ProfileAction, ProfileState> by viewModels { ProfileViewModelFactory() }
+    private val viewModel: MviViewModel<ProfileAction, ProfileState> by viewModels { ProfileViewModelFactory() }
 
     private val binding: FragmentProfileBinding by viewBinding()
-
-    private val disposable: CompositeDisposable = CompositeDisposable()
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,7 +45,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileStat
 
     override fun onDestroyView() {
         super.onDestroyView()
-        disposable.dispose()
         viewModel.unbind()
     }
 }

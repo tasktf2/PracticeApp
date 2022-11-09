@@ -3,7 +3,7 @@ package com.setjy.practiceapp.presentation.base.mvi
 import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.disposables.Disposable
 
-class FragmentViewModel<A : BaseAction, S : BaseState>(
+class MviViewModel<A : BaseAction, S : BaseState>(
     private val reducer: Reducer<A, S>,
     private val middlewares: List<Middleware<S, A>>,
     private val initialState: S
