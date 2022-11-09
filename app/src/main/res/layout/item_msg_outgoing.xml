@@ -34,7 +34,7 @@
         app:layout_constraintEnd_toEndOf="@id/tv_message"
         tools:text="15:36" />
 
-    <com.setjy.practiceapp.view.EmojiFlexboxLayoutRight
+    <com.setjy.practiceapp.presentation.view.EmojiFlexboxLayoutRight
         android:id="@+id/flexbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
