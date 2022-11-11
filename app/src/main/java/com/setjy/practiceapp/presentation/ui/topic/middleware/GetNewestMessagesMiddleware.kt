@@ -1,0 +1,31 @@
+package com.setjy.practiceapp.presentation.ui.topic.middleware
+
+import com.setjy.practiceapp.domain.base.UseCase
+import com.setjy.practiceapp.domain.usecase.message.GetNewestMessagesUseCase
+import com.setjy.practiceapp.presentation.base.mvi.Middleware
+import com.setjy.practiceapp.presentation.model.MessageUI
+import com.setjy.practiceapp.presentation.ui.topic.TopicAction
+import com.setjy.practiceapp.presentation.ui.topic.TopicState
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Observable
+
+class GetNewestMessagesMiddleware(
+    private val getNewestMessagesUseCase: UseCase<GetNewestMessagesUseCase.Params, Flowable<List<MessageUI>>>,
+    private val streamName:String,
+    private val topicName:String
+) :
+    Middleware<TopicState, TopicAction> {
+    override fun bind(
+        actions: Observable<TopicAction>,
+        state: Observable<TopicState>
+    ): Observable<TopicAction> {
+       return actions.ofType(TopicAction.GetNewestMessages::class.java).flatMap {
+           getNewestMessagesUseCase.execute(
+                GetNewestMessagesUseCase.Params(streamName = streamName,topicName = topicName)
+            ).toObservable()
+                .map<TopicAction> { TopicAction.ShowMessages(it.asReversed()) }
+                .onErrorReturn { TopicAction.ShowError(it) }
+                .startWithItem(TopicAction.ShowLoading)
+        }
+    }
+}

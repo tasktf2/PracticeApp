@@ -11,7 +11,7 @@ import io.reactivex.rxjava3.core.Observable
 
 class LoadStreamsMiddleware(
     private val getStreamsUseCase: UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>>,
-    private val isSubscribed: Boolean
+    private val isSubscribed: Boolean//todo to action?
 ) :
     Middleware<ChannelsState, ChannelsAction> {
     override fun bind(

@@ -21,6 +21,7 @@ import com.setjy.practiceapp.domain.model.StreamMapper
 import com.setjy.practiceapp.domain.model.UserMapper
 import com.setjy.practiceapp.domain.repo.*
 import com.setjy.practiceapp.domain.usecase.event.GetEventsUseCase
+import com.setjy.practiceapp.domain.usecase.event.RegisterEventsQueueUseCase
 import com.setjy.practiceapp.domain.usecase.message.GetMessagesOnScrollUseCase
 import com.setjy.practiceapp.domain.usecase.message.GetNewestMessagesUseCase
 import com.setjy.practiceapp.domain.usecase.message.SendMessageUseCase
@@ -202,6 +203,10 @@ object GlobalDI {
         )
     }
 
+    val registerEventsQueueUseCase: RegisterEventsQueueUseCase by lazy {
+        RegisterEventsQueueUseCase(repo = eventRepo, scheduler = scheduler)
+    }
+
     val getEventsUseCase: GetEventsUseCase by lazy {
         GetEventsUseCase(repo = eventRepo, mapper = messageMapper, scheduler = scheduler)
     }
@@ -218,6 +223,11 @@ object GlobalDI {
         SendMessageUseCase(repo = messageRepo, scheduler = scheduler)
     }
     val getOwnUserUseCase: GetOwnUserUseCase by lazy {
-        GetOwnUserUseCase(repo = userRepo, mapper = userMapper, scheduler = scheduler)
+        GetOwnUserUseCase(
+            repo = userRepo,
+            mapper = userMapper,
+            scheduler = scheduler,
+            storage = userStorage
+        )
     }
 }

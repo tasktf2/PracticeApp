@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.domain.usecase.user
 
+import com.setjy.practiceapp.data.local.db.dao.UserStorage
 import com.setjy.practiceapp.domain.base.UseCase
 import com.setjy.practiceapp.domain.model.UserMapper
 import com.setjy.practiceapp.domain.repo.UserRepo
@@ -12,18 +13,20 @@ import java.util.concurrent.TimeUnit
 class GetOwnUserUseCase(
     private val repo: UserRepo,
     private val mapper: UserMapper,
-    private val scheduler: Scheduler
+    private val scheduler: Scheduler,
+    private val storage: UserStorage
 ) :
     UseCase<Unit, Observable<UserItemUI>> {
 
     override fun execute(params: Unit): Observable<UserItemUI> = repo.getOwnUser().flatMap { user ->
         repo.getUserStatus(user.userId).subscribeOn(scheduler)
             .map { status -> user.toDomain(status) }
+            .doAfterNext { storage.insertOwnUserId(it.userId) }
     }.map(mapper::mapToPresentation)
         .retryWhen { observableThrowable ->
             observableThrowable.flatMap { error ->
                 if (error is UnknownHostException) {
-                    Observable.timer(10, TimeUnit.SECONDS) //todo 10 to static
+                    Observable.timer(10, TimeUnit.SECONDS)
                 } else {
                     observableThrowable
                 }

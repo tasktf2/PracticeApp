@@ -3,4 +3,8 @@
     <string name="hint_type">Написать...</string>
     <string name="tab_subscribed">Subscribed</string>
     <string name="tab_all_streams">All streams</string>
+    <string name="header_topic">Topic: </string>
+    <string name="topic_type_to_search">Введите для поиска</string>
+    <string name="topic_match_found">Найдено совпадений: </string>
+    <string name="topic_match_not_found">Результатов не найдено…</string>
 </resources>
