@@ -22,7 +22,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list),
     MviView<ChannelsState, BaseEffect> {
 
     private val viewModel: MviViewModel<ChannelsAction, ChannelsState, BaseEffect> by viewModels {
-        StreamViewModelFactory(isSubscribed = page == Page.SUBSCRIBED)
+        StreamViewModelFactory()
     }
     private val holderFactory: ChannelsHolderFactory = ChannelsHolderFactory(
         this::onStreamClick,
@@ -41,7 +41,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list),
         binding.rvStreamList.adapter = adapter
 
         viewModel.bind(this)
-        viewModel.accept(ChannelsAction.LoadStreams)
+        viewModel.accept(ChannelsAction.LoadStreams(isSubscribed = page == Page.SUBSCRIBED))
         subscribeToSearch()
     }
 

@@ -10,8 +10,7 @@ import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 
 class LoadStreamsMiddleware(
-    private val getStreamsUseCase: UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>>,
-    private val isSubscribed: Boolean
+    private val getStreamsUseCase: UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>>
 ) :
     Middleware<ChannelsState, ChannelsAction> {
     override fun bind(
@@ -19,8 +18,8 @@ class LoadStreamsMiddleware(
         state: Observable<ChannelsState>
     ): Observable<ChannelsAction> {
         return actions.ofType(ChannelsAction.LoadStreams::class.java)
-            .flatMap {
-                getStreamsUseCase.execute(GetStreamsUseCase.Params(isSubscribed))
+            .flatMap { action ->
+                getStreamsUseCase.execute(GetStreamsUseCase.Params(action.isSubscribed))
                     .map<ChannelsAction> { ChannelsAction.ShowStreams(it) }
                     .onErrorReturn { ChannelsAction.ShowError(it) }
                     .startWithItem(ChannelsAction.ShowLoading)

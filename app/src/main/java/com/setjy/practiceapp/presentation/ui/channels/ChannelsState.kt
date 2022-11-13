@@ -17,7 +17,6 @@ data class StreamItemUI(
     val streamName: String,
     val isSubscribed: Boolean = false,
     val listOfTopics: List<TopicItemUI> = listOf(),
-    val isFound: Boolean = false,
     val isExpanded: Boolean = false,
     override val uid: Int = streamId,
     override val viewType: Int = R.layout.item_stream
@@ -30,7 +29,6 @@ data class TopicItemUI(
     val parentId: Int,
     val parentName: String,
     val backgroundColor: String?,
-    val isFound: Boolean = false,
     override val uid: Int = topicId,
     override val viewType: Int = R.layout.item_topic
 ) : ViewTyped, Item

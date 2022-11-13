@@ -14,7 +14,7 @@ import com.setjy.practiceapp.presentation.ui.channels.middleware.SearchStreamsMi
 import com.setjy.practiceapp.presentation.ui.channels.middleware.StreamToggleMiddleware
 import io.reactivex.rxjava3.core.Flowable
 
-class StreamViewModelFactory(isSubscribed: Boolean) : ViewModelProvider.Factory {
+class StreamViewModelFactory : ViewModelProvider.Factory {
 
     private val getStreamsUseCase: UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>> by lazy {
         (ZulipApp.appContext as ZulipApp).globalDI.getStreamsUseCase
@@ -23,7 +23,7 @@ class StreamViewModelFactory(isSubscribed: Boolean) : ViewModelProvider.Factory 
     private val reducer: Reducer<ChannelsAction, ChannelsState, BaseEffect> by lazy { ChannelsReducer() }
     private val middlewares: List<Middleware<ChannelsState, ChannelsAction>> by lazy {
         listOf(
-            LoadStreamsMiddleware(getStreamsUseCase, isSubscribed),
+            LoadStreamsMiddleware(getStreamsUseCase),
             SearchStreamsMiddleware(),
             StreamToggleMiddleware()
         )

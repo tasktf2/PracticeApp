@@ -29,7 +29,6 @@ class Store<A : BaseAction, S : BaseState, E : BaseEffect>(
             .subscribe(state::accept)
 
         disposable += actions.withLatestFrom(state, reducer::reduceToEffect)
-            .distinctUntilChanged()
             .filter { it.isPresent }
             .map(Optional<E>::get)
             .subscribe(effects::accept)

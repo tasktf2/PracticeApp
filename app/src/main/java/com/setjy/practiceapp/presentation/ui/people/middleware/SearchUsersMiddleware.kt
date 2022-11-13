@@ -13,7 +13,7 @@ class SearchUsersMiddleware : Middleware<PeopleState, PeopleAction> {
     ): Observable<PeopleAction> {
         return actions.ofType(PeopleAction.SearchUsers::class.java)
             .debounce(500L, TimeUnit.MILLISECONDS)
-            .distinct()
+            .distinctUntilChanged()
             .withLatestFrom(state) { action, lastState ->
                 PeopleAction.ShowSearchResult(lastState.users.orEmpty().filter {
                     it.fullName.contains(action.query, ignoreCase = true)
