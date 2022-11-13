@@ -16,6 +16,10 @@ class MviViewModel<A : BaseAction, S : BaseState, E : BaseEffect>(
     private val wiring = store.wire()
     private var viewBinding: Disposable? = null
 
+
+    val currentState: S
+    get() = store.currentState
+
     fun accept(action: A) {
         store.accept(action)
     }

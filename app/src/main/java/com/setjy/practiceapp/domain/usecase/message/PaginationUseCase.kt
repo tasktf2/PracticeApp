@@ -7,12 +7,12 @@ import com.setjy.practiceapp.presentation.model.MessageUI
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
 
-open class GetMessagesOnScrollUseCase(
+open class PaginationUseCase(
     private val repo: MessageRepo,
     private val mapper: MessageMapper,
     private val scheduler: Scheduler
 ) :
-    UseCase<GetMessagesOnScrollUseCase.Params, Observable<List<MessageUI>>> {
+    UseCase<PaginationUseCase.Params, Observable<List<MessageUI>>> {
 
     data class Params(val streamName: String, val topicName: String, val anchor: String)
 

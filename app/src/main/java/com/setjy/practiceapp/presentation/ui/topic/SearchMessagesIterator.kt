@@ -19,15 +19,11 @@ class SearchMessagesIterator {
         return index != 0
     }
 
-    fun nextIndex(): Int {
-        return ++index
-    }
+    private fun nextIndex(): Int = ++index
 
-    fun previousIndex(): Int {
-        return --index
-    }
+    private fun previousIndex(): Int = --index
 
-    fun currentIndex(): Int = index
+    private fun currentIndex(): Int = index
 
     fun resetIndex() {
         index = 0
@@ -49,8 +45,9 @@ class SearchMessagesIterator {
         }
     }
 
-    fun getMessageId(index: Int): Int = when (isFoundItems[index]) { //todo fix (messageId)
-        is MessageUI -> (isFoundItems[index] as MessageUI).messageId
-        else -> 0 // think about exception
-    }
+    fun currentMessage(): ViewTyped = (isFoundItems[currentIndex()])
+
+    fun previousMessage(): ViewTyped = (isFoundItems[previousIndex()])
+
+    fun nextMessage(): ViewTyped = (isFoundItems[nextIndex()])
 }

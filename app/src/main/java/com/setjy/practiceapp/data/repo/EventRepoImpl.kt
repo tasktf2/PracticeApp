@@ -1,17 +1,16 @@
 package com.setjy.practiceapp.data.repo
 
+import com.setjy.practiceapp.data.local.db.dao.EventStorage
 import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntityMapper
 import com.setjy.practiceapp.data.local.storage.MessageStorage
 import com.setjy.practiceapp.data.local.storage.ReactionStorage
 import com.setjy.practiceapp.data.remote.api.EventsApi
-import com.setjy.practiceapp.data.remote.response.EventOperation
-import com.setjy.practiceapp.data.remote.response.EventType
-import com.setjy.practiceapp.data.remote.response.GetEventRemote
-import com.setjy.practiceapp.data.remote.response.MessagesRemoteMapper
+import com.setjy.practiceapp.data.remote.response.*
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.domain.repo.EventRepo
 import com.setjy.practiceapp.domain.repo.MessageRepo
 import io.reactivex.rxjava3.core.Observable
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
@@ -22,28 +21,43 @@ class EventRepoImpl(
     private val reactionStorage: ReactionStorage,
     private val messageEntityMapper: MessageWithReactionsEntityMapper,
     private val messageRemoteMapper: MessagesRemoteMapper,
-    private val ownUserId: Int
+    private val ownUserId: Int,
+    private val eventStorage: EventStorage
 ) : EventRepo {
+
+    override fun subscribeToEvents(): Observable<SendEventResponse> =
+        api.registerEventQueue().retryWhen { observableThrowable ->
+            observableThrowable.flatMap { error ->
+                if (error is UnknownHostException) {
+                    Observable.timer(10, TimeUnit.SECONDS)
+                } else {
+                    observableThrowable
+                }
+            }
+        }
 
     override fun getEvents(
         streamName: String,
-        topicName: String
+        topicName: String,
+        queueId: String,
+        lastEventId: Int
     ): Observable<List<MessageWithReactionsDomain>> =
-        api.registerEventQueue()
-            .flatMap { registerResponse ->
-                api.getEventsQueue(
-                    queueId = registerResponse.queueId,
-                    lastEventId = registerResponse.lastEventId
-                ).filter { it.events.isNotEmpty() }
-                    .flatMap { eventResponse ->
-                        messageRepo.getLocalMessages(streamName, topicName).toObservable()
-                            .map { messages ->
-                                handleMessageEvents(eventResponse.events, messages)
-                            }.map { messages ->
-                                handleReactionEvents(eventResponse.events, messages)
-                            }
+        api.getEventsQueue(
+            queueId = queueId,
+            lastEventId = lastEventId
+        ).filter { it.events.isNotEmpty() }
+            .flatMap { eventResponse ->
+                eventStorage.insertLastEventId(eventResponse.events.last().eventId)
+                messageRepo.getLocalMessages(streamName, topicName)
+                    .toObservable()
+                    .map { messages ->
+                        handleMessageEvents(eventResponse.events, messages)
+                    }.map { messages ->
+                        handleReactionEvents(eventResponse.events, messages)
                     }
-            }.retryWhen { observableThrowable ->
+            }
+            .retry { throwable -> throwable is SocketTimeoutException }
+            .retryWhen { observableThrowable ->
                 observableThrowable.flatMap { error ->
                     if (error is UnknownHostException) {
                         Observable.timer(10, TimeUnit.SECONDS)
@@ -53,24 +67,22 @@ class EventRepoImpl(
                 }
             }
 
+    override fun getLastEventId(): Int = eventStorage.getLastEventId()
+
     private fun handleMessageEvents(
         events: List<GetEventRemote>,
         messages: List<MessageWithReactionsDomain>
-    ) =
-        events.filter { it.type == EventType.MESSAGE }
-            .map { event ->
-                if (messages.size == MESSAGES_TO_SAVE) {
-                    messageStorage.deleteMessages(
-                        listOf(
-                            messageEntityMapper.mapToEntity(
-                                messages.last()
-                            ).message
+    ): List<MessageWithReactionsDomain> = messages +
+            events.filter { it.type == EventType.MESSAGE }
+                .map { event ->
+                    if (messages.size == MESSAGES_TO_SAVE) {
+                        messageStorage.deleteMessages(
+                            listOf(messageEntityMapper.mapToEntity(messages.first()).message)
                         )
-                    )
-                }
-                messageStorage.insertMessage(messageRemoteMapper.mapToEntity(event.message).message)
-                messageRemoteMapper.mapToDomain(event.message)
-            }.asReversed() + messages
+                    }
+                    messageStorage.insertMessage(messageRemoteMapper.mapToEntity(event.message).message)
+                    messageRemoteMapper.mapToDomain(event.message)
+                }.asReversed()
 
 
     private fun handleReactionEvents(

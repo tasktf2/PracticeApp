@@ -10,12 +10,23 @@ import io.reactivex.rxjava3.core.Scheduler
 class GetEventsUseCase(
     private val repo: EventRepo, private val mapper: MessageMapper, private val scheduler: Scheduler
 ) :
-    UseCase<GetEventsUseCase.Params, Observable<List<MessageUI>>> {
+    UseCase<GetEventsUseCase.Params, Observable<Pair<List<MessageUI>,Int>>> {
 
-    data class Params(val streamName: String, val topicName: String)
+    data class Params(
+        val streamName: String,
+        val topicName: String,
+        val queueId: String,
+        val lastEventId: Int
+    )
 
-    override fun execute(params: Params): Observable<List<MessageUI>> =
-        repo.getEvents(streamName = params.streamName, topicName = params.topicName)
+    override fun execute(params: Params): Observable<Pair<List<MessageUI>,Int>> =
+        repo.getEvents(
+            streamName = params.streamName,
+            topicName = params.topicName,
+            queueId = params.queueId,
+            lastEventId = params.lastEventId
+        )
             .subscribeOn(scheduler)
             .map { messagesDomain -> messagesDomain.map(mapper::mapToPresentation) }
+            .map { it to repo.getLastEventId() }
 }
