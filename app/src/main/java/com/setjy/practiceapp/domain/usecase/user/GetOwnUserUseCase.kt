@@ -23,7 +23,7 @@ class GetOwnUserUseCase(
         .retryWhen { observableThrowable ->
             observableThrowable.flatMap { error ->
                 if (error is UnknownHostException) {
-                    Observable.timer(10, TimeUnit.SECONDS) //todo 10 to static
+                    Observable.timer(10, TimeUnit.SECONDS)
                 } else {
                     observableThrowable
                 }

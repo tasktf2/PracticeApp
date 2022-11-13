@@ -2,25 +2,19 @@ package com.setjy.practiceapp.presentation.ui.topic
 
 import android.os.Bundle
 import android.text.Editable
-import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
-import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentTopicBinding
-import com.setjy.practiceapp.domain.usecase.event.GetEventsUseCase
-import com.setjy.practiceapp.domain.usecase.message.GetMessagesOnScrollUseCase
-import com.setjy.practiceapp.domain.usecase.message.GetNewestMessagesUseCase
-import com.setjy.practiceapp.domain.usecase.message.SendMessageUseCase
-import com.setjy.practiceapp.domain.usecase.reaction.AddReactionUseCase
-import com.setjy.practiceapp.domain.usecase.reaction.DeleteReactionUseCase
+import com.setjy.practiceapp.presentation.base.mvi.MviView
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.model.MessageUI
@@ -30,24 +24,14 @@ import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
-class TopicFragment : Fragment(R.layout.fragment_topic) {
+class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, TopicEffect> {
 
-    private val getMessagesOnScrollUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.getMessagesOnScrollUseCase }
-
-    private val getEventsUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.getEventsUseCase }
-
-    private val getMessagesOnLaunchUseCase by lazy {
-        (requireContext().applicationContext as ZulipApp).globalDI.getNewestMessagesUseCase
+    private val viewModel: MviViewModel<TopicAction, TopicState, TopicEffect> by viewModels {
+        TopicViewModelFactory()
     }
-    private val addReactionUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.addReactionUseCase }
-
-    private val deleteReactionUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.deleteReactionUseCase }
-
-    private val sendMessageUseCase by lazy { (requireContext().applicationContext as ZulipApp).globalDI.sendMessageUseCase }
 
     private val binding: FragmentTopicBinding by viewBinding()
 
@@ -60,6 +44,8 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
 
     private var disposable: CompositeDisposable = CompositeDisposable()
 
+    private val bottomSheetFragment by lazy { BottomSheetFragment() }
+
     private val topicName: String by lazy {
         arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
             ?.get(StreamListFragment.TOPIC_ARRAY_INDEX).orEmpty()
@@ -69,10 +55,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
             ?.get(StreamListFragment.STREAM_ARRAY_INDEX).orEmpty()
     }
 
-    private var isLoading: Boolean = false
-
-    private var isLastPage: Boolean = false
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
@@ -81,28 +63,64 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
                 LinearLayoutManager(context, RecyclerView.VERTICAL, true)
             tbStream.setNavigationIcon(R.drawable.ic_round_arrow_back_24)
         }
+
+        viewModel.bind(this)
+        viewModel.accept(TopicAction.GetNewestMessages(streamName, topicName))
+        viewModel.accept(TopicAction.RegisterEventsQueue)
         setStreamAndTopicName()
         initClicks()
         initSearch()
         subscribeToSearchResults()
         setButtonVisibility()
-        subscribeToEvents(streamName, topicName)
-        getMessagesOnLaunch()
         initScrollListener()
+    }
+
+    override fun renderState(state: TopicState) {
+
+        binding.shimmer.isVisible = state.isLoading
+
+        if (state.messages != null) {
+            adapter.items = state.messages
+        }
+    }
+
+    override fun renderEffect(effect: TopicEffect) = when (effect) {
+        is TopicEffect.GetEvents -> viewModel.accept(
+            TopicAction.GetEvents(
+                streamName = streamName,
+                topicName = topicName,
+                queueId = effect.queueId,
+                lastEventId = effect.lastEventId
+            )
+        )
+        is TopicEffect.ShowBottomSheetFragment->{
+            bottomSheetFragment.show(parentFragmentManager, null)
+            parentFragmentManager.setFragmentResultListener(
+                BottomSheetFragment.REQUEST_KEY, viewLifecycleOwner
+            ) { _, bundle ->
+                val emojiName = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
+                viewModel.accept(TopicAction.AddReaction(effect.messageId, emojiName))
+            }
+        }
     }
 
     private fun initScrollListener() {
         binding.rvListOfMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
-                if (!isLoading && !isLastPage && dy != 0) {
+                if (!viewModel.currentState.isPaginationLoading && !viewModel.currentState.isPaginationLastPage && dy != 0) {
                     val visibleItemsCount = recyclerView.childCount
                     val totalItemsCount = adapter.itemCount
                     val pastVisibleItem =
                         (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
                     if (visibleItemsCount + pastVisibleItem + PAGINATION_NUMBER > totalItemsCount) {
-                        isLoading = true
-                        loadOlderMessages((adapter.items[adapter.items.lastIndex] as MessageUI).messageId)
+                        viewModel.accept(
+                            TopicAction.StartPagination(
+                                streamName,
+                                topicName,
+                                (adapter.items[adapter.items.lastIndex] as MessageUI).messageId
+                            )
+                        )
                     }
                 }
                 super.onScrolled(recyclerView, dx, dy)
@@ -110,92 +128,9 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
         })
     }
 
-    private fun loadOlderMessages(anchor: Int) {
-        disposable += getMessagesOnScrollUseCase.execute(
-            GetMessagesOnScrollUseCase.Params(
-                streamName = streamName,
-                topicName = topicName,
-                anchor = anchor.toString()
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterNext { isLoading = false }
-            .subscribe({ nwMessages ->
-                if (nwMessages.size < 20) {
-                    isLastPage = true
-                }
-                adapter.items =
-                    adapter.items + (nwMessages as List<MessageUI>).filterNot { it.messageId == anchor }
-            }, {
-                isLoading = false
-                Log.d("xxx", "load older messages error " + it.stackTraceToString())
-            })
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        disposable.dispose()
-    }
-
-    private fun subscribeToEvents(streamName: String, topicName: String) {
-//        disposable += Repo.getMessagesFromEventsQueue(streamName, topicName)
-        disposable += getEventsUseCase.execute(
-            GetEventsUseCase.Params(
-                streamName = streamName,
-                topicName = topicName
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doAfterNext { binding.rvListOfMessages.smoothScrollToPosition(0) }
-            .subscribe(
-                { messages ->
-                    adapter.items = messages
-                    subscribeToEvents(streamName, topicName)
-                },
-                { e -> Log.d("xxx", "get error: $e") })
-    }
-
     private fun setStreamAndTopicName() {
         binding.tbStream.title = streamName
-        binding.tvTopicName.text = "Topic: $topicName"
-    }
-
-    private fun getMessagesOnLaunch() {
-//        disposable += Repo.getMessagesOnLaunch(streamName, topicName)
-        disposable += getMessagesOnLaunchUseCase.execute(
-            GetNewestMessagesUseCase.Params(
-                streamName = streamName,
-                topicName = topicName
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe { showLoading() }
-            .doFinally { hideLoading() }
-            .subscribe({ messages ->
-                adapter.items = messages
-                if (messages.isNotEmpty()) {
-                    hideLoading()
-                    binding.rvListOfMessages.smoothScrollToPosition(0)
-                }
-            },
-                { e -> Log.d("xxx", "launch mes:${e.printStackTrace()} ") })
-    }
-
-
-    private fun showLoading() {
-        binding.shimmer.apply {
-            isVisible = true
-            showShimmer(true)
-        }
-    }
-
-    private fun hideLoading() {
-        binding.shimmer.apply {
-            stopShimmer()
-        }.isVisible = false
+        binding.tvTopicName.text = getString(R.string.header_topic, topicName)
     }
 
     private fun initClicks() {
@@ -271,23 +206,24 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
                         setItems(adapter.items)
                         totalFound()
                     }
-                    if (searchIterator.isFoundItems.isNotEmpty()) { //todo fix (messageId)
-                        val messageId =
-                            searchIterator.getMessageId(searchIterator.currentIndex())
-                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
+                    if (searchIterator.isFoundItems.isNotEmpty()) {
+                        binding.rvListOfMessages.smoothScrollToPosition(
+                            adapter.items.indexOf(searchIterator.currentMessage())
+                        )
                     }
                 }
                 SearchAction.NEXT -> {
                     if (searchIterator.hasNext()) {
-                        val messageId = searchIterator.getMessageId(searchIterator.nextIndex())
-                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
+                        binding.rvListOfMessages.smoothScrollToPosition(
+                            adapter.items.indexOf(searchIterator.nextMessage())
+                        )
                     }
                 }
                 SearchAction.PREV -> {
                     if (searchIterator.hasPrevious()) {
-                        val messageId =
-                            searchIterator.getMessageId(searchIterator.previousIndex())
-                        binding.rvListOfMessages.smoothScrollToPosition(adapter.items.lastIndex - messageId)
+                        binding.rvListOfMessages.smoothScrollToPosition(
+                            adapter.items.indexOf(searchIterator.previousMessage())
+                        )
                     }
                 }
                 SearchAction.CANCEL -> {
@@ -344,9 +280,9 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
     private fun setSearchResultsText(searchIterator: SearchMessagesIterator) {
         with(binding) {
             tvSearchResults.text = when {
-                etSearch.text.isBlank() -> "Введите для поиска"
-                searchIterator.isFoundItems.isNotEmpty() -> "Найдено совпадений: ${searchIterator.isFoundItems.size}"
-                else -> "Результатов не найдено..."
+                etSearch.text.isBlank() -> getString(R.string.topic_type_to_search)
+                searchIterator.isFoundItems.isNotEmpty() -> getString(R.string.topic_match_found) + searchIterator.isFoundItems.size
+                else -> getString(R.string.topic_match_not_found)
             }
         }
     }
@@ -390,13 +326,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
     }
 
     private fun onAddEmojiClick(messageId: Int) {
-        BottomSheetFragment().show(parentFragmentManager, null)
-        parentFragmentManager.setFragmentResultListener(
-            BottomSheetFragment.REQUEST_KEY, viewLifecycleOwner
-        ) { _, bundle ->
-            val emojiName = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
-            addReaction(messageId, emojiName)
-        }
+        viewModel.accept(TopicAction.ShowBottomSheetFragment(messageId))
     }
 
     private fun onEmojiClick(messageId: Int, emojiName: String, emojiCode: String) {
@@ -407,10 +337,10 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
                     val removed =
                         mutableReactions.removeIf { it.code == emojiCode && it.isSelected }
                     if (removed) {
-                        deleteReaction(messageId, emojiName)
+                        viewModel.accept(TopicAction.DeleteReaction(messageId, emojiName))
                         item
                     } else {
-                        addReaction(messageId, emojiName)
+                        viewModel.accept(TopicAction.AddReaction(messageId, emojiName))
                         item
                     }
                 }
@@ -419,54 +349,20 @@ class TopicFragment : Fragment(R.layout.fragment_topic) {
         }
     }
 
-    private fun deleteReaction(messageId: Int, emojiName: String) {
-        disposable += deleteReactionUseCase.execute(
-            DeleteReactionUseCase.Params(
-                messageId = messageId,
-                emojiName = emojiName
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
-                { e -> Log.d("emoji_send", e.toString()) })
-
-    }
-
-    private fun addReaction(messageId: Int, emojiName: String) {
-        disposable += addReactionUseCase.execute(
-            AddReactionUseCase.Params(
-                messageId = messageId,
-                emojiName = emojiName
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ s -> Log.d("emoji_send", s.toString()) },
-                { e -> Log.d("emoji_send", e.toString()) })
-    }
-
     private fun setMessageSender() {
         val messageText = binding.etSend.text.toString()
-        sendMessage(messageText)
+        viewModel.accept(TopicAction.SendMessage(
+            streamName = streamName,
+            topicName = topicName,
+            message = messageText
+        ))
         binding.etSend.text.clear()
     }
 
-    private fun sendMessage(messageText: String) {
-//        disposable += Repo.sendMessage(streamName, topicName, messageText)
-        disposable += sendMessageUseCase.execute(
-            SendMessageUseCase.Params(
-                streamName = streamName,
-                topicName = topicName,
-                message = messageText
-            )
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({}, {
-                Toast.makeText(context, "Error sending message!", Toast.LENGTH_SHORT).show()
-                Log.d("message_send", it.toString())
-            })
+    override fun onDestroyView() {
+        super.onDestroyView()
+        disposable.dispose()
+        viewModel.unbind()
     }
 
     companion object {

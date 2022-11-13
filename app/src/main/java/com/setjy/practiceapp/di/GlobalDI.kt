@@ -21,7 +21,8 @@ import com.setjy.practiceapp.domain.model.StreamMapper
 import com.setjy.practiceapp.domain.model.UserMapper
 import com.setjy.practiceapp.domain.repo.*
 import com.setjy.practiceapp.domain.usecase.event.GetEventsUseCase
-import com.setjy.practiceapp.domain.usecase.message.GetMessagesOnScrollUseCase
+import com.setjy.practiceapp.domain.usecase.event.RegisterEventsQueueUseCase
+import com.setjy.practiceapp.domain.usecase.message.PaginationUseCase
 import com.setjy.practiceapp.domain.usecase.message.GetNewestMessagesUseCase
 import com.setjy.practiceapp.domain.usecase.message.SendMessageUseCase
 import com.setjy.practiceapp.domain.usecase.reaction.AddReactionUseCase
@@ -135,6 +136,7 @@ object GlobalDI {
     private val messageStorage: MessageStorage by lazy { MessageStorage(messageDao) }
     private val reactionStorage: ReactionStorage by lazy { ReactionStorage(reactionDao) }
     private val userStorage: UserStorage by lazy { UserStorageImpl(sharedPreferences) }
+    private val eventStorage: EventStorage by lazy { EventStorageImpl(sharedPreferences) }
 
 
     private val streamMapper: StreamMapper by lazy { StreamMapper() }
@@ -163,7 +165,12 @@ object GlobalDI {
             mapper = streamWithTopicsEntityMapper
         )
     }
-    private val userRepo: UserRepo by lazy { UserRepoImpl(api = usersApi) }
+    private val userRepo: UserRepo by lazy {
+        UserRepoImpl(
+            api = usersApi,
+            userStorage = userStorage
+        )
+    }
     private val messageRepo: MessageRepo by lazy {
         MessageRepoImpl(
             api = messageApi,
@@ -181,7 +188,8 @@ object GlobalDI {
             reactionStorage = reactionStorage,
             messageEntityMapper = messageWithReactionsEntityMapper,
             messageRemoteMapper = messagesRemoteMapper,
-            ownUserId = userStorage.getOwnUserId()
+            ownUserId = userStorage.getOwnUserId(),
+            eventStorage = eventStorage
         )
     }
 
@@ -194,14 +202,17 @@ object GlobalDI {
     val getAllUsersUseCase: GetAllUsersUseCase by lazy {
         GetAllUsersUseCase(repo = userRepo, mapper = userMapper, scheduler = scheduler)
     }
-    val getMessagesOnScrollUseCase: GetMessagesOnScrollUseCase by lazy {
-        GetMessagesOnScrollUseCase(
+    val paginationUseCase: PaginationUseCase by lazy {
+        PaginationUseCase(
             repo = messageRepo,
             mapper = messageMapper,
             scheduler = scheduler
         )
     }
 
+    val registerEventsQueueUseCase: RegisterEventsQueueUseCase by lazy {
+        RegisterEventsQueueUseCase(repo = eventRepo, scheduler = scheduler)
+    }
     val getEventsUseCase: GetEventsUseCase by lazy {
         GetEventsUseCase(repo = eventRepo, mapper = messageMapper, scheduler = scheduler)
     }

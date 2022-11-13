@@ -18,6 +18,9 @@ class Store<A : BaseAction, S : BaseState, E : BaseEffect>(
     private val actions = PublishRelay.create<A>()
     private val effects = PublishRelay.create<E>()
 
+    val currentState:S
+    get() = state.value!!
+
     fun accept(action: A) {
         actions.accept(action)
     }
