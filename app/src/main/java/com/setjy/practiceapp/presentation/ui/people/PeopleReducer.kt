@@ -1,9 +1,11 @@
 package com.setjy.practiceapp.presentation.ui.people
 
+import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
+import java.util.*
 
-class PeopleReducer : Reducer<PeopleAction, PeopleState> {
-    override fun reduce(action: PeopleAction, state: PeopleState): PeopleState {
+class PeopleReducer : Reducer<PeopleAction, PeopleState, BaseEffect> {
+    override fun reduceToState(action: PeopleAction, state: PeopleState): PeopleState {
         return when (action) {
 
             is PeopleAction.ShowError -> state.copy(isLoading = false, error = action.error)
@@ -17,5 +19,9 @@ class PeopleReducer : Reducer<PeopleAction, PeopleState> {
             is PeopleAction.ShowSearchResult -> state.copy(visibleUsers = action.visibleUsers)
             else -> state
         }
+    }
+
+    override fun reduceToEffect(action: PeopleAction, state: PeopleState): Optional<BaseEffect> {
+        return Optional.empty()
     }
 }

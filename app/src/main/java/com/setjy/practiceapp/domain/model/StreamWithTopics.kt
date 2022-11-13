@@ -2,7 +2,7 @@ package com.setjy.practiceapp.domain.model
 
 import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.Model
-import com.setjy.practiceapp.presentation.model.StreamItemUI
+import com.setjy.practiceapp.presentation.ui.channels.StreamItemUI
 
 data class StreamWithTopics(
     val streamId: Int,

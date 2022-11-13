@@ -7,14 +7,16 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
+import java.util.*
 
-class Store<A : BaseAction, S : BaseState>(
-    private val reducer: Reducer<A, S>,
+class Store<A : BaseAction, S : BaseState, E : BaseEffect>(
+    private val reducer: Reducer<A, S, E>,
     private val middlewares: List<Middleware<S, A>>,
     initialState: S
 ) {
     private val state = BehaviorRelay.createDefault(initialState)
     private val actions = PublishRelay.create<A>()
+    private val effects = PublishRelay.create<E>()
 
     fun accept(action: A) {
         actions.accept(action)
@@ -22,9 +24,14 @@ class Store<A : BaseAction, S : BaseState>(
 
     fun wire(): Disposable {
         val disposable = CompositeDisposable()
-        disposable += actions.withLatestFrom(state, reducer::reduce)
+        disposable += actions.withLatestFrom(state, reducer::reduceToState)
             .distinctUntilChanged()
             .subscribe(state::accept)
+
+        disposable += actions.withLatestFrom(state, reducer::reduceToEffect)
+            .filter { it.isPresent }
+            .map(Optional<E>::get)
+            .subscribe(effects::accept)
 
         disposable += Observable.merge(middlewares.map { it.bind(actions, state) })
             .subscribe(actions::accept)
@@ -32,10 +39,12 @@ class Store<A : BaseAction, S : BaseState>(
         return disposable
     }
 
-    fun bind(view: MviView<S>): Disposable {
+    fun bind(view: MviView<S, E>): Disposable {
         val disposable = CompositeDisposable()
         disposable += state.observeOn(AndroidSchedulers.mainThread())
-            .subscribe(view::render)
+            .subscribe(view::renderState)
+        disposable += effects.observeOn(AndroidSchedulers.mainThread())
+            .subscribe(view::renderEffect)
         return disposable
     }
 }

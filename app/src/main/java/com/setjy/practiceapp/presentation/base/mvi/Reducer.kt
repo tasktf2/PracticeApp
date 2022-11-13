@@ -1,5 +1,8 @@
 package com.setjy.practiceapp.presentation.base.mvi
 
-interface Reducer<in A : BaseAction, S : BaseState> {
-    fun reduce(action: A, state: S): S
+import java.util.Optional
+
+interface Reducer<in A : BaseAction, S : BaseState, E : BaseEffect> {
+    fun reduceToState(action: A, state: S): S
+    fun reduceToEffect(action: A, state: S): Optional<E>
 }

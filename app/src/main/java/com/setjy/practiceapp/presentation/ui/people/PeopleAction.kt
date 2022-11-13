@@ -9,11 +9,11 @@ sealed class PeopleAction : BaseAction {
 
     object ShowLoading : PeopleAction()
 
-    class ShowUsers(val users: List<UserItemUI>) : PeopleAction()
+    data class ShowUsers(val users: List<UserItemUI>) : PeopleAction()
 
-    class ShowError(val error: Throwable) : PeopleAction()
+    data class ShowError(val error: Throwable) : PeopleAction()
 
-    class SearchUsers(val query: String) : PeopleAction()
+    data class SearchUsers(val query: String) : PeopleAction()
 
-    class ShowSearchResult(val visibleUsers: List<UserItemUI>) : PeopleAction()
+    data class ShowSearchResult(val visibleUsers: List<UserItemUI>) : PeopleAction()
 }
