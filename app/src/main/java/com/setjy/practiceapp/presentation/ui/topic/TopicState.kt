@@ -9,5 +9,4 @@ data class TopicState(
     val messages: List<MessageUI>? = null,
     val isPaginationLoading: Boolean = false,
     val isPaginationLastPage: Boolean = false,
-    val isRegisteredQueue: Boolean = false//todo rename or delete
 ) : BaseState

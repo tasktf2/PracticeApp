@@ -16,7 +16,7 @@ class PaginationMiddleware(
         actions: Observable<TopicAction>,
         state: Observable<TopicState>
     ): Observable<TopicAction> {
-        return actions.ofType(TopicAction.GetPagination::class.java).flatMap { action ->
+        return actions.ofType(TopicAction.StartPagination::class.java).flatMap { action ->
             paginationUseCase.execute(
                 PaginationUseCase.Params(
                     streamName = action.streamName,
@@ -25,7 +25,7 @@ class PaginationMiddleware(
                 )
             )
                 .map<TopicAction> { messages ->
-                    TopicAction.ShowPagination(messages
+                    TopicAction.ShowPaginationResult(messages
                         .filterNot { it.messageId == action.anchor }
                         .asReversed(),
                         isLastPage = messages.size < MESSAGES_TO_LOAD)

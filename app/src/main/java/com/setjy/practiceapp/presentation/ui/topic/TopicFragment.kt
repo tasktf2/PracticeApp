@@ -115,7 +115,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                         (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
                     if (visibleItemsCount + pastVisibleItem + PAGINATION_NUMBER > totalItemsCount) {
                         viewModel.accept(
-                            TopicAction.GetPagination(
+                            TopicAction.StartPagination(
                                 streamName,
                                 topicName,
                                 (adapter.items[adapter.items.lastIndex] as MessageUI).messageId

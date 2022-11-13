@@ -10,18 +10,16 @@ class TopicReducer : Reducer<TopicAction, TopicState, TopicEffect> {
 
             is TopicAction.ShowMessages -> state.copy(isLoading = false, messages = action.messages)
 
-            is TopicAction.QueueRegistered -> state.copy(isRegisteredQueue = true)
-
             is TopicAction.ShowError -> state.copy(error = action.error)
 
-            is TopicAction.ShowPagination -> state.copy(
+            is TopicAction.ShowPaginationResult -> state.copy(
                 messages = state.messages.orEmpty() + action.messagesFromScroll,
                 isPaginationLoading = false,
                 isPaginationLastPage = action.isLastPage
             )
             is TopicAction.ShowEvents -> state.copy(messages = action.messages)
 
-            is TopicAction.GetPagination -> state.copy(isPaginationLoading = true)
+            is TopicAction.StartPagination -> state.copy(isPaginationLoading = true)
             else -> state
         }
     }

@@ -35,10 +35,10 @@ sealed class TopicAction : BaseAction {
     data class SendMessage(val streamName: String, val topicName: String, val message: String) :
         TopicAction()
 
-    data class GetPagination(val streamName: String, val topicName: String, val anchor: Int) :
+    data class StartPagination(val streamName: String, val topicName: String, val anchor: Int) :
         TopicAction()
 
-    data class ShowPagination(
+    data class ShowPaginationResult(
         val messagesFromScroll: List<MessageUI>,
         val isLastPage: Boolean
     ) : TopicAction()
