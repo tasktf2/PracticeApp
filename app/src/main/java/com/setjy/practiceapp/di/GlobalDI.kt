@@ -22,8 +22,8 @@ import com.setjy.practiceapp.domain.model.UserMapper
 import com.setjy.practiceapp.domain.repo.*
 import com.setjy.practiceapp.domain.usecase.event.GetEventsUseCase
 import com.setjy.practiceapp.domain.usecase.event.RegisterEventsQueueUseCase
-import com.setjy.practiceapp.domain.usecase.message.PaginationUseCase
 import com.setjy.practiceapp.domain.usecase.message.GetNewestMessagesUseCase
+import com.setjy.practiceapp.domain.usecase.message.PaginationUseCase
 import com.setjy.practiceapp.domain.usecase.message.SendMessageUseCase
 import com.setjy.practiceapp.domain.usecase.reaction.AddReactionUseCase
 import com.setjy.practiceapp.domain.usecase.reaction.DeleteReactionUseCase
@@ -71,10 +71,7 @@ object GlobalDI {
         context.getSharedPreferences(KEY_SHARED_PREFS, Context.MODE_PRIVATE)
     }
 
-
     private val header by lazy { Credentials.basic(username, API_KEY) }
-    //      test profile below
-//    private val header by lazy { Credentials.basic(usernameTest, API_KEY_TEST) }
 
     private val interceptor: Interceptor by lazy {
         Interceptor { chain ->
@@ -227,8 +224,5 @@ object GlobalDI {
     }
     val sendMessageUseCase: SendMessageUseCase by lazy {
         SendMessageUseCase(repo = messageRepo, scheduler = scheduler)
-    }
-    val getOwnUserUseCase: GetOwnUserUseCase by lazy {
-        GetOwnUserUseCase(repo = userRepo, mapper = userMapper, scheduler = scheduler)
     }
 }

@@ -1,39 +1,26 @@
 package com.setjy.practiceapp.presentation.ui.profile
 
-import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import java.util.*
+import javax.inject.Inject
 
-class ProfileReducer : Reducer<ProfileAction, ProfileState, BaseEffect> {
+class ProfileReducer @Inject constructor() : Reducer<ProfileAction, ProfileState, ProfileEffect> {
     override fun reduceToState(action: ProfileAction, state: ProfileState): ProfileState {
         return when (action) {
-            is ProfileAction.LoadOwnUser -> state.copy(
-                userItemUI = null,
-                error = null,
-                isLoading = false
-            )
+            is ProfileAction.LoadOwnUser -> state
 
-            is ProfileAction.ShowLoading -> state.copy(
-                userItemUI = null,
-                error = null,
-                isLoading = true
-            )
+            is ProfileAction.ShowLoading -> state.copy(isLoading = true)
 
-            is ProfileAction.ShowOwnUser -> state.copy(
-                userItemUI = action.user,
-                error = null,
-                isLoading = false
-            )
+            is ProfileAction.ShowOwnUser -> state.copy(userItemUI = action.user, isLoading = false)
 
-            is ProfileAction.ShowError -> state.copy(
-                userItemUI = null,
-                error = action.error,
-                isLoading = false
-            )
+            is ProfileAction.ShowError -> state.copy(error = action.error, isLoading = false)
         }
     }
 
-    override fun reduceToEffect(action: ProfileAction, state: ProfileState): Optional<BaseEffect> {
+    override fun reduceToEffect(
+        action: ProfileAction,
+        state: ProfileState
+    ): Optional<ProfileEffect> {
         return Optional.empty()
     }
 }

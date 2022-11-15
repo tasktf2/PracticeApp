@@ -2,8 +2,9 @@ package com.setjy.practiceapp.data.local.storage
 
 import android.content.SharedPreferences
 import com.setjy.practiceapp.data.local.db.dao.UserStorage
+import javax.inject.Inject
 
-class UserStorageImpl(private val sharedPreferences: SharedPreferences) : UserStorage {
+class UserStorageImpl @Inject constructor(private val sharedPreferences: SharedPreferences) : UserStorage {
 
     override fun getOwnUserId(): Int =
         sharedPreferences.getInt(KEY_OWN_USER_ID, DEFAULT_USER_ID)

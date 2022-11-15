@@ -8,13 +8,10 @@ import androidx.navigation.ui.setupWithNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.ActivityMainBinding
-import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class MainActivity : AppCompatActivity() {
 
     private val binding: ActivityMainBinding by viewBinding()
-
-    private val disposable: CompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.presentation.ui.profile
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
@@ -8,16 +9,27 @@ import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.appComponent
 import com.setjy.practiceapp.databinding.FragmentProfileBinding
-import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
+import javax.inject.Inject
 
-class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileState, BaseEffect> {
+class ProfileFragment @Inject constructor() : Fragment(R.layout.fragment_profile),
+    MviView<ProfileState, ProfileEffect> {
 
-    private val viewModel: MviViewModel<ProfileAction, ProfileState, BaseEffect> by viewModels { ProfileViewModelFactory() }
+    @Inject
+    lateinit var mviViewModelFactory: MviViewModelFactory<ProfileAction, ProfileState, ProfileEffect>
+
+    private val viewModel: MviViewModel<ProfileAction, ProfileState, ProfileEffect> by viewModels { mviViewModelFactory }
 
     private val binding: FragmentProfileBinding by viewBinding()
+
+    override fun onAttach(context: Context) {
+        context.appComponent.inject(this)
+        super.onAttach(context)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -44,7 +56,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile), MviView<ProfileStat
         }
     }
 
-    override fun renderEffect(effect: BaseEffect) = Unit
+    override fun renderEffect(effect: ProfileEffect) = Unit
 
     override fun onDestroyView() {
         super.onDestroyView()

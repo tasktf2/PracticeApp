@@ -8,8 +8,9 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class GetOwnUserUseCase(
+class GetOwnUserUseCase @Inject constructor(
     private val repo: UserRepo,
     private val mapper: UserMapper,
     private val scheduler: Scheduler
