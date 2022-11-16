@@ -1,7 +1,8 @@
 package com.setjy.practiceapp.domain.usecase.user
 
+import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.UseCase
-import com.setjy.practiceapp.domain.model.UserMapper
+import com.setjy.practiceapp.domain.model.UserDomain
 import com.setjy.practiceapp.domain.repo.UserRepo
 import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
 import io.reactivex.rxjava3.core.Observable
@@ -12,7 +13,7 @@ import javax.inject.Inject
 
 class GetOwnUserUseCase @Inject constructor(
     private val repo: UserRepo,
-    private val mapper: UserMapper,
+    private val mapper: DomainMapper<UserDomain, UserItemUI>,
     private val scheduler: Scheduler
 ) :
     UseCase<Unit, Observable<UserItemUI>> {

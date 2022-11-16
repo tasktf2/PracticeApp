@@ -2,9 +2,8 @@ package com.setjy.practiceapp.presentation.ui.profile
 
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import java.util.*
-import javax.inject.Inject
 
-class ProfileReducer @Inject constructor() : Reducer<ProfileAction, ProfileState, ProfileEffect> {
+class ProfileReducer : Reducer<ProfileAction, ProfileState, ProfileEffect> {
     override fun reduceToState(action: ProfileAction, state: ProfileState): ProfileState {
         return when (action) {
             is ProfileAction.LoadOwnUser -> state

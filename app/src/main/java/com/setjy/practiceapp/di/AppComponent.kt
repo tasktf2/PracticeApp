@@ -1,10 +1,15 @@
 package com.setjy.practiceapp.di
 
-import com.setjy.practiceapp.presentation.ui.profile.ProfileFragment
+import android.content.SharedPreferences
+import com.setjy.practiceapp.data.remote.api.UsersApi
 import dagger.Component
+import io.reactivex.rxjava3.core.Scheduler
+import javax.inject.Singleton
 
-@Component(modules = [AppModule::class])
+@Singleton
+@Component(modules = [AppModule::class, NetworkModule::class])
 interface AppComponent {
-
-    fun inject(profileFragment: ProfileFragment)
+    fun sch(): Scheduler
+    fun api(): UsersApi
+    fun pref(): SharedPreferences
 }

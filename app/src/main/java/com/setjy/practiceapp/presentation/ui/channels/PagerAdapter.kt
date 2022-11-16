@@ -8,8 +8,8 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 class PagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
     FragmentStateAdapter(fragmentManager, lifecycle) {
     private val fragments: List<Fragment> = listOf(
-        StreamListFragment.newInstance(Page.SUBSCRIBED),
-        StreamListFragment.newInstance(Page.ALL_STREAMS)
+//        StreamListFragment.newInstance(Page.SUBSCRIBED),
+//        StreamListFragment.newInstance(Page.ALL_STREAMS)
     )
 
     override fun getItemCount(): Int = fragments.size

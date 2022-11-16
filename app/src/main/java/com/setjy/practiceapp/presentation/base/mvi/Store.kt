@@ -8,9 +8,8 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.*
-import javax.inject.Inject
 
-class Store<A : BaseAction, S : BaseState, E : BaseEffect> @Inject constructor(
+class Store<A : BaseAction, S : BaseState, E : BaseEffect> constructor(
     private val reducer: @JvmSuppressWildcards Reducer<A, S, E>,
     private val middlewares: @JvmSuppressWildcards Set<Middleware<S, A>>,
     initialState: S

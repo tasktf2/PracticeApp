@@ -18,76 +18,80 @@ import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.util.hideKeyboard
 
-class StreamListFragment : Fragment(R.layout.fragment_stream_list),
-    MviView<ChannelsState, BaseEffect> {
+class StreamListFragment : Fragment(R.layout.fragment_stream_list)
+    /*  MviView<ChannelsState, BaseEffect> {
 
-    private val viewModel: MviViewModel<ChannelsAction, ChannelsState, BaseEffect> by viewModels {
-        StreamViewModelFactory()
-    }
-    private val holderFactory: ChannelsHolderFactory = ChannelsHolderFactory(
-        this::onStreamClick,
-        this::onTopicClick
-    )
-    private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
 
-    private val page: Page by lazy { arguments?.getSerializable(ARG_PAGE) as Page }
+      private val viewModel: MviViewModel<ChannelsAction, ChannelsState, BaseEffect> by viewModels {
+          StreamViewModelFactory()
+      }
+      private val holderFactory: ChannelsHolderFactory = ChannelsHolderFactory(
+          this::onStreamClick,
+          this::onTopicClick
+      )
+      private val adapter: Adapter<ViewTyped> = Adapter(holderFactory)
 
-    private val binding: FragmentStreamListBinding by viewBinding()
+      private val page: Page by lazy { arguments?.getSerializable(ARG_PAGE) as Page }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+      private val binding: FragmentStreamListBinding by viewBinding()
 
-        binding.rvStreamList.layoutManager = LinearLayoutManager(context)
-        binding.rvStreamList.adapter = adapter
+      override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+          super.onViewCreated(view, savedInstanceState)
 
-        viewModel.bind(this)
-        viewModel.accept(ChannelsAction.LoadStreams(isSubscribed = page == Page.SUBSCRIBED))
-        subscribeToSearch()
-    }
+          binding.rvStreamList.layoutManager = LinearLayoutManager(context)
+          binding.rvStreamList.adapter = adapter
 
-    override fun renderState(state: ChannelsState) {
-        binding.shimmer.isVisible = state.isLoading
+          viewModel.bind(this)
+          viewModel.accept(ChannelsAction.LoadStreams(isSubscribed = page == Page.SUBSCRIBED))
+          subscribeToSearch()
+      }
 
-        if (state.visibleItems != null) {
-            adapter.items = state.visibleItems
-        }
-    }
+      override fun renderState(state: ChannelsState) {
+          binding.shimmer.isVisible = state.isLoading
 
-    override fun renderEffect(effect: BaseEffect) = Unit
+          if (state.visibleItems != null) {
+              adapter.items = state.visibleItems
+          }
+      }
 
-    private fun subscribeToSearch() {
-        parentFragmentManager.setFragmentResultListener(
-            ChannelsFragment.QUERY_REQUEST_KEY,
-            this
-        ) { _, bundle ->
-            val query = bundle.getString(ChannelsFragment.QUERY_BUNDLE_KEY).orEmpty()
-            viewModel.accept(ChannelsAction.SearchStreams(query))
-            hideKeyboard()
-        }
-    }
+      override fun renderEffect(effect: BaseEffect) = Unit
 
-    private fun onStreamClick(streamItemUI: StreamItemUI) {
-        viewModel.accept(ChannelsAction.ToggleStream(streamItemUI))
-    }
+      private fun subscribeToSearch() {
+          parentFragmentManager.setFragmentResultListener(
+              ChannelsFragment.QUERY_REQUEST_KEY,
+              this
+          ) { _, bundle ->
+              val query = bundle.getString(ChannelsFragment.QUERY_BUNDLE_KEY).orEmpty()
+              viewModel.accept(ChannelsAction.SearchStreams(query))
+              hideKeyboard()
+          }
+      }
 
-    private fun onTopicClick(topicNameFromClick: String, streamName: String) {
-        val bundle: Bundle = bundleOf(STREAM_BUNDLE_KEY to arrayOf(streamName, topicNameFromClick))
-        findNavController().navigate(R.id.action_channels_fragment_to_topicFragment, bundle)
-    }
+      private fun onStreamClick(streamItemUI: StreamItemUI) {
+          viewModel.accept(ChannelsAction.ToggleStream(streamItemUI))
+      }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewModel.unbind()
-    }
+      private fun onTopicClick(topicNameFromClick: String, streamName: String) {
+          val bundle: Bundle = bundleOf(STREAM_BUNDLE_KEY to arrayOf(streamName, topicNameFromClick))
+          findNavController().navigate(R.id.action_channels_fragment_to_topicFragment, bundle)
+      }
 
-    companion object {
-        private const val ARG_PAGE: String = "ARG_PAGE"
-        const val STREAM_BUNDLE_KEY: String = "STREAM_BUNDLE_KEY"
+      override fun onDestroyView() {
+          super.onDestroyView()
+          viewModel.unbind()
+      }
 
-        const val STREAM_ARRAY_INDEX: Int = 0
-        const val TOPIC_ARRAY_INDEX: Int = 1
-        fun newInstance(page: Page) = StreamListFragment().apply {
-            arguments = bundleOf(ARG_PAGE to page)
-        }
-    }
+      companion object {
+          private const val ARG_PAGE: String = "ARG_PAGE"
+          const val STREAM_BUNDLE_KEY: String = "STREAM_BUNDLE_KEY"
+
+          const val STREAM_ARRAY_INDEX: Int = 0
+          const val TOPIC_ARRAY_INDEX: Int = 1
+          fun newInstance(page: Page) = StreamListFragment().apply {
+              arguments = bundleOf(ARG_PAGE to page)
+          }
+      }
+
+
 }
+     */
