@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
-import com.setjy.practiceapp.appComponent
+import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentProfileBinding
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
@@ -27,8 +27,16 @@ class ProfileFragment @Inject constructor() : Fragment(R.layout.fragment_profile
     private val binding: FragmentProfileBinding by viewBinding()
 
     override fun onAttach(context: Context) {
-        context.appComponent.inject(this)
+        (context.applicationContext as ZulipApp).apply {
+            addProfileComponent()
+            profileComponent?.inject(this@ProfileFragment)
+        }
         super.onAttach(context)
+    }
+
+    override fun onDetach() {
+        (requireContext().applicationContext as ZulipApp).clearProfileComponent()
+        super.onDetach()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

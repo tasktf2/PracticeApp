@@ -9,7 +9,7 @@ import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.Topic
 
 @Entity(
-    tableName = "topic",
+    tableName = "topic", primaryKeys = ["stream_id", "topic_id"],
     foreignKeys = [ForeignKey(
         entity = StreamEntity::class,
         parentColumns = ["stream_id"],
@@ -19,7 +19,6 @@ import com.setjy.practiceapp.domain.model.Topic
     )]
 )
 data class TopicEntity(
-    @PrimaryKey
     @ColumnInfo(name = "topic_id")
     val topicId: Int,
     @ColumnInfo(name = "topic_name")

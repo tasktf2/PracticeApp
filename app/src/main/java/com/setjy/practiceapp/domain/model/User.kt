@@ -14,7 +14,7 @@ data class UserDomain(
     val userStatus: UserStatus
 ) : Model
 
-class UserMapper @Inject constructor(): DomainMapper<UserDomain, UserItemUI> {
+class UserMapper @Inject constructor() : DomainMapper<UserDomain, UserItemUI> {
     override fun mapToPresentation(model: UserDomain): UserItemUI =
         UserItemUI(
             userId = model.userId,

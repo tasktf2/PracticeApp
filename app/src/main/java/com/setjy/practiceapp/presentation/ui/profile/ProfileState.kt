@@ -5,12 +5,11 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.base.Item
 import com.setjy.practiceapp.presentation.base.mvi.BaseState
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
-import javax.inject.Inject
 
-data class ProfileState @Inject constructor(
-    val userItemUI: UserItemUI?,
-    val error: Throwable?,
-    val isLoading: Boolean
+data class ProfileState(
+    val userItemUI: UserItemUI? = null,
+    val error: Throwable? = null,
+    val isLoading: Boolean = false
 ) : BaseState
 
 data class UserItemUI(
