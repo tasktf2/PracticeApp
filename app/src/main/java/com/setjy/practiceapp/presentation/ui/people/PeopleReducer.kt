@@ -1,10 +1,10 @@
 package com.setjy.practiceapp.presentation.ui.people
 
-import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import java.util.*
+import javax.inject.Inject
 
-class PeopleReducer : Reducer<PeopleAction, PeopleState, BaseEffect> {
+class PeopleReducer @Inject constructor() : @JvmSuppressWildcards Reducer<PeopleAction, PeopleState, PeopleEffect> {
     override fun reduceToState(action: PeopleAction, state: PeopleState): PeopleState {
         return when (action) {
 
@@ -21,7 +21,7 @@ class PeopleReducer : Reducer<PeopleAction, PeopleState, BaseEffect> {
         }
     }
 
-    override fun reduceToEffect(action: PeopleAction, state: PeopleState): Optional<BaseEffect> {
+    override fun reduceToEffect(action: PeopleAction, state: PeopleState): Optional<PeopleEffect> {
         return Optional.empty()
     }
 }

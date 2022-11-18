@@ -2,8 +2,9 @@ package com.setjy.practiceapp.data.local.storage
 
 import android.content.SharedPreferences
 import com.setjy.practiceapp.data.local.db.dao.EventStorage
+import javax.inject.Inject
 
-class EventStorageImpl(private val sharedPreferences: SharedPreferences) : EventStorage {
+class EventStorageImpl @Inject constructor(private val sharedPreferences: SharedPreferences) : EventStorage {
 
     override fun getLastEventId(): Int =
         sharedPreferences.getInt(KEY_LAST_EVENT_ID, DEFAULT_LAST_EVENT_ID)

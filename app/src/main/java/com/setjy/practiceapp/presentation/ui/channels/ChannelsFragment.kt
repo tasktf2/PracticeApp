@@ -10,10 +10,14 @@ import com.setjy.practiceapp.R
 import com.setjy.practiceapp.databinding.FragmentChannelsBinding
 
 class ChannelsFragment : Fragment(R.layout.fragment_channels) {
-
     private val binding: FragmentChannelsBinding by viewBinding()
 
-    private val tabs: List<String> by lazy { listOf(getString(R.string.tab_subscribed), getString(R.string.tab_all_streams)) }
+    private val tabs: List<String> by lazy {
+        listOf(
+            getString(R.string.tab_subscribed),
+            getString(R.string.tab_all_streams)
+        )
+    }
 
     private val tabLayoutMediator by lazy {
         TabLayoutMediator(binding.tlStreams, binding.vpStreams) { tab, position ->
@@ -49,4 +53,5 @@ class ChannelsFragment : Fragment(R.layout.fragment_channels) {
         const val QUERY_BUNDLE_KEY: String = "QUERY_BUNDLE_KEY"
         const val QUERY_REQUEST_KEY: String = "QUERY_REQUEST_KEY"
     }
+
 }

@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.presentation.ui.people
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
@@ -9,17 +10,22 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentPeopleBinding
-import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
+import javax.inject.Inject
 
-class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, BaseEffect> {
+class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, PeopleEffect> {
 
-    private val viewModel: MviViewModel<PeopleAction, PeopleState, BaseEffect> by viewModels {
-        PeopleViewModelFactory()
+    @Inject
+    lateinit var mviViewModelFactory: MviViewModelFactory<PeopleAction, PeopleState, PeopleEffect>
+
+    private val viewModel: MviViewModel<PeopleAction, PeopleState, PeopleEffect> by viewModels {
+        mviViewModelFactory
     }
 
     private val binding: FragmentPeopleBinding by viewBinding()
@@ -27,6 +33,14 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, 
     private val holderFactory = PeopleHolderFactory()
 
     private val adapter = Adapter<ViewTyped>(holderFactory)
+
+    override fun onAttach(context: Context) {
+        (context.applicationContext as ZulipApp).apply {
+            addPeopleComponent()
+            peopleComponent?.inject(this@PeopleFragment)
+        }
+        super.onAttach(context)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -46,7 +60,7 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, 
         }
     }
 
-    override fun renderEffect(effect: BaseEffect) = Unit
+    override fun renderEffect(effect: PeopleEffect) = Unit
 
     private fun initUserSearch() {
         binding.etSearch.addTextChangedListener { text ->
@@ -58,5 +72,10 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, 
     override fun onDestroyView() {
         super.onDestroyView()
         viewModel.unbind()
+    }
+
+    override fun onDetach() {
+        (requireContext().applicationContext as ZulipApp).clearPeopleComponent()
+        super.onDetach()
     }
 }

@@ -8,9 +8,10 @@ import com.setjy.practiceapp.presentation.ui.channels.ChannelsState
 import com.setjy.practiceapp.presentation.ui.channels.StreamItemUI
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class LoadStreamsMiddleware(
-    private val getStreamsUseCase: UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>>
+class LoadStreamsMiddleware @Inject constructor(
+    private val getStreamsUseCase: @JvmSuppressWildcards UseCase<GetStreamsUseCase.Params, Flowable<List<StreamItemUI>>>
 ) :
     Middleware<ChannelsState, ChannelsAction> {
     override fun bind(

@@ -3,6 +3,7 @@ package com.setjy.practiceapp.domain.model
 import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.Model
 import com.setjy.practiceapp.presentation.ui.channels.StreamItemUI
+import javax.inject.Inject
 
 data class StreamWithTopics(
     val streamId: Int,
@@ -12,7 +13,7 @@ data class StreamWithTopics(
     val topics: List<Topic>
 ) : Model
 
-class StreamMapper : DomainMapper<StreamWithTopics, StreamItemUI> {
+class StreamMapper @Inject constructor() : DomainMapper<StreamWithTopics, StreamItemUI> {
     override fun mapToPresentation(model: StreamWithTopics): StreamItemUI = StreamItemUI(
         streamId = model.streamId,
         streamName = model.streamName,

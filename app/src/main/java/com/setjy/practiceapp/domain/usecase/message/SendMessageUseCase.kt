@@ -4,8 +4,12 @@ import com.setjy.practiceapp.domain.base.UseCase
 import com.setjy.practiceapp.domain.repo.MessageRepo
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
+import javax.inject.Inject
 
-open class SendMessageUseCase(private val repo: MessageRepo, private val scheduler: Scheduler) :
+open class SendMessageUseCase @Inject constructor(
+    private val repo: MessageRepo,
+    private val scheduler: Scheduler
+) :
     UseCase<SendMessageUseCase.Params, Completable> {
 
     data class Params(val streamName: String, val topicName: String, val message: String)

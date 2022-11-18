@@ -1,11 +1,14 @@
 package com.setjy.practiceapp.data.repo
 
+import com.setjy.practiceapp.data.base.EntityMapper
+import com.setjy.practiceapp.data.base.RemoteMapper
 import com.setjy.practiceapp.data.local.db.dao.EventStorage
-import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntityMapper
+import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
 import com.setjy.practiceapp.data.local.storage.MessageStorage
 import com.setjy.practiceapp.data.local.storage.ReactionStorage
 import com.setjy.practiceapp.data.remote.api.EventsApi
 import com.setjy.practiceapp.data.remote.response.*
+import com.setjy.practiceapp.di.module.topic.TopicModule
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.domain.repo.EventRepo
 import com.setjy.practiceapp.domain.repo.MessageRepo
@@ -13,15 +16,17 @@ import io.reactivex.rxjava3.core.Observable
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
 
-class EventRepoImpl(
+class EventRepoImpl @Inject constructor(
     private val api: EventsApi,
     private val messageRepo: MessageRepo,
     private val messageStorage: MessageStorage,
     private val reactionStorage: ReactionStorage,
-    private val messageEntityMapper: MessageWithReactionsEntityMapper,
-    private val messageRemoteMapper: MessagesRemoteMapper,
-    private val ownUserId: Int,
+    private val messageEntityMapper: @JvmSuppressWildcards EntityMapper<MessageWithReactionsEntity, MessageWithReactionsDomain>,
+    private val messageRemoteMapper: @JvmSuppressWildcards RemoteMapper<MessagesRemote, MessageWithReactionsDomain, MessageWithReactionsEntity>,
+    @Named(TopicModule.NAMED_USER_ID) private val ownUserId: Int,
     private val eventStorage: EventStorage
 ) : EventRepo {
 

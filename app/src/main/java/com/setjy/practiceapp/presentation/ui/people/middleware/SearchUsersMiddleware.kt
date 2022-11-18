@@ -5,8 +5,9 @@ import com.setjy.practiceapp.presentation.ui.people.PeopleAction
 import com.setjy.practiceapp.presentation.ui.people.PeopleState
 import io.reactivex.rxjava3.core.Observable
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class SearchUsersMiddleware : Middleware<PeopleState, PeopleAction> {
+class SearchUsersMiddleware @Inject constructor() : @JvmSuppressWildcards Middleware<PeopleState, PeopleAction> {
     override fun bind(
         actions: Observable<PeopleAction>,
         state: Observable<PeopleState>

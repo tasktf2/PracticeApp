@@ -7,9 +7,10 @@ import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class SendMessageMiddleware(
-    private val sendMessageUseCase: UseCase<SendMessageUseCase.Params, Completable>
+class SendMessageMiddleware @Inject constructor(
+    private val sendMessageUseCase: @JvmSuppressWildcards UseCase<SendMessageUseCase.Params, Completable>
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

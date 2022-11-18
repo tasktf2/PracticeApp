@@ -3,8 +3,9 @@ package com.setjy.practiceapp.data.local.storage
 import com.setjy.practiceapp.data.local.db.dao.ReactionDao
 import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
 import com.setjy.practiceapp.data.local.model.ReactionEntity
+import javax.inject.Inject
 
-class ReactionStorage(private val reactionDao: ReactionDao) {
+class ReactionStorage @Inject constructor(private val reactionDao: ReactionDao) {
 
     fun insertReactions(messages: List<MessageWithReactionsEntity>) = messages.forEach { message ->
         reactionDao.insertReactions(
