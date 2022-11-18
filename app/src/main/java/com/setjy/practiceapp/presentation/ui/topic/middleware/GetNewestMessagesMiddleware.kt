@@ -8,9 +8,10 @@ import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class GetNewestMessagesMiddleware(
-    private val getNewestMessagesUseCase: UseCase<GetNewestMessagesUseCase.Params, Flowable<List<MessageUI>>>,
+class GetNewestMessagesMiddleware @Inject constructor(
+    private val getNewestMessagesUseCase: @JvmSuppressWildcards UseCase<GetNewestMessagesUseCase.Params, Flowable<List<MessageUI>>>,
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

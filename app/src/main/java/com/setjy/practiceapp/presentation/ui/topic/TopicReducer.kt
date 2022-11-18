@@ -2,8 +2,9 @@ package com.setjy.practiceapp.presentation.ui.topic
 
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
 import java.util.*
+import javax.inject.Inject
 
-class TopicReducer : Reducer<TopicAction, TopicState, TopicEffect> {
+class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, TopicEffect> {
     override fun reduceToState(action: TopicAction, state: TopicState): TopicState {
         return when (action) {
             TopicAction.ShowLoading -> state.copy(isLoading = true)
@@ -32,7 +33,11 @@ class TopicReducer : Reducer<TopicAction, TopicState, TopicEffect> {
             is TopicAction.ShowEvents -> Optional.of(
                 TopicEffect.GetEvents(queueId = action.queueId, lastEventId = action.lastEventId)
             )
-            is TopicAction.ShowBottomSheetFragment -> Optional.of(TopicEffect.ShowBottomSheetFragment(action.messageId))
+            is TopicAction.ShowBottomSheetFragment -> Optional.of(
+                TopicEffect.ShowBottomSheetFragment(
+                    action.messageId
+                )
+            )
 
             else -> Optional.empty()
         }

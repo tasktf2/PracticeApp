@@ -1,9 +1,8 @@
 package com.setjy.practiceapp.di.module
 
-import com.setjy.practiceapp.data.remote.api.UsersApi
+import com.setjy.practiceapp.di.scope.AppScope
 import dagger.Module
 import dagger.Provides
-import dagger.Reusable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.Credentials
@@ -16,13 +15,12 @@ import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
-import javax.inject.Singleton
 
 @Module
 class NetworkModule {
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .baseUrl(BASE_URL)
@@ -31,11 +29,11 @@ class NetworkModule {
         .build()
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideOkHttpClient(
         interceptor: Interceptor,
         httpLoggingInterceptor: HttpLoggingInterceptor
-    ) = OkHttpClient.Builder()
+    ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
         .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
@@ -44,7 +42,7 @@ class NetworkModule {
         .build()
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideInterceptor(@Named(NAMED_HEADER) header: String): Interceptor =
         Interceptor { chain ->
             val request: Request = chain.request()
@@ -55,22 +53,18 @@ class NetworkModule {
         }
 
     @Provides
-    @Singleton
+    @AppScope
     @Named(NAMED_HEADER)
-    fun provideHeader() = Credentials.basic(username, API_KEY)
+    fun provideHeader(): String = Credentials.basic(username, API_KEY)
 
     @Provides
-    @Singleton
-    fun provideHttpLoggingInterceptor() = HttpLoggingInterceptor().apply {
+    @AppScope
+    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
     @Provides
-    @Reusable
-    fun provideUsersApi(retrofit: Retrofit): UsersApi = retrofit.create(UsersApi::class.java)
-
-    @Provides
-    @Reusable
+    @AppScope
     fun provideScheduler(): Scheduler = Schedulers.io()
 
     companion object {

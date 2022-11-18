@@ -16,13 +16,15 @@ import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
 import javax.inject.Inject
 
-class ProfileFragment @Inject constructor() : Fragment(R.layout.fragment_profile),
+class ProfileFragment : Fragment(R.layout.fragment_profile),
     MviView<ProfileState, ProfileEffect> {
 
     @Inject
     lateinit var mviViewModelFactory: MviViewModelFactory<ProfileAction, ProfileState, ProfileEffect>
 
-    private val viewModel: MviViewModel<ProfileAction, ProfileState, ProfileEffect> by viewModels { mviViewModelFactory }
+    private val viewModel: MviViewModel<ProfileAction, ProfileState, ProfileEffect> by viewModels {
+        mviViewModelFactory
+    }
 
     private val binding: FragmentProfileBinding by viewBinding()
 
@@ -32,11 +34,6 @@ class ProfileFragment @Inject constructor() : Fragment(R.layout.fragment_profile
             profileComponent?.inject(this@ProfileFragment)
         }
         super.onAttach(context)
-    }
-
-    override fun onDetach() {
-        (requireContext().applicationContext as ZulipApp).clearProfileComponent()
-        super.onDetach()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

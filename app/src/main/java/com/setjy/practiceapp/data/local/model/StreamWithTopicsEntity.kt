@@ -1,10 +1,12 @@
 package com.setjy.practiceapp.data.local.model
 
 import androidx.room.Embedded
+import androidx.room.Insert
 import androidx.room.Relation
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.StreamWithTopics
+import javax.inject.Inject
 
 data class StreamWithTopicsEntity(
     @Embedded val streamEntity: StreamEntity,
@@ -14,7 +16,7 @@ data class StreamWithTopicsEntity(
     ) val topics: List<TopicEntity>
 ) : ModelEntity
 
-class StreamWithTopicsEntityMapper(private val topicEntityMapper: TopicEntityMapper) :
+class StreamWithTopicsEntityMapper @Inject constructor(private val topicEntityMapper: TopicEntityMapper) :
     EntityMapper<StreamWithTopicsEntity, StreamWithTopics> {
 
     override fun mapToDomain(entity: StreamWithTopicsEntity): StreamWithTopics =

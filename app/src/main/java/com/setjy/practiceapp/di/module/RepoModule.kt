@@ -2,6 +2,7 @@ package com.setjy.practiceapp.di.module
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.setjy.practiceapp.di.scope.AppScope
 import dagger.Module
 import dagger.Provides
 
@@ -9,6 +10,7 @@ import dagger.Provides
 class RepoModule {
 
     @Provides
+    @AppScope
     fun provideSharedPreferences(context: Context): SharedPreferences =
         context.getSharedPreferences(KEY_SHARED_PREFS, Context.MODE_PRIVATE)
 

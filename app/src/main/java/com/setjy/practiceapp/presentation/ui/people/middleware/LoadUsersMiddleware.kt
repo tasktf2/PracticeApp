@@ -6,9 +6,11 @@ import com.setjy.practiceapp.presentation.ui.people.PeopleAction
 import com.setjy.practiceapp.presentation.ui.people.PeopleState
 import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class LoadUsersMiddleware(private val getAllUsersUseCase: UseCase<Unit, Observable<List<UserItemUI>>>) :
-    Middleware<PeopleState, PeopleAction> {
+class LoadUsersMiddleware @Inject constructor(
+    private val getAllUsersUseCase: @JvmSuppressWildcards UseCase<Unit, Observable<List<UserItemUI>>>
+) : Middleware<PeopleState, PeopleAction> {
     override fun bind(
         actions: Observable<PeopleAction>,
         state: Observable<PeopleState>

@@ -5,8 +5,11 @@ import com.setjy.practiceapp.data.base.ModelRemote
 import com.setjy.practiceapp.data.base.RemoteMapper
 import com.setjy.practiceapp.data.local.model.MessageEntity
 import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
+import com.setjy.practiceapp.di.module.topic.TopicModule
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.util.getMessageTimeStamp
+import javax.inject.Inject
+import javax.inject.Named
 
 data class MessagesResponse(
     @SerializedName("messages") val messages: List<MessagesRemote>
@@ -28,7 +31,7 @@ data class MessagesRemote(
     @SerializedName("recipient_id") val recipientId: Int, //topic id
 ) : ModelRemote
 
-class MessagesRemoteMapper(private val ownUserId: Int) :
+class MessagesRemoteMapper @Inject constructor(@Named(TopicModule.NAMED_USER_ID) private val ownUserId: Int) :
     RemoteMapper<MessagesRemote, MessageWithReactionsDomain, MessageWithReactionsEntity> {
     override fun mapToDomain(remote: MessagesRemote): MessageWithReactionsDomain =
         MessageWithReactionsDomain(

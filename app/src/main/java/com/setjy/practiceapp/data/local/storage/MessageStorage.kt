@@ -4,8 +4,9 @@ import com.setjy.practiceapp.data.local.db.dao.MessageDao
 import com.setjy.practiceapp.data.local.model.MessageEntity
 import com.setjy.practiceapp.data.local.model.MessageWithReactionsEntity
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class MessageStorage(private val messageDao: MessageDao) {
+class MessageStorage @Inject constructor(private val messageDao: MessageDao) {
 
     fun getMessages(
         streamName: String,

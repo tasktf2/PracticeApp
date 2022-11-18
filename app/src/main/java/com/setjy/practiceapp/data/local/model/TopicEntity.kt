@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.Topic
+import javax.inject.Inject
 
 @Entity(
     tableName = "topic", primaryKeys = ["stream_id", "topic_id"],
@@ -27,7 +28,7 @@ data class TopicEntity(
     val streamId: Int,
 ) : ModelEntity
 
-class TopicEntityMapper : EntityMapper<TopicEntity, Topic> {
+class TopicEntityMapper @Inject constructor() : EntityMapper<TopicEntity, Topic> {
     override fun mapToDomain(entity: TopicEntity): Topic = Topic(
         topicId = entity.topicId,
         topicName = entity.topicName,

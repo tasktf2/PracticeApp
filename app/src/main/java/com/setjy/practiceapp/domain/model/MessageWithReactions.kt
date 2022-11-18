@@ -2,7 +2,9 @@ package com.setjy.practiceapp.domain.model
 
 import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.Model
+import com.setjy.practiceapp.presentation.model.EmojiUI
 import com.setjy.practiceapp.presentation.model.MessageUI
+import javax.inject.Inject
 
 data class MessageWithReactionsDomain(
     val userId: Int,
@@ -17,7 +19,9 @@ data class MessageWithReactionsDomain(
     val reactions: List<ReactionDomain>
 ) : Model
 
-class MessageMapper(private val reactionMapper: ReactionMapper) :
+class MessageMapper @Inject constructor(
+    private val reactionMapper: @JvmSuppressWildcards DomainMapper<ReactionDomain, EmojiUI>
+) :
     DomainMapper<MessageWithReactionsDomain, MessageUI> {
     override fun mapToPresentation(model: MessageWithReactionsDomain): MessageUI = MessageUI(
         userId = model.userId,
