@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
                     if (destination.id == R.id.topicFragment) {
                         binding.bottomNavView.isVisible = false
                     } else {
+                        binding.bottomNavView.isVisible = true
                         clearTopicComponent()
                     }
                     when (destination.id) {
