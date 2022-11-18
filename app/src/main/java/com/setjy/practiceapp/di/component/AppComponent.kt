@@ -22,9 +22,6 @@ interface AppComponent {
     fun channelsBuilder(): ChannelsComponent.ChannelsBuilder
     fun topicBuilder(): TopicComponent.TopicBuilder
 
-    fun scheduler(): Scheduler
-    fun preferences(): SharedPreferences
-    fun db(): ZulipDatabase
 
     @Builder
     interface AppBuilder {
