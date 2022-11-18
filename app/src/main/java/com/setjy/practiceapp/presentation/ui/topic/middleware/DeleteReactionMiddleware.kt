@@ -8,9 +8,10 @@ import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class DeleteReactionMiddleware(
-    private val deleteReactionUseCase: UseCase<DeleteReactionUseCase.Params, Single<EmojiToggleResponse>>
+class DeleteReactionMiddleware @Inject constructor(
+    private val deleteReactionUseCase: @JvmSuppressWildcards UseCase<DeleteReactionUseCase.Params, Single<EmojiToggleResponse>>
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

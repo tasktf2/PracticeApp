@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.ReactionDomain
+import javax.inject.Inject
 
 @Entity(
     tableName = "reaction",
@@ -29,7 +30,7 @@ data class ReactionEntity(
     val messageId: Int
 ) : ModelEntity
 
-class ReactionsEntityMapper : EntityMapper<ReactionEntity, ReactionDomain> {
+class ReactionsEntityMapper @Inject constructor() : EntityMapper<ReactionEntity, ReactionDomain> {
     override fun mapToDomain(entity: ReactionEntity): ReactionDomain = ReactionDomain(
         code = entity.code, name = entity.name, userId = entity.userId, messageId = entity.messageId
     )

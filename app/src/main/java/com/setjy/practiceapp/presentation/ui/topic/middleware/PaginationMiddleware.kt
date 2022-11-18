@@ -7,9 +7,10 @@ import com.setjy.practiceapp.presentation.model.MessageUI
 import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class PaginationMiddleware(
-    private val paginationUseCase: UseCase<PaginationUseCase.Params, Observable<List<MessageUI>>>
+class PaginationMiddleware @Inject constructor(
+    private val paginationUseCase: @JvmSuppressWildcards UseCase<PaginationUseCase.Params, Observable<List<MessageUI>>>
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

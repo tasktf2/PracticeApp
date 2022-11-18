@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.presentation.ui.channels
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
@@ -10,19 +11,25 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentStreamListBinding
 import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.util.hideKeyboard
+import javax.inject.Inject
 
 class StreamListFragment : Fragment(R.layout.fragment_stream_list),
     MviView<ChannelsState, BaseEffect> {
 
+    @Inject
+    lateinit var mviViewModelFactory: MviViewModelFactory<ChannelsAction, ChannelsState, BaseEffect>
+
     private val viewModel: MviViewModel<ChannelsAction, ChannelsState, BaseEffect> by viewModels {
-        StreamViewModelFactory()
+        mviViewModelFactory
     }
     private val holderFactory: ChannelsHolderFactory = ChannelsHolderFactory(
         this::onStreamClick,
@@ -33,6 +40,14 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list),
     private val page: Page by lazy { arguments?.getSerializable(ARG_PAGE) as Page }
 
     private val binding: FragmentStreamListBinding by viewBinding()
+
+    override fun onAttach(context: Context) {
+        (context.applicationContext as ZulipApp).apply {
+            addChannelsComponent()
+            channelsComponent?.inject(this@StreamListFragment)
+        }
+        super.onAttach(context)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -90,4 +105,7 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list),
             arguments = bundleOf(ARG_PAGE to page)
         }
     }
+
+
 }
+

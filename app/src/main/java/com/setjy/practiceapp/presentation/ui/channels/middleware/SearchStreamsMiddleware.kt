@@ -6,8 +6,9 @@ import com.setjy.practiceapp.presentation.ui.channels.ChannelsState
 import com.setjy.practiceapp.presentation.ui.channels.StreamItemUI
 import com.setjy.practiceapp.presentation.ui.channels.TopicItemUI
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class SearchStreamsMiddleware : Middleware<ChannelsState, ChannelsAction> {
+class SearchStreamsMiddleware @Inject constructor() : Middleware<ChannelsState, ChannelsAction> {
     override fun bind(
         actions: Observable<ChannelsAction>,
         state: Observable<ChannelsState>

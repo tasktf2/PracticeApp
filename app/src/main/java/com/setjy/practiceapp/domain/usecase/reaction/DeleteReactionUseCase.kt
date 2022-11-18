@@ -5,8 +5,9 @@ import com.setjy.practiceapp.domain.base.UseCase
 import com.setjy.practiceapp.domain.repo.ReactionRepo
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class DeleteReactionUseCase(private val repo: ReactionRepo, private val scheduler: Scheduler) :
+class DeleteReactionUseCase @Inject constructor(private val repo: ReactionRepo, private val scheduler: Scheduler) :
     UseCase<DeleteReactionUseCase.Params, Single<EmojiToggleResponse>> {
 
     data class Params(val messageId: Int, val emojiName: String)

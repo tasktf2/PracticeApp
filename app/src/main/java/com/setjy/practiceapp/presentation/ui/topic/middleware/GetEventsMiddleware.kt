@@ -7,9 +7,10 @@ import com.setjy.practiceapp.presentation.model.MessageUI
 import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class GetEventsMiddleware(
-    private val getEventsUseCase: UseCase<GetEventsUseCase.Params, Observable<Pair<List<MessageUI>, Int>>>
+class GetEventsMiddleware @Inject constructor(
+    private val getEventsUseCase: @JvmSuppressWildcards UseCase<GetEventsUseCase.Params, Observable<Pair<List<MessageUI>, Int>>>
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

@@ -1,5 +1,6 @@
 package com.setjy.practiceapp.presentation.ui.topic
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.view.View
@@ -12,9 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.setjy.practiceapp.R
+import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentTopicBinding
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.model.MessageUI
@@ -26,11 +29,15 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, TopicEffect> {
 
+    @Inject
+    lateinit var mviViewModelFactory: MviViewModelFactory<TopicAction, TopicState, TopicEffect>
+
     private val viewModel: MviViewModel<TopicAction, TopicState, TopicEffect> by viewModels {
-        TopicViewModelFactory()
+        mviViewModelFactory
     }
 
     private val binding: FragmentTopicBinding by viewBinding()
@@ -53,6 +60,14 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
     private val streamName: String by lazy {
         arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
             ?.get(StreamListFragment.STREAM_ARRAY_INDEX).orEmpty()
+    }
+
+    override fun onAttach(context: Context) {
+        (context.applicationContext as ZulipApp).apply {
+            addTopicComponent()
+            topicComponent?.inject(this@TopicFragment)
+        }
+        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,7 +108,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                 lastEventId = effect.lastEventId
             )
         )
-        is TopicEffect.ShowBottomSheetFragment->{
+        is TopicEffect.ShowBottomSheetFragment -> {
             bottomSheetFragment.show(parentFragmentManager, null)
             parentFragmentManager.setFragmentResultListener(
                 BottomSheetFragment.REQUEST_KEY, viewLifecycleOwner
@@ -351,11 +366,13 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
 
     private fun setMessageSender() {
         val messageText = binding.etSend.text.toString()
-        viewModel.accept(TopicAction.SendMessage(
-            streamName = streamName,
-            topicName = topicName,
-            message = messageText
-        ))
+        viewModel.accept(
+            TopicAction.SendMessage(
+                streamName = streamName,
+                topicName = topicName,
+                message = messageText
+            )
+        )
         binding.etSend.text.clear()
     }
 

@@ -2,23 +2,18 @@ package com.setjy.practiceapp.presentation.base.mvi
 
 import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.disposables.Disposable
+import javax.inject.Inject
 
-class MviViewModel<A : BaseAction, S : BaseState, E : BaseEffect>(
-    private val reducer: Reducer<A, S, E>,
-    private val middlewares: List<Middleware<S, A>>,
-    private val initialState: S
+class MviViewModel<A : BaseAction, S : BaseState, E : BaseEffect> @Inject constructor(
+    private val store: Store<A, S, E>
 ) : ViewModel() {
-
-    private val store: Store<A, S, E> by lazy {
-        Store(reducer, middlewares, initialState)
-    }
 
     private val wiring = store.wire()
     private var viewBinding: Disposable? = null
 
 
     val currentState: S
-    get() = store.currentState
+        get() = store.currentState
 
     fun accept(action: A) {
         store.accept(action)

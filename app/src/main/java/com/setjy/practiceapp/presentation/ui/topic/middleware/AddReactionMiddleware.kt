@@ -8,9 +8,10 @@ import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class AddReactionMiddleware(
-    private val addReactionUseCase: UseCase<AddReactionUseCase.Params, Single<EmojiToggleResponse>>
+class AddReactionMiddleware @Inject constructor(
+    private val addReactionUseCase: @JvmSuppressWildcards UseCase<AddReactionUseCase.Params, Single<EmojiToggleResponse>>
 ) :
     Middleware<TopicState, TopicAction> {
     override fun bind(

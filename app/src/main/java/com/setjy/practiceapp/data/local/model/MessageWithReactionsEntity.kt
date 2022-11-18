@@ -5,6 +5,8 @@ import androidx.room.Relation
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
+import com.setjy.practiceapp.domain.model.ReactionDomain
+import javax.inject.Inject
 
 data class MessageWithReactionsEntity(
     @Embedded val message: MessageEntity,
@@ -14,7 +16,7 @@ data class MessageWithReactionsEntity(
     ) val reactions: List<ReactionEntity>
 ) : ModelEntity
 
-class MessageWithReactionsEntityMapper(private val reactionsEntityMapper: ReactionsEntityMapper) :
+class MessageWithReactionsEntityMapper @Inject constructor(private val reactionsEntityMapper: EntityMapper<ReactionEntity, ReactionDomain>) :
     EntityMapper<MessageWithReactionsEntity, MessageWithReactionsDomain> {
 
     override fun mapToDomain(entity: MessageWithReactionsEntity): MessageWithReactionsDomain =

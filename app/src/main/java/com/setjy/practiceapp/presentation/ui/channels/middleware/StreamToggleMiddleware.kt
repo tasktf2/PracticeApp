@@ -4,8 +4,9 @@ import com.setjy.practiceapp.presentation.base.mvi.Middleware
 import com.setjy.practiceapp.presentation.ui.channels.ChannelsAction
 import com.setjy.practiceapp.presentation.ui.channels.ChannelsState
 import io.reactivex.rxjava3.core.Observable
+import javax.inject.Inject
 
-class StreamToggleMiddleware : Middleware<ChannelsState, ChannelsAction> {
+class StreamToggleMiddleware @Inject constructor() : Middleware<ChannelsState, ChannelsAction> {
     override fun bind(
         actions: Observable<ChannelsAction>,
         state: Observable<ChannelsState>

@@ -14,8 +14,9 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class StreamRepoImpl(
+class StreamRepoImpl @Inject constructor(
     private val api: StreamsApi,
     private val streamStorage: StreamStorage,
     private val topicStorage: TopicStorage,
