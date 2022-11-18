@@ -95,11 +95,6 @@ class StreamListFragment : Fragment(R.layout.fragment_stream_list),
         viewModel.unbind()
     }
 
-    override fun onDetach() {
-        (requireContext().applicationContext as ZulipApp).clearChannelsComponent()
-        super.onDetach()
-    }
-
     companion object {
         private const val ARG_PAGE: String = "ARG_PAGE"
         const val STREAM_BUNDLE_KEY: String = "STREAM_BUNDLE_KEY"

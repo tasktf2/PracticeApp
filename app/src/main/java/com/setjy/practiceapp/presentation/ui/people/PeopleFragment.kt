@@ -73,9 +73,4 @@ class PeopleFragment : Fragment(R.layout.fragment_people), MviView<PeopleState, 
         super.onDestroyView()
         viewModel.unbind()
     }
-
-    override fun onDetach() {
-        (requireContext().applicationContext as ZulipApp).clearPeopleComponent()
-        super.onDetach()
-    }
 }

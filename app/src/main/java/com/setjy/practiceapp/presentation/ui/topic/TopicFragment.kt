@@ -382,11 +382,6 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
         viewModel.unbind()
     }
 
-    override fun onDetach() {
-        (requireContext().applicationContext as ZulipApp).clearTopicComponent()
-        super.onDetach()
-    }
-
     companion object {
         private const val PAGINATION_NUMBER: Int = 4
     }

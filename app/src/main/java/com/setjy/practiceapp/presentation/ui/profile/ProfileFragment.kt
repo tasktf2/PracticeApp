@@ -67,9 +67,4 @@ class ProfileFragment : Fragment(R.layout.fragment_profile),
         super.onDestroyView()
         viewModel.unbind()
     }
-
-    override fun onDetach() {
-        (requireContext().applicationContext as ZulipApp).clearProfileComponent()
-        super.onDetach()
-    }
 }
