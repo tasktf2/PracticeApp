@@ -6,25 +6,22 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.databinding.FragmentProfileBinding
-import com.setjy.practiceapp.presentation.base.mvi.MviView
-import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
-import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
-class ProfileFragment : Fragment(R.layout.fragment_profile),
-    MviView<ProfileState, ProfileEffect> {
+class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     @Inject
-    lateinit var mviViewModelFactory: MviViewModelFactory<ProfileAction, ProfileState, ProfileEffect>
+    lateinit var profileViewModelFactory: ProfileViewModelFactory
 
-    private val viewModel: MviViewModel<ProfileAction, ProfileState, ProfileEffect> by viewModels {
-        mviViewModelFactory
-    }
+    private val viewModel: ProfileViewModel by viewModels { profileViewModelFactory }
 
     private val binding: FragmentProfileBinding by viewBinding()
 
@@ -39,13 +36,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.bind(this)
-        viewModel.accept(ProfileAction.LoadOwnUser)
+        viewModel.observableStates.onEach(::renderState).launchIn(viewLifecycleOwner.lifecycleScope)
+        viewModel.dispatch(ProfileAction.LoadOwnUser)
     }
 
-    override fun renderState(state: ProfileState) {
+    private fun renderState(state: ProfileState) {
         binding.shimmer.root.isVisible = state.isLoading
-        val user = state.userItemUI
+        bindUser(user = state.userItemUI)
+    }
+
+    private fun bindUser(user: UserItemUI?) {
         if (user != null) {
             with(binding) {
                 tvFullName.text = user.fullName
@@ -59,12 +59,5 @@ class ProfileFragment : Fragment(R.layout.fragment_profile),
                     .into(ivAvatar)
             }
         }
-    }
-
-    override fun renderEffect(effect: ProfileEffect) = Unit
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewModel.unbind()
     }
 }
