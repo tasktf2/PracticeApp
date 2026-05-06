@@ -2,11 +2,9 @@ package com.setjy.practiceapp.presentation.ui.profile
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,9 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import coil.compose.AsyncImage
@@ -36,6 +33,8 @@ import com.setjy.practiceapp.ZulipApp
 import com.setjy.practiceapp.presentation.base.mvi.MviView
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
+import com.setjy.practiceapp.presentation.ui.theme.AppTheme
+import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
 import com.setjy.practiceapp.util.rememberShimmerProgress
 import com.setjy.practiceapp.util.shimmer
 import javax.inject.Inject
@@ -66,7 +65,11 @@ class ProfileFragment : Fragment(), MviView<ProfileState, ProfileEffect> {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ProfileScreen(state = composeState)
+                ZulipTheme {
+                    val shimmerProgress = rememberShimmerProgress()
+
+                    ProfileScreen(state = composeState, shimmerProgress)
+                }
             }
         }
     }
@@ -90,48 +93,45 @@ class ProfileFragment : Fragment(), MviView<ProfileState, ProfileEffect> {
 }
 
 @Composable
-fun ProfileScreen(state: ProfileState) {
-    val shimmerProgress = rememberShimmerProgress()
+fun ProfileScreen(state: ProfileState, shimmerProgress: State<Float>) {
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.background_black)),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         val user = state.userItemUI
-        
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             AsyncImage(
                 model = user?.avatarUrl,
-                contentDescription = "Avatar",
+                contentDescription = stringResource(R.string.cd_avatar),
                 modifier = Modifier
-                    .size(185.dp)
-                    .clip(RoundedCornerShape(15.dp))
+                    .size(AppTheme.dimens.avatarBig)
+                    .clip(RoundedCornerShape(AppTheme.dimens.marginDefault))
                     .shimmer(shimmerProgress, state.isLoading),
                 contentScale = ContentScale.Crop
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppTheme.dimens.marginDefault))
 
             Text(
-                text = user?.fullName ?: "Full Name Placeholder",
-                color = colorResource(id = R.color.text_white),
-                fontSize = 32.sp,
+                text = user?.fullName ?: stringResource(R.string.ph_full_name),
+                color = AppTheme.colors.textPrimary,
+                fontSize = AppTheme.typography.header,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(AppTheme.dimens.shapeMicro))
                     .shimmer(shimmerProgress, state.isLoading)
             )
 
             Text(
-                text = user?.status?.name?.lowercase() ?: "offline",
-                color = colorResource(id = user?.status?.color ?: R.color.inactive_grey),
-                fontSize = 16.sp,
+                text = user?.status?.name?.lowercase() ?: UserStatus.OFFLINE.name.lowercase(),
+                color = user?.status?.colorX ?: AppTheme.colors.disabled,
+                fontSize = AppTheme.typography.default,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(AppTheme.dimens.shapeMicro))
                     .shimmer(shimmerProgress, state.isLoading)
             )
         }
