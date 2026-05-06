@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@color/bg_bottom_nav_view_black"
-        android:hint="Users..."
+        android:hint="@string/search_placeholder"
         android:inputType="textLongMessage"
         android:paddingStart="56dp"
         android:paddingEnd="80dp"

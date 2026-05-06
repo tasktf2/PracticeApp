@@ -7,7 +7,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
-import java.util.*
+import java.util.Optional
 import javax.inject.Inject
 
 class Store<A : BaseAction, S : BaseState, E : BaseEffect> @Inject constructor(

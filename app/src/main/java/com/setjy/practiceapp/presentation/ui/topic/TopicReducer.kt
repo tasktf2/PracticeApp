@@ -1,7 +1,7 @@
 package com.setjy.practiceapp.presentation.ui.topic
 
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
-import java.util.*
+import java.util.Optional
 import javax.inject.Inject
 
 class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, TopicEffect> {

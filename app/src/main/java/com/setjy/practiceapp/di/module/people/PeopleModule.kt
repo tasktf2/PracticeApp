@@ -2,7 +2,6 @@ package com.setjy.practiceapp.di.module.people
 
 import com.setjy.practiceapp.data.remote.api.UsersApi
 import com.setjy.practiceapp.di.scope.PeopleScope
-import com.setjy.practiceapp.di.scope.ProfileScope
 import com.setjy.practiceapp.domain.base.UseCase
 import com.setjy.practiceapp.domain.usecase.user.GetAllUsersUseCase
 import com.setjy.practiceapp.presentation.base.mvi.Middleware

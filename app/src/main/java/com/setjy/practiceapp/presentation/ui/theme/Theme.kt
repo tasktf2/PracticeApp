@@ -43,7 +43,7 @@ object AppTheme {
     val dimens: AppDimens
         @Composable
         get() = LocalAppDimens.current
-    
+
     val typography: AppTypography
         @Composable
         get() = LocalTypography.current

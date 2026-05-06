@@ -1,8 +1,6 @@
 package com.setjy.practiceapp.di.component
 
 import android.content.Context
-import android.content.SharedPreferences
-import com.setjy.practiceapp.data.local.db.ZulipDatabase
 import com.setjy.practiceapp.di.module.AppModule
 import com.setjy.practiceapp.di.module.NetworkModule
 import com.setjy.practiceapp.di.module.RepoModule
@@ -11,7 +9,6 @@ import com.setjy.practiceapp.di.scope.AppScope
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Component.Builder
-import io.reactivex.rxjava3.core.Scheduler
 
 @AppScope
 @Component(modules = [AppModule::class, NetworkModule::class, RepoModule::class, RoomModule::class])

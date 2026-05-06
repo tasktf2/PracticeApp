@@ -2,7 +2,7 @@ package com.setjy.practiceapp.presentation.ui.channels
 
 import com.setjy.practiceapp.presentation.base.mvi.BaseEffect
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
-import java.util.*
+import java.util.Optional
 import javax.inject.Inject
 
 class ChannelsReducer @Inject constructor() : Reducer<ChannelsAction, ChannelsState, BaseEffect> {

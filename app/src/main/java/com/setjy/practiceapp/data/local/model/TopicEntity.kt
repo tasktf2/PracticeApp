@@ -3,7 +3,6 @@ package com.setjy.practiceapp.data.local.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity
 import com.setjy.practiceapp.domain.model.Topic

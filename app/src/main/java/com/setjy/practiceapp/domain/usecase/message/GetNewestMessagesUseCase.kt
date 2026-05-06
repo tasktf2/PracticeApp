@@ -2,7 +2,6 @@ package com.setjy.practiceapp.domain.usecase.message
 
 import com.setjy.practiceapp.domain.base.DomainMapper
 import com.setjy.practiceapp.domain.base.UseCase
-import com.setjy.practiceapp.domain.model.MessageMapper
 import com.setjy.practiceapp.domain.model.MessageWithReactionsDomain
 import com.setjy.practiceapp.domain.repo.MessageRepo
 import com.setjy.practiceapp.presentation.model.MessageUI

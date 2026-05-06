@@ -5,7 +5,9 @@ import android.content.res.Resources
 import androidx.annotation.Px
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.roundToInt
 
 @Px

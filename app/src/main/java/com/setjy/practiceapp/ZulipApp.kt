@@ -2,7 +2,12 @@ package com.setjy.practiceapp
 
 import android.app.Application
 import android.content.Context
-import com.setjy.practiceapp.di.component.*
+import com.setjy.practiceapp.di.component.AppComponent
+import com.setjy.practiceapp.di.component.ChannelsComponent
+import com.setjy.practiceapp.di.component.DaggerAppComponent
+import com.setjy.practiceapp.di.component.PeopleComponent
+import com.setjy.practiceapp.di.component.ProfileComponent
+import com.setjy.practiceapp.di.component.TopicComponent
 
 class ZulipApp : Application() {
 

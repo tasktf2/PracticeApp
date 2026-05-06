@@ -1,7 +1,6 @@
 package com.setjy.practiceapp.data.local.model
 
 import androidx.room.Embedded
-import androidx.room.Insert
 import androidx.room.Relation
 import com.setjy.practiceapp.data.base.EntityMapper
 import com.setjy.practiceapp.data.base.ModelEntity

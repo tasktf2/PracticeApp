@@ -12,7 +12,11 @@ import com.setjy.practiceapp.domain.repo.UserRepo
 import com.setjy.practiceapp.domain.usecase.user.GetOwnUserUseCase
 import com.setjy.practiceapp.presentation.base.mvi.Middleware
 import com.setjy.practiceapp.presentation.base.mvi.Reducer
-import com.setjy.practiceapp.presentation.ui.profile.*
+import com.setjy.practiceapp.presentation.ui.profile.ProfileAction
+import com.setjy.practiceapp.presentation.ui.profile.ProfileEffect
+import com.setjy.practiceapp.presentation.ui.profile.ProfileReducer
+import com.setjy.practiceapp.presentation.ui.profile.ProfileState
+import com.setjy.practiceapp.presentation.ui.profile.UserItemUI
 import com.setjy.practiceapp.presentation.ui.profile.middleware.LoadUserMiddleware
 import dagger.Binds
 import dagger.Module
