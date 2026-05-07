@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.base.Item
 import com.setjy.practiceapp.presentation.base.mvi.BaseState
-import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.ui.profile.UserStatus.ACTIVE
 import com.setjy.practiceapp.presentation.ui.profile.UserStatus.IDLE
 import com.setjy.practiceapp.presentation.ui.profile.UserStatus.OFFLINE
@@ -24,9 +23,7 @@ data class UserItemUI(
     val fullName: String,
     val userEmail: String,
     val status: UserStatus,
-    override val uid: Int = userId,
-    override val viewType: Int = R.layout.item_user
-) : ViewTyped, Item
+) : Item
 
 enum class UserStatus(val color: Int) {
     @SerializedName("active")

@@ -17,6 +17,8 @@ class PeopleReducer @Inject constructor() : @JvmSuppressWildcards Reducer<People
             )
 
             is PeopleAction.ShowSearchResult -> state.copy(visibleUsers = action.visibleUsers)
+
+            is PeopleAction.SearchUsers -> state.copy(search = action.query)
             else -> state
         }
     }
