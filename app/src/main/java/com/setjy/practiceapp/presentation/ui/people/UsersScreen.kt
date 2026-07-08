@@ -45,7 +45,11 @@ fun UsersScreen(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
 
-        Search(onValueChange = onValueChange, search = state.search)
+        Search(
+            onValueChange = onValueChange,
+            search = state.search,
+            placeholderText = stringResource(R.string.ph_users)
+        )
 
         LazyColumn(
             contentPadding = PaddingValues(all = AppTheme.dimens.marginDefault),
@@ -67,7 +71,12 @@ fun UsersScreen(
 }
 
 @Composable
-fun Search(onValueChange: (String) -> Unit, search: String, modifier: Modifier = Modifier) {
+fun Search(
+    onValueChange: (String) -> Unit,
+    search: String,
+    placeholderText: String = "",
+    modifier: Modifier = Modifier
+) {
     Row {
         Spacer(
             modifier
@@ -86,7 +95,7 @@ fun Search(onValueChange: (String) -> Unit, search: String, modifier: Modifier =
             ),
             placeholder = {
                 Text(
-                    text = stringResource(R.string.search_placeholder),
+                    text = placeholderText,
                     color = AppTheme.colors.textPrimary,
                     fontSize = AppTheme.typography.larger
                 )

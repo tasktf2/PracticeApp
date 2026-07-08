@@ -67,7 +67,7 @@ fun UserItem(
             )
             Text(
                 modifier = Modifier.shimmer(progress, isLoading),
-                fontSize = AppTheme.typography.small,
+                fontSize = AppTheme.typography.micro,
                 text = item.userEmail,
                 color = AppTheme.colors.textSecondary
             )

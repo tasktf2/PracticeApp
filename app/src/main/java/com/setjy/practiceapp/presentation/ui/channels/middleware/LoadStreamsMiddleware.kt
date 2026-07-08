@@ -19,9 +19,21 @@ class LoadStreamsMiddleware @Inject constructor(
         state: Observable<ChannelsState>
     ): Observable<ChannelsAction> {
         return actions.ofType(ChannelsAction.LoadStreams::class.java)
-            .flatMap { action ->
-                getStreamsUseCase.execute(GetStreamsUseCase.Params(action.isSubscribed))
-                    .map<ChannelsAction> { ChannelsAction.ShowStreams(it) }
+            .withLatestFrom(state) { action, state -> action to state }
+            .flatMap { (action, state) ->
+
+                val cachedData =
+                    if (action.isSubscribed) state.visibleItemsSubscribed else state.visibleItems
+
+                if (!cachedData.isNullOrEmpty())
+                    return@flatMap Observable.just(
+                        ChannelsAction.ShowCachedData(
+                            data = cachedData,
+                            isSubscribed = action.isSubscribed
+                        )
+                    )
+                else getStreamsUseCase.execute(GetStreamsUseCase.Params(action.isSubscribed))
+                    .map<ChannelsAction> { ChannelsAction.ShowStreams(it, action.isSubscribed) }
                     .onErrorReturn { ChannelsAction.ShowError(it) }
                     .startWithItem(ChannelsAction.ShowLoading)
                     .toObservable()

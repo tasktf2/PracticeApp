@@ -13,15 +13,22 @@ class StreamToggleMiddleware @Inject constructor() : Middleware<ChannelsState, C
     ): Observable<ChannelsAction> {
         return actions.ofType(ChannelsAction.ToggleStream::class.java)
             .withLatestFrom(state) { action, lastState ->
-                val streams = lastState.streams.orEmpty()
-                    .map { stream ->
-                        if (stream.streamId == action.stream.streamId) {
-                            stream.copy(isExpanded = !stream.isExpanded)
-                        } else {
-                            stream
+
+
+                val streams =
+                    (if (action.isSubscribed) {
+                        lastState.streamsSubscribed.orEmpty()
+                    } else lastState.streams.orEmpty()
+                            )
+                        .map { stream ->
+                            if (stream.streamId == action.stream.streamId) {
+                                stream.copy(isExpanded = !stream.isExpanded)
+                            } else {
+                                stream
+                            }
                         }
-                    }
                 ChannelsAction.ShowToggleStream(
+                    isSubscribed = action.isSubscribed,
                     streams = streams,
                     items = streams
                         .flatMap { stream ->

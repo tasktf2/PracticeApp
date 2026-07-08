@@ -1,17 +1,23 @@
 package com.setjy.practiceapp.presentation.ui.channels
 
-import com.setjy.practiceapp.R
+import androidx.compose.runtime.Immutable
 import com.setjy.practiceapp.presentation.base.Item
 import com.setjy.practiceapp.presentation.base.mvi.BaseState
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 
+@Immutable
 data class ChannelsState(
     val isLoading: Boolean = false,
     val error: Throwable? = null,
     val streams: List<StreamItemUI>? = null,
-    val visibleItems: List<ViewTyped>? = null
+    val visibleItems: List<ViewTyped>? = null,
+    val streamsSubscribed: List<StreamItemUI>? = null,
+    val visibleItemsSubscribed: List<ViewTyped>? = null,
+    val search: String = "",
+    val selectedTab: Int = 0
 ) : BaseState
 
+@Immutable
 data class StreamItemUI(
     val streamId: Int,
     val streamName: String,
@@ -19,9 +25,9 @@ data class StreamItemUI(
     val listOfTopics: List<TopicItemUI> = listOf(),
     val isExpanded: Boolean = false,
     override val uid: Int = streamId,
-    override val viewType: Int = R.layout.item_stream
 ) : ViewTyped, Item
 
+@Immutable
 data class TopicItemUI(
     val topicId: Int,
     val topicName: String,
@@ -30,5 +36,4 @@ data class TopicItemUI(
     val parentName: String,
     val backgroundColor: String?,
     override val uid: Int = topicId,
-    override val viewType: Int = R.layout.item_topic
 ) : ViewTyped, Item

@@ -6,8 +6,10 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class AppDimens(
+    val marginMicro: Dp = 6.dp,
     val marginSmall: Dp = 12.dp,
     val marginDefault: Dp = 16.dp,
+    val marginBig: Dp = 28.dp,
 
     val shapeMicro: Dp = 4.dp,
 
@@ -19,4 +21,10 @@ data class AppDimens(
 
     val search: Dp = 56.dp,
     val searchGap: Dp = 56.dp,
+
+    val topicGap: Dp = 62.dp,
+    val topicHeight: Dp = 42.dp,
+
+    val streamHeight: Dp = 64.dp,
+    val streamGap: Dp = 46.dp
 )

@@ -1,6 +1,7 @@
 package com.setjy.practiceapp.presentation.ui.profile
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.google.gson.annotations.SerializedName
 import com.setjy.practiceapp.R
@@ -11,12 +12,14 @@ import com.setjy.practiceapp.presentation.ui.profile.UserStatus.IDLE
 import com.setjy.practiceapp.presentation.ui.profile.UserStatus.OFFLINE
 import com.setjy.practiceapp.presentation.ui.theme.AppTheme
 
+@Immutable
 data class ProfileState(
     val userItemUI: UserItemUI? = null,
     val error: Throwable? = null,
     val isLoading: Boolean = false
 ) : BaseState
 
+@Immutable
 data class UserItemUI(
     val userId: Int,
     val avatarUrl: String,

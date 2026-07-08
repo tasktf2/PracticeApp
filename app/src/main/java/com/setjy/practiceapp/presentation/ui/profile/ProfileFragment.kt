@@ -129,7 +129,7 @@ fun ProfileScreen(state: ProfileState, shimmerProgress: State<Float>) {
             Text(
                 text = user?.status?.name?.lowercase() ?: UserStatus.OFFLINE.name.lowercase(),
                 color = user?.status?.colorX ?: AppTheme.colors.disabled,
-                fontSize = AppTheme.typography.default,
+                fontSize = AppTheme.typography.small,
                 modifier = Modifier
                     .clip(RoundedCornerShape(AppTheme.dimens.shapeMicro))
                     .shimmer(shimmerProgress, state.isLoading)

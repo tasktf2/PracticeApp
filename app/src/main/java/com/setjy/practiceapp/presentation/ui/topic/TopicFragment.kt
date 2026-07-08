@@ -21,7 +21,9 @@ import com.setjy.practiceapp.presentation.base.mvi.MviViewModelFactory
 import com.setjy.practiceapp.presentation.base.recycler.Adapter
 import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
 import com.setjy.practiceapp.presentation.model.MessageUI
-import com.setjy.practiceapp.presentation.ui.channels.StreamListFragment
+import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion.STREAM_ARRAY_INDEX
+import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion.STREAM_BUNDLE_KEY
+import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion.TOPIC_ARRAY_INDEX
 import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.BottomSheetFragment
 import com.setjy.practiceapp.util.hideKeyboard
 import com.setjy.practiceapp.util.plusAssign
@@ -54,12 +56,12 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
     private val bottomSheetFragment by lazy { BottomSheetFragment() }
 
     private val topicName: String by lazy {
-        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
-            ?.get(StreamListFragment.TOPIC_ARRAY_INDEX).orEmpty()
+        arguments?.getStringArray(STREAM_BUNDLE_KEY)
+            ?.get(TOPIC_ARRAY_INDEX).orEmpty()
     }
     private val streamName: String by lazy {
-        arguments?.getStringArray(StreamListFragment.STREAM_BUNDLE_KEY)
-            ?.get(StreamListFragment.STREAM_ARRAY_INDEX).orEmpty()
+        arguments?.getStringArray(STREAM_BUNDLE_KEY)
+            ?.get(STREAM_ARRAY_INDEX).orEmpty()
     }
 
     override fun onAttach(context: Context) {
@@ -108,6 +110,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                 lastEventId = effect.lastEventId
             )
         )
+
         is TopicEffect.ShowBottomSheetFragment -> {
             bottomSheetFragment.show(parentFragmentManager, null)
             parentFragmentManager.setFragmentResultListener(
@@ -197,6 +200,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                                     item
                                 }
                             }
+
                             else -> item
                         }
                     }
@@ -227,6 +231,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                         )
                     }
                 }
+
                 SearchAction.NEXT -> {
                     if (searchIterator.hasNext()) {
                         binding.rvListOfMessages.smoothScrollToPosition(
@@ -234,6 +239,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                         )
                     }
                 }
+
                 SearchAction.PREV -> {
                     if (searchIterator.hasPrevious()) {
                         binding.rvListOfMessages.smoothScrollToPosition(
@@ -241,6 +247,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                         )
                     }
                 }
+
                 SearchAction.CANCEL -> {
                     searchIterator.apply {
                         resetIndex()
@@ -359,6 +366,7 @@ class TopicFragment : Fragment(R.layout.fragment_topic), MviView<TopicState, Top
                         item
                     }
                 }
+
                 else -> item
             }
         }

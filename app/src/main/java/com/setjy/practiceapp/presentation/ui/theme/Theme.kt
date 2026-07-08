@@ -60,4 +60,5 @@ private val DarkPalette = AppColors(
     backgroundSecondary = Color(0xFF1C1C1C),
     accent = Color(0xFF2A9D8F),
     hint = Color(0xFFCCCCCC),
+    inactive = Color(0xFF919191)
 )
