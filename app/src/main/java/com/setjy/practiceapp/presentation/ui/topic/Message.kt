@@ -2,6 +2,7 @@ package com.setjy.practiceapp.presentation.ui.topic
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -34,18 +35,56 @@ private object MessageDimens {
     val bubbleStartMargin = 10.dp
     val cardCornerRadius = 18.dp
     val msgMaxWidth = 218.dp
-    val flxTopMargin = 34.dp
     val flxMaxWidth = 266.dp
 }
 
 @Composable
-fun Message(
+fun IncomingMessage(
     modifier: Modifier = Modifier,
     avatar: @Composable () -> Unit,
     fullName: @Composable () -> Unit,
     content: @Composable () -> Unit,
     timestamp: @Composable () -> Unit,
-    emojis: @Composable () -> Unit
+    emojis: @Composable () -> Unit,
+) {
+    Message(
+        modifier = modifier,
+        avatar = avatar,
+        fullName = fullName,
+        content = content,
+        timestamp = timestamp,
+        emojis = emojis,
+        isOutgoing = false
+    )
+}
+
+@Composable
+fun OutgoingMessage(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+    timestamp: @Composable () -> Unit,
+    emojis: @Composable () -> Unit,
+) {
+    Message(
+        modifier = modifier,
+        avatar = {},
+        fullName = {},
+        content = content,
+        timestamp = timestamp,
+        emojis = emojis,
+        isOutgoing = true
+    )
+}
+
+@Composable
+private fun Message(
+    modifier: Modifier = Modifier,
+    avatar: @Composable () -> Unit,
+    fullName: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+    timestamp: @Composable () -> Unit,
+    emojis: @Composable () -> Unit,
+    isOutgoing: Boolean
 ) {
 
     var bubbleInfo: BubbleInfo? = remember() { null }
@@ -57,7 +96,7 @@ fun Message(
         modifier = modifier.drawBehind {
             bubbleInfo?.let { info ->
                 drawRoundRect(
-                    color = colors.backgroundSecondary,
+                    color = if (isOutgoing) colors.accent else colors.backgroundSecondary,
                     topLeft = Offset(info.offsetX, 0f),
                     size = Size(width = info.width, height = info.height),
                     cornerRadius = CornerRadius(MessageDimens.cardCornerRadius.toPx())
@@ -99,44 +138,58 @@ fun Message(
         val emojisPlaceable = emojisMeasurables.firstOrNull()
             ?.measure(constraints.copy(maxWidth = MessageDimens.flxMaxWidth.roundToPx()))
 
+        val msgBottomPadding = dimens.marginDefault.roundToPx()
+
         val totalHeight = max(
             avatarSize,
-            bubbleHeight + (emojisPlaceable?.height?.let { it + MessageDimens.flxTopMargin.roundToPx() }
+            bubbleHeight + (emojisPlaceable?.height?.let { it + marginMediumPx + msgBottomPadding }
                 ?: 0)
         )
 
         layout(constraints.maxWidth, totalHeight) {
-            val contentX =
+
+            val bubbleX = if (isOutgoing) {
+                constraints.maxWidth - bubbleWidth
+            } else {
+                avatarWidth + MessageDimens.bubbleStartMargin.roundToPx()
+            }
+
+            val contentY = if (isOutgoing) {
+                marginMediumPx
+            } else {
+                marginSmallPx + (fullNamePlaceable?.height ?: 0)
+            }
+
+            val contentX = if (isOutgoing) {
+                bubbleX + marginMediumPx
+            } else {
                 marginMediumPx + avatarWidth + MessageDimens.bubbleStartMargin.roundToPx()
+            }
 
             bubbleInfo = BubbleInfo(
                 width = bubbleWidth.toFloat(),
                 height = bubbleHeight.toFloat(),
-                offsetX = contentX.toFloat(),
+                offsetX = bubbleX.toFloat(),
             )
 
-
-            avatarPlaceable?.placeRelative(x = marginMediumPx, y = 0)
+            avatarPlaceable?.placeRelative(x = 0, y = 0)
             fullNamePlaceable?.placeRelative(
-                x = contentX + marginMediumPx,
+                x = contentX,
                 y = marginSmallPx
             )
+
             contentPlaceable?.placeRelative(
-                x = contentX + marginMediumPx,
-                y = marginSmallPx + (fullNamePlaceable?.height ?: 0)
+                x = contentX,
+                y = contentY
             )
 
-            timestampPlaceable?.let {
-
-                it.placeRelative(
-                    x = contentX + bubbleWidth - marginMediumPx - it.width,
-                    y = marginSmallPx + (fullNamePlaceable?.height ?: 0) +
-                            (contentPlaceable?.height ?: 0)
-                )
-            }
+            timestampPlaceable?.placeRelative(
+                x = bubbleX + bubbleWidth - marginMediumPx - timestampPlaceable.width,
+                y = contentY + (contentPlaceable?.height ?: 0)
+            )
 
             emojisPlaceable?.placeRelative(
-                x = contentX,
+                x = if (isOutgoing) constraints.maxWidth - emojisPlaceable.width else bubbleX,
                 y = bubbleHeight + marginMediumPx
             )
         }
@@ -157,58 +210,99 @@ fun MessagePreview() {
     val emojis = Reactions.emojiUISet.shuffled().take(8)
 
     ZulipTheme {
-        Message(
-            avatar = {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                )
-            },
-            fullName = {
-                Text(
-                    text = "Kayden Hartman",
-                    color = Color(0xFF4AB54D),
-                    fontSize = 14.sp
-                )
-            },
-            content = {
-                Text(
-                    text = "loremloremloremloremloremloremloremloremloremloremloremloremloremloremlorem",
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-            },
-            timestamp = {
-                Text(
-                    text = "12:45",
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
-            },
-            emojis = {
-                FlexboxLayout(
-                    modifier = Modifier
-                        .widthIn(max = MessageDimens.flxMaxWidth)
-                ) {
+        Column() {
+            OutgoingMessage(
+                content = {
+                    Text(
+                        text = "loremloremloremloremloremloremloremloremloremloremloremloremloremloremlorem",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                },
+                timestamp = {
+                    Text(
+                        text = "12:45",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                },
+                emojis = {
+                    FlexboxLayout(
+                        isRtL = true,
+                        modifier = Modifier
+                            .widthIn(max = MessageDimens.flxMaxWidth)
+                    ) {
 
-                    emojis.forEach { emoji ->
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0xFF2B2B2B), RoundedCornerShape(12.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = "${emoji.codeString} ${Random.nextInt(100)}",
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
+                        emojis.forEach { emoji ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Color(0xFF2B2B2B), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "${emoji.codeString} ${Random.nextInt(100)}",
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
-                }
-            },
-            modifier = Modifier.padding(16.dp)
-        )
+                },
+            )
+
+            IncomingMessage(
+                avatar = {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(Color.Gray)
+                    )
+                },
+                fullName = {
+                    Text(
+                        text = "Kayden Hartman",
+                        color = Color(0xFF4AB54D),
+                        fontSize = 14.sp
+                    )
+                },
+                content = {
+                    Text(
+                        text = "loremloremloremloremloremloremloremloremloremloremloremloremloremloremlorem",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                },
+                timestamp = {
+                    Text(
+                        text = "12:45",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                },
+                emojis = {
+                    FlexboxLayout(
+                        isRtL = false,
+                        modifier = Modifier
+                            .widthIn(max = MessageDimens.flxMaxWidth)
+                    ) {
+
+                        emojis.forEach { emoji ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Color(0xFF2B2B2B), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "${emoji.codeString} ${Random.nextInt(100)}",
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                },
+            )
+        }
     }
 }

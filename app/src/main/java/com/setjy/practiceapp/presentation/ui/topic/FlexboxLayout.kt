@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
 import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.Reactions
-import kotlin.math.max
 import kotlin.random.Random
 
 private object FlexboxDimens {
@@ -24,6 +23,7 @@ private object FlexboxDimens {
 
 @Composable
 fun FlexboxLayout(
+    isRtL: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
@@ -32,38 +32,54 @@ fun FlexboxLayout(
         val hSpacing = FlexboxDimens.horizontalSpacing.roundToPx()
         val vSpacing = FlexboxDimens.verticalSpacing.roundToPx()
 
-
         val childConstraints = constraints.copy(
             minWidth = 0,
             minHeight = 0,
         )
         val placeables = measurables.map { it.measure(childConstraints) }
 
-        var left = 0
-        var top = 0
+        var x = 0
+        var y = 0
+        var totalHeight = 0
         val pHeight = (placeables.firstOrNull()?.height ?: 0) + vSpacing
 
-        placeables.forEach {
-            if (it.width + left > childConstraints.maxWidth) {
-                left = 0
-                top += pHeight
-            }
-            left += it.width + hSpacing
-        }
-        top += pHeight
-        top = max(top, pHeight)
-
-        layout(childConstraints.maxWidth, top) {
-            left = 0
-            top = 0
+        if (placeables.isNotEmpty()) {
+            totalHeight += pHeight
             placeables.forEach {
-                if (it.width + left > childConstraints.maxWidth) {
-                    left = 0
-                    top += pHeight
+                if (it.width + x > childConstraints.maxWidth) {
+                    x = 0
+                    y += pHeight
+                    totalHeight += pHeight
                 }
-                it.placeRelative(left, top)
-                left += it.width + hSpacing
+                x += it.width + hSpacing
+            }
+            totalHeight -= vSpacing
+        }
 
+        layout(constraints.maxWidth, totalHeight) {
+            x = if (isRtL) constraints.maxWidth else 0
+            y = 0
+
+            placeables.forEach {
+                when {
+                    isRtL -> {
+                        if (x - it.width < 0) {
+                            x = constraints.maxWidth
+                            y += pHeight
+                        }
+                        it.placeRelative(x - it.width, y)
+                        x = x - it.width - hSpacing
+
+                    }
+                    else -> {
+                        if (it.width + x > childConstraints.maxWidth) {
+                            x = 0
+                            y += pHeight
+                        }
+                        it.placeRelative(x, y)
+                        x += it.width + hSpacing
+                    }
+                }
             }
         }
     }
@@ -72,13 +88,10 @@ fun FlexboxLayout(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun FlexboxLayoutPreview() {
-    val emojis = Reactions.emojiUISet.shuffled().take(8)
+    val emojis = Reactions.emojiUISet.shuffled().take(6)
 
     ZulipTheme {
-        FlexboxLayout(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
+        FlexboxLayout(isRtL = true) {
 
             emojis.forEach { emoji ->
                 Box(
