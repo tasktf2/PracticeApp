@@ -54,7 +54,7 @@ fun UsersScreen(
         LazyColumn(
             contentPadding = PaddingValues(all = AppTheme.dimens.marginDefault),
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.dimens.marginSmall)
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimens.marginMedium)
         ) {
 
             val users = if (state.search.isNotBlank()) state.visibleUsers else state.users

@@ -60,7 +60,7 @@ fun TopicItem(
             item.messageCount.toString(),
             color = AppTheme.colors.textPrimary,
             fontSize = AppTheme.typography.small,
-            modifier = Modifier.padding(end = AppTheme.dimens.marginMicro)
+            modifier = Modifier.padding(end = AppTheme.dimens.marginSmall)
         )
 
         Text(

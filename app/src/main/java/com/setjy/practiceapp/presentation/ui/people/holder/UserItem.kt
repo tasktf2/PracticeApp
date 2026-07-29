@@ -57,7 +57,7 @@ fun UserItem(
         }
 
         Column(
-            modifier = Modifier.padding(start = AppTheme.dimens.marginSmall)
+            modifier = Modifier.padding(start = AppTheme.dimens.marginMedium)
         ) {
             Text(
                 modifier = Modifier.shimmer(progress, isLoading),
