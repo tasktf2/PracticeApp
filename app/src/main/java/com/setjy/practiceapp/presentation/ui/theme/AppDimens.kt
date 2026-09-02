@@ -7,12 +7,14 @@ import androidx.compose.ui.unit.dp
 @Immutable
 data class AppDimens(
     val marginMicro: Dp = 4.dp,
-    val marginSmall: Dp = 6.dp,
+    val marginExtraSmall: Dp = 6.dp,
+    val marginSmall: Dp = 10.dp,
     val marginMedium: Dp = 12.dp,
     val marginDefault: Dp = 16.dp,
     val marginBig: Dp = 28.dp,
 
     val shapeMicro: Dp = 4.dp,
+    val shapeInfinite: Dp = 100.dp,
 
     val avatarSmall: Dp = 64.dp,
     val avatarBig: Dp = 186.dp,

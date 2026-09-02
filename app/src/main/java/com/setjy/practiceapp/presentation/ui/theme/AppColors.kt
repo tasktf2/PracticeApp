@@ -44,4 +44,5 @@ data class AppColors(
     val surface: Color,
     val accent: Color,
     val inactive: Color,
+    val selected: Color,
 )

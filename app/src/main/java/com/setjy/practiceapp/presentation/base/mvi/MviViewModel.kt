@@ -1,6 +1,7 @@
 package com.setjy.practiceapp.presentation.base.mvi
 
 import androidx.lifecycle.ViewModel
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import javax.inject.Inject
 
@@ -14,6 +15,12 @@ class MviViewModel<A : BaseAction, S : BaseState, E : BaseEffect> @Inject constr
 
     val currentState: S
         get() = store.currentState
+
+    val state: Observable<S>
+        get() = store.state
+
+    val effects: Observable<E>
+        get() = store.effects
 
     fun accept(action: A) {
         store.accept(action)

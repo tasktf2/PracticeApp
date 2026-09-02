@@ -16,10 +16,12 @@ import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import com.setjy.practiceapp.presentation.ui.topic.middleware.AddReactionMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.DeleteReactionMiddleware
+import com.setjy.practiceapp.presentation.ui.topic.middleware.EmojiClickMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.GetEventsMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.GetNewestMessagesMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.PaginationMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.RegisterEventsQueueMiddleware
+import com.setjy.practiceapp.presentation.ui.topic.middleware.SearchMessagesMiddleware
 import com.setjy.practiceapp.presentation.ui.topic.middleware.SendMessageMiddleware
 import dagger.Module
 import dagger.Provides
@@ -83,7 +85,9 @@ class TopicModule {
         getNewestMessagesMiddleware: GetNewestMessagesMiddleware,
         paginationMiddleware: PaginationMiddleware,
         registerEventsQueueMiddleware: RegisterEventsQueueMiddleware,
-        sendMessageMiddleware: SendMessageMiddleware
+        sendMessageMiddleware: SendMessageMiddleware,
+        searchMessagesMiddleware: SearchMessagesMiddleware,
+        emojiClickMiddleware: EmojiClickMiddleware
     ): Set<Middleware<TopicState, TopicAction>> = setOf(
         addReactionMiddleware,
         deleteReactionMiddleware,
@@ -91,7 +95,9 @@ class TopicModule {
         getNewestMessagesMiddleware,
         paginationMiddleware,
         registerEventsQueueMiddleware,
-        sendMessageMiddleware
+        sendMessageMiddleware,
+        searchMessagesMiddleware,
+        emojiClickMiddleware
     )
 
     @Provides

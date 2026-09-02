@@ -11,14 +11,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
@@ -46,6 +51,7 @@ fun IncomingMessage(
     content: @Composable () -> Unit,
     timestamp: @Composable () -> Unit,
     emojis: @Composable () -> Unit,
+    isHighlighted: Boolean
 ) {
     Message(
         modifier = modifier,
@@ -54,7 +60,8 @@ fun IncomingMessage(
         content = content,
         timestamp = timestamp,
         emojis = emojis,
-        isOutgoing = false
+        isOutgoing = false,
+        isHighlighted = isHighlighted
     )
 }
 
@@ -64,6 +71,7 @@ fun OutgoingMessage(
     content: @Composable () -> Unit,
     timestamp: @Composable () -> Unit,
     emojis: @Composable () -> Unit,
+    isHighlighted: Boolean
 ) {
     Message(
         modifier = modifier,
@@ -72,7 +80,8 @@ fun OutgoingMessage(
         content = content,
         timestamp = timestamp,
         emojis = emojis,
-        isOutgoing = true
+        isOutgoing = true,
+        isHighlighted = isHighlighted
     )
 }
 
@@ -84,10 +93,11 @@ private fun Message(
     content: @Composable () -> Unit,
     timestamp: @Composable () -> Unit,
     emojis: @Composable () -> Unit,
-    isOutgoing: Boolean
+    isOutgoing: Boolean,
+    isHighlighted: Boolean
 ) {
 
-    var bubbleInfo: BubbleInfo? = remember() { null }
+    var bubbleInfo by remember() { mutableStateOf<BubbleInfo?>(null) }
     val dimens = AppTheme.dimens
     val colors = AppTheme.colors
 
@@ -95,8 +105,21 @@ private fun Message(
         contents = listOf(avatar, fullName, content, timestamp, emojis),
         modifier = modifier.drawBehind {
             bubbleInfo?.let { info ->
+                val brush: Brush =
+                    when {
+                        isHighlighted -> SolidColor(colors.idle)
+                        isOutgoing -> Brush.linearGradient(
+                            colors = listOf(
+                                colors.accent,
+                                Color(0xFF006153)
+                            ),
+                        )
+
+                        else -> SolidColor(colors.backgroundSecondary)
+                    }
+
                 drawRoundRect(
-                    color = if (isOutgoing) colors.accent else colors.backgroundSecondary,
+                    brush = brush,
                     topLeft = Offset(info.offsetX, 0f),
                     size = Size(width = info.width, height = info.height),
                     cornerRadius = CornerRadius(MessageDimens.cardCornerRadius.toPx())
@@ -107,7 +130,7 @@ private fun Message(
 
 
         val marginMediumPx = dimens.marginMedium.roundToPx()
-        val marginSmallPx = dimens.marginSmall.roundToPx()
+        val marginFullNameTop = 2.dp.roundToPx()
 
         val avatarSize = MessageDimens.avatarSize.roundToPx()
         val avatarConstraints = Constraints.fixed(
@@ -127,9 +150,13 @@ private fun Message(
         val contentPlaceable = contentMeasurables.firstOrNull()?.measure(textConstraints)
         val timestampPlaceable = timestampMeasurables.firstOrNull()?.measure(constraints)
 
-        val bubbleContentWidth = maxOf(fullNamePlaceable?.width ?: 0, contentPlaceable?.width ?: 0)
+        val bubbleContentWidth = maxOf(
+            fullNamePlaceable?.width ?: 0,
+            contentPlaceable?.width ?: 0,
+            timestampPlaceable?.width ?: 0
+        )
         val bubbleWidth = bubbleContentWidth + marginMediumPx * 2
-        val bubbleHeight = marginSmallPx * 2 +
+        val bubbleHeight = marginMediumPx * 2 +
                 (fullNamePlaceable?.height ?: 0) +
                 (contentPlaceable?.height ?: 0) +
                 dimens.marginMicro.roundToPx() +
@@ -154,10 +181,13 @@ private fun Message(
                 avatarWidth + MessageDimens.bubbleStartMargin.roundToPx()
             }
 
+            val fullNameY = fullNamePlaceable?.height?.let { marginMediumPx } ?: 0
+
             val contentY = if (isOutgoing) {
                 marginMediumPx
             } else {
-                marginSmallPx + (fullNamePlaceable?.height ?: 0)
+                fullNameY + (fullNamePlaceable?.height
+                    ?: 0) + marginFullNameTop
             }
 
             val contentX = if (isOutgoing) {
@@ -175,7 +205,7 @@ private fun Message(
             avatarPlaceable?.placeRelative(x = 0, y = 0)
             fullNamePlaceable?.placeRelative(
                 x = contentX,
-                y = marginSmallPx
+                y = marginMediumPx
             )
 
             contentPlaceable?.placeRelative(
@@ -185,7 +215,7 @@ private fun Message(
 
             timestampPlaceable?.placeRelative(
                 x = bubbleX + bubbleWidth - marginMediumPx - timestampPlaceable.width,
-                y = contentY + (contentPlaceable?.height ?: 0)
+                y = contentY + (contentPlaceable?.height ?: 0) + dimens.marginMicro.roundToPx()
             )
 
             emojisPlaceable?.placeRelative(
@@ -212,6 +242,7 @@ fun MessagePreview() {
     ZulipTheme {
         Column() {
             OutgoingMessage(
+                isHighlighted = false,
                 content = {
                     Text(
                         text = "loremloremloremloremloremloremloremloremloremloremloremloremloremloremlorem",
@@ -251,6 +282,7 @@ fun MessagePreview() {
             )
 
             IncomingMessage(
+                isHighlighted = false,
                 avatar = {
                     Box(
                         modifier = Modifier

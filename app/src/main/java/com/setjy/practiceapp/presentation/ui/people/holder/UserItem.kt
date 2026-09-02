@@ -61,15 +61,13 @@ fun UserItem(
         ) {
             Text(
                 modifier = Modifier.shimmer(progress, isLoading),
-                fontSize = AppTheme.typography.large,
+                style = AppTheme.typography.textLarge,
                 text = item.fullName,
-                color = AppTheme.colors.textPrimary
             )
             Text(
                 modifier = Modifier.shimmer(progress, isLoading),
-                fontSize = AppTheme.typography.micro,
+                style = AppTheme.typography.textExtraSmall,
                 text = item.userEmail,
-                color = AppTheme.colors.textSecondary
             )
         }
     }

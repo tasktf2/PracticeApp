@@ -1,5 +1,7 @@
 package com.setjy.practiceapp.di.module
 
+import com.google.gson.GsonBuilder
+import com.setjy.practiceapp.data.remote.api.ApiLogger
 import com.setjy.practiceapp.di.scope.AppScope
 import dagger.Module
 import dagger.Provides
@@ -59,9 +61,10 @@ class NetworkModule {
 
     @Provides
     @AppScope
-    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+    fun provideHttpLoggingInterceptor(apiLogger: ApiLogger): HttpLoggingInterceptor =
+        HttpLoggingInterceptor(apiLogger).apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
 
     @Provides
     @AppScope
@@ -71,10 +74,14 @@ class NetworkModule {
         private const val BASE_URL = "https://setjy.zulipchat.com/api/v1/"
         private const val API_KEY = "GDnSt0MrYpAIiOwt4ILxdznzNcVyTeSC"
         private const val username = "task.tf2@gmail.com"
-        private const val CONNECT_TIMEOUT = 10L
-        private const val READ_TIMEOUT = 10L
-        private const val WRITE_TIMEOUT = 10L
+        private const val CONNECT_TIMEOUT = 30L
+        private const val READ_TIMEOUT = 30L
+        private const val WRITE_TIMEOUT = 30L
         private const val HEADER_NAME = "Authorization"
         private const val NAMED_HEADER = "header"
     }
+
+    @Provides
+    @AppScope
+    fun provideGson(): GsonBuilder = GsonBuilder()
 }

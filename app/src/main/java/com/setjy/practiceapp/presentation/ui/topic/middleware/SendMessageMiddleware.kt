@@ -17,16 +17,20 @@ class SendMessageMiddleware @Inject constructor(
         actions: Observable<TopicAction>,
         state: Observable<TopicState>
     ): Observable<TopicAction> {
-        return actions.ofType(TopicAction.SendMessage::class.java).flatMap { action ->
-            sendMessageUseCase.execute(
-                SendMessageUseCase.Params(
-                    streamName = action.streamName,
-                    topicName = action.topicName,
-                    message = action.message
-                )
-            ).toObservable<TopicAction>()
-                .ofType(TopicAction::class.java)
-                .onErrorReturn { TopicAction.ShowError(it) }
-        }
+        var message: String
+        return actions.ofType(TopicAction.SendMessage::class.java)
+            .withLatestFrom(state) { action, state -> action to state }
+            .flatMap { (action, state) ->
+                message = state.message.orEmpty()
+                sendMessageUseCase.execute(
+                    SendMessageUseCase.Params(
+                        streamName = action.streamName,
+                        topicName = action.topicName,
+                        message = state.message.orEmpty()
+                    )
+                ).toObservable<TopicAction>()
+                    .startWithItem(TopicAction.DeleteMessageText)
+                    .onErrorReturn { TopicAction.ShowErrorAndReturnMessage(it, message) }
+            }
     }
 }

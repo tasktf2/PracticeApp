@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.ui.people.holder.UserItem
@@ -89,15 +88,11 @@ fun Search(
             modifier = modifier
                 .fillMaxWidth()
                 .height(AppTheme.dimens.search),
-            textStyle = TextStyle(
-                color = Color.White,
-                fontSize = AppTheme.typography.larger
-            ),
+            textStyle = AppTheme.typography.textLarger,
             placeholder = {
                 Text(
                     text = placeholderText,
-                    color = AppTheme.colors.textPrimary,
-                    fontSize = AppTheme.typography.larger
+                    style = AppTheme.typography.textLarger
                 )
             },
             trailingIcon = {

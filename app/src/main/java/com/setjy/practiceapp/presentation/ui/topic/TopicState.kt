@@ -9,4 +9,8 @@ data class TopicState(
     val messages: List<MessageUI>? = null,
     val isPaginationLoading: Boolean = false,
     val isPaginationLastPage: Boolean = false,
+    val message: String? = null,
+    val search: String = "",
+    val foundIndices: List<Int> = emptyList(),
+    val isSearchVisible: Boolean = false
 ) : BaseState

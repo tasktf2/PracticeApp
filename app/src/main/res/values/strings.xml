@@ -5,12 +5,15 @@
     <string name="tab_all_streams">All streams</string>
     <string name="header_topic">Topic: %s</string>
     <string name="topic_type_to_search">Введите для поиска</string>
-    <string name="topic_match_found">Найдено совпадений: </string>
-    <string name="topic_match_not_found">Результатов не найдено…</string>
     <string name="ph_users">Users…</string>
     <string name="ph_search">Search…</string>
     <string name="cd_search_icon">Search icon</string>
     <string name="cd_avatar">Avatar</string>
     <string name="ph_full_name">Full Name Placeholder</string>
     <string name="topic_message">mes</string>
+    <string name="cd_send_icon">Send message</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_next">Next</string>
+    <string name="cd_prev">Previous</string>
 </resources>

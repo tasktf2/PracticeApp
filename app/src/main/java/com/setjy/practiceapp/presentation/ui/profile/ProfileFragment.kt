@@ -22,9 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import coil.compose.AsyncImage
@@ -119,8 +121,7 @@ fun ProfileScreen(state: ProfileState, shimmerProgress: State<Float>) {
 
             Text(
                 text = user?.fullName ?: stringResource(R.string.ph_full_name),
-                color = AppTheme.colors.textPrimary,
-                fontSize = AppTheme.typography.header,
+                style = AppTheme.typography.textHeader,
                 modifier = Modifier
                     .clip(RoundedCornerShape(AppTheme.dimens.shapeMicro))
                     .shimmer(shimmerProgress, state.isLoading)
@@ -129,7 +130,7 @@ fun ProfileScreen(state: ProfileState, shimmerProgress: State<Float>) {
             Text(
                 text = user?.status?.name?.lowercase() ?: UserStatus.OFFLINE.name.lowercase(),
                 color = user?.status?.colorX ?: AppTheme.colors.disabled,
-                fontSize = AppTheme.typography.small,
+                style = AppTheme.typography.textSmall,
                 modifier = Modifier
                     .clip(RoundedCornerShape(AppTheme.dimens.shapeMicro))
                     .shimmer(shimmerProgress, state.isLoading)

@@ -5,6 +5,7 @@ import java.util.Optional
 import javax.inject.Inject
 
 class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, TopicEffect> {
+
     override fun reduceToState(action: TopicAction, state: TopicState): TopicState {
         return when (action) {
             TopicAction.ShowLoading -> state.copy(isLoading = true)
@@ -18,9 +19,23 @@ class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, Topi
                 isPaginationLoading = false,
                 isPaginationLastPage = action.isLastPage
             )
+
             is TopicAction.ShowEvents -> state.copy(messages = action.messages)
 
             is TopicAction.StartPagination -> state.copy(isPaginationLoading = true)
+            is TopicAction.TypeMessage -> state.copy(message = action.text)
+            is TopicAction.DeleteMessageText -> state.copy(message = "")
+
+            is TopicAction.AcceptSearchAction -> state.copy(
+                isSearchVisible = action.action != SearchAction.CANCEL
+            )
+
+            is TopicAction.SearchChanged -> state.copy(
+                search = action.search,
+            )
+
+            is TopicAction.DeleteSearch -> state.copy(search = "")
+            is TopicAction.FoundIndices -> state.copy(foundIndices = action.indices)
             else -> state
         }
     }
@@ -30,13 +45,19 @@ class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, Topi
             is TopicAction.QueueRegistered -> Optional.of(
                 TopicEffect.GetEvents(queueId = action.queueId, lastEventId = action.lastEventId)
             )
+
             is TopicAction.ShowEvents -> Optional.of(
                 TopicEffect.GetEvents(queueId = action.queueId, lastEventId = action.lastEventId)
             )
+
             is TopicAction.ShowBottomSheetFragment -> Optional.of(
                 TopicEffect.ShowBottomSheetFragment(
                     action.messageId
                 )
+            )
+
+            is TopicAction.AcceptSearchAction -> Optional.of(
+                TopicEffect.NextSearchAction(action.action)
             )
 
             else -> Optional.empty()

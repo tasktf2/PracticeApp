@@ -49,8 +49,7 @@ fun TopicItem(
 
         Text(
             text = item.topicName,
-            color = AppTheme.colors.textPrimary,
-            fontSize = AppTheme.typography.default,
+            style = AppTheme.typography.textDefault,
             modifier = Modifier
                 .padding(end = AppTheme.dimens.marginBig)
                 .weight(1f)
@@ -58,15 +57,13 @@ fun TopicItem(
 
         Text(
             item.messageCount.toString(),
-            color = AppTheme.colors.textPrimary,
-            fontSize = AppTheme.typography.small,
-            modifier = Modifier.padding(end = AppTheme.dimens.marginSmall)
+            style = AppTheme.typography.textSmall,
+            modifier = Modifier.padding(end = AppTheme.dimens.marginExtraSmall)
         )
 
         Text(
             stringResource(R.string.topic_message),
-            color = AppTheme.colors.textPrimary,
-            fontSize = AppTheme.typography.small
+            style = AppTheme.typography.textSmall
         )
 
     }

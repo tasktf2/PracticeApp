@@ -105,8 +105,7 @@ private fun ChannelsTab(
         text = {
             Text(
                 text,
-                color = AppTheme.colors.textPrimary,
-                fontSize = AppTheme.typography.default,
+                style = AppTheme.typography.textDefault,
             )
         },
     )

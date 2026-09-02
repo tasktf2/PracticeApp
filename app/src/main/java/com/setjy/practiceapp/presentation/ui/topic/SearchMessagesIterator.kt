@@ -1,23 +1,27 @@
 package com.setjy.practiceapp.presentation.ui.topic
 
-import com.setjy.practiceapp.presentation.base.recycler.base.ViewTyped
-import com.setjy.practiceapp.presentation.model.MessageUI
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 class SearchMessagesIterator {
 
-    private var index = 0
+    private var index by mutableIntStateOf(START_INDEX)
 
-    private var items: List<ViewTyped> = emptyList()
+    val currentMatch: Int
+        get() = if (index == START_INDEX) 0 else index + 1
 
-    var isFoundItems: List<ViewTyped> = emptyList()
+    var foundIndices: MutableState<List<Int>> = mutableStateOf(emptyList())
+        private set
 
-    fun hasNext(): Boolean {
-        return index != isFoundItems.lastIndex
-    }
+    val currentMatchIndex: Int?
+        get() = foundIndices.value.getOrNull(index)
 
-    fun hasPrevious(): Boolean {
-        return index != 0
-    }
+    fun hasNext(): Boolean = foundIndices.value.isNotEmpty() && index < foundIndices.value.lastIndex
+
+    fun hasPrevious(): Boolean = index > 0
 
     private fun nextIndex(): Int = ++index
 
@@ -25,29 +29,28 @@ class SearchMessagesIterator {
 
     private fun currentIndex(): Int = index
 
-    fun resetIndex() {
-        index = 0
+    fun reset() {
+        index = START_INDEX
+        foundIndices.value = emptyList()
     }
 
-    fun setItems(newItems: List<ViewTyped>) {
-        items = newItems
-        if (newItems.isEmpty()) {
-            isFoundItems = emptyList()
+    fun setMatches(items: List<Int>, search: String) {
+        reset()
+        if (search.isBlank()) {
+            return
         }
+
+        foundIndices.value = items
+        nextIndex()
     }
 
-    fun totalFound() {
-        isFoundItems = items.filter {
-            when (it) {
-                is MessageUI -> it.isFound
-                else -> false
-            }
-        }
+    fun currentMessage() = (foundIndices.value[currentIndex()])
+
+    fun previousMessage() = (foundIndices.value[previousIndex()])
+
+    fun nextMessage() = (foundIndices.value[nextIndex()])
+
+    private companion object {
+        const val START_INDEX = -1
     }
-
-    fun currentMessage(): ViewTyped = (isFoundItems[currentIndex()])
-
-    fun previousMessage(): ViewTyped = (isFoundItems[previousIndex()])
-
-    fun nextMessage(): ViewTyped = (isFoundItems[nextIndex()])
 }

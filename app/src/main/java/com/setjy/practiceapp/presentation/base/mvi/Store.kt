@@ -15,39 +15,43 @@ class Store<A : BaseAction, S : BaseState, E : BaseEffect> @Inject constructor(
     private val middlewares: @JvmSuppressWildcards Set<Middleware<S, A>>,
     initialState: S
 ) {
-    private val state = BehaviorRelay.createDefault(initialState)
-    private val actions = PublishRelay.create<A>()
-    private val effects = PublishRelay.create<E>()
+    private val _state = BehaviorRelay.createDefault(initialState)
+    val state = _state.hide()
+
+    private val _actions = PublishRelay.create<A>()
+    private val _effects = PublishRelay.create<E>()
+
+    val effects: Observable<E> = _effects.hide()
 
     val currentState: S
-        get() = state.value!!
+        get() = _state.value!!
 
     fun accept(action: A) {
-        actions.accept(action)
+        _actions.accept(action)
     }
 
     fun wire(): Disposable {
         val disposable = CompositeDisposable()
-        disposable += actions.withLatestFrom(state, reducer::reduceToState)
+        disposable += _actions.withLatestFrom(_state, reducer::reduceToState)
             .distinctUntilChanged()
-            .subscribe(state::accept)
+            .subscribe(_state::accept)
 
-        disposable += actions.withLatestFrom(state, reducer::reduceToEffect)
+        disposable += _actions.withLatestFrom(_state, reducer::reduceToEffect)
             .filter { it.isPresent }
             .map(Optional<E>::get)
-            .subscribe(effects::accept)
+            .subscribe(_effects::accept)
 
-        disposable += Observable.merge(middlewares.map { it.bind(actions, state) })
-            .subscribe(actions::accept)
+        disposable += Observable.merge(middlewares.map { it.bind(_actions, _state) })
+            .subscribe(_actions::accept)
 
         return disposable
     }
 
     fun bind(view: MviView<S, E>): Disposable {
         val disposable = CompositeDisposable()
-        disposable += state.observeOn(AndroidSchedulers.mainThread())
+        disposable += _state.observeOn(AndroidSchedulers.mainThread())
             .subscribe(view::renderState)
-        disposable += effects.observeOn(AndroidSchedulers.mainThread())
+        disposable += _effects.observeOn(AndroidSchedulers.mainThread())
             .subscribe(view::renderEffect)
         return disposable
     }

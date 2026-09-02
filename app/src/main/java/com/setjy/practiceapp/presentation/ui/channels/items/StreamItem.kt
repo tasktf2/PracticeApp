@@ -49,8 +49,7 @@ fun StreamItem(item: StreamItemUI, onClick: (StreamItemUI) -> Unit = {}) {
 
         Text(
             text = item.streamName,
-            color = AppTheme.colors.textPrimary,
-            fontSize = AppTheme.typography.default,
+            style = AppTheme.typography.textDefault,
             modifier = Modifier.weight(1f)
         )
         Icon(
