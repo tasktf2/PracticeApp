@@ -12,5 +12,6 @@ data class TopicState(
     val message: String? = null,
     val search: String = "",
     val foundIndices: List<Int> = emptyList(),
-    val isSearchVisible: Boolean = false
+    val isSearchVisible: Boolean = false,
+    val emojiSelectedMessageId: Int? = null
 ) : BaseState

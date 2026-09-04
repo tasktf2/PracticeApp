@@ -37,7 +37,7 @@ sealed class TopicAction : BaseAction {
     data class SendMessage(val streamName: String, val topicName: String) :
         TopicAction()
 
-    data class StartPagination(val streamName: String, val topicName: String, val anchor: Int) :
+    data class StartPagination(val streamName: String, val topicName: String) :
         TopicAction()
 
     data class ShowPaginationResult(
@@ -49,7 +49,8 @@ sealed class TopicAction : BaseAction {
     data class ShowError(val error: Throwable) : TopicAction()
     data class ShowErrorAndReturnMessage(val error: Throwable, val message: String) : TopicAction()
 
-    data class ShowBottomSheetFragment(val messageId: Int) : TopicAction()
+    data class ShowBottomSheet(val messageId: Int) : TopicAction()
+    data object HideBottomSheet : TopicAction()
     data class AcceptSearchAction(val action: SearchAction) : TopicAction()
     class SearchChanged(val search: String) : TopicAction()
 

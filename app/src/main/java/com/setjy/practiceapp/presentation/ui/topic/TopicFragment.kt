@@ -18,8 +18,6 @@ import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion
 import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion.STREAM_BUNDLE_KEY
 import com.setjy.practiceapp.presentation.ui.channels.ChannelsFragment.Companion.TOPIC_ARRAY_INDEX
 import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
-import com.setjy.practiceapp.presentation.ui.topic.TopicAction.AddReaction
-import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.BottomSheetFragment
 import javax.inject.Inject
 
 class TopicFragment : Fragment(), MviView<TopicState, TopicEffect> {
@@ -30,8 +28,6 @@ class TopicFragment : Fragment(), MviView<TopicState, TopicEffect> {
     private val viewModel: MviViewModel<TopicAction, TopicState, TopicEffect> by viewModels {
         mviViewModelFactory
     }
-
-    private val bottomSheetFragment by lazy { BottomSheetFragment() }
 
     private val topicName: String by lazy {
         arguments?.getStringArray(STREAM_BUNDLE_KEY)
@@ -71,31 +67,8 @@ class TopicFragment : Fragment(), MviView<TopicState, TopicEffect> {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewModel.bind(this)
-        viewModel.accept(TopicAction.GetNewestMessages(streamName, topicName))
-        viewModel.accept(TopicAction.RegisterEventsQueue)
-    }
 
     override fun renderState(state: TopicState) {}
 
-    override fun renderEffect(effect: TopicEffect) = when (effect) {
-        is TopicEffect.ShowBottomSheetFragment -> {
-            bottomSheetFragment.show(parentFragmentManager, null)
-            parentFragmentManager.setFragmentResultListener(
-                BottomSheetFragment.REQUEST_KEY, viewLifecycleOwner
-            ) { _, bundle ->
-                val emojiName = bundle.getString(BottomSheetFragment.BUNDLE_KEY).orEmpty()
-                viewModel.accept(AddReaction(effect.messageId, emojiName))
-            }
-        }
-        else -> {}
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewModel.unbind()
-    }
+    override fun renderEffect(effect: TopicEffect) {}
 }

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.setjy.practiceapp.presentation.ui.theme.AppTheme
 import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
-import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.Reactions
+import com.setjy.practiceapp.presentation.ui.topic.reactions.Reactions
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -97,7 +97,7 @@ private fun Message(
     isHighlighted: Boolean
 ) {
 
-    var bubbleInfo by remember() { mutableStateOf<BubbleInfo?>(null) }
+    var bubbleInfo by remember { mutableStateOf<BubbleInfo?>(null) }
     val dimens = AppTheme.dimens
     val colors = AppTheme.colors
 

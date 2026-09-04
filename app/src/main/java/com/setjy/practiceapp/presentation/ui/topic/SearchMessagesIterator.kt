@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 class SearchMessagesIterator {
 
     private var index by mutableIntStateOf(START_INDEX)
-
+    private var lastQuery = ""
     val currentMatch: Int
         get() = if (index == START_INDEX) 0 else index + 1
 
@@ -35,13 +35,19 @@ class SearchMessagesIterator {
     }
 
     fun setMatches(items: List<Int>, search: String) {
-        reset()
         if (search.isBlank()) {
             return
         }
+        val query = search.trim()
+        if (lastQuery != query) {
+            reset()
+            lastQuery = query
+            foundIndices.value = items
+            nextIndex()
+        } else {
+            foundIndices.value = items
+        }
 
-        foundIndices.value = items
-        nextIndex()
     }
 
     fun currentMessage() = (foundIndices.value[currentIndex()])

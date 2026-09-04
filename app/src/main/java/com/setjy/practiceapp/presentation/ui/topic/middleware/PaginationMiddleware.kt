@@ -17,22 +17,26 @@ class PaginationMiddleware @Inject constructor(
         actions: Observable<TopicAction>,
         state: Observable<TopicState>
     ): Observable<TopicAction> {
-        return actions.ofType(TopicAction.StartPagination::class.java).flatMap { action ->
-            paginationUseCase.execute(
-                PaginationUseCase.Params(
-                    streamName = action.streamName,
-                    topicName = action.topicName,
-                    anchor = action.anchor.toString()
+        return actions.ofType(TopicAction.StartPagination::class.java)
+            .withLatestFrom(state) { action, state -> action to state }.flatMap { (action, state) ->
+                val anchor = state.messages?.lastOrNull()?.messageId
+
+                paginationUseCase.execute(
+                    PaginationUseCase.Params(
+                        streamName = action.streamName,
+                        topicName = action.topicName,
+                        anchor = anchor.toString()
+                    )
                 )
-            )
-                .map<TopicAction> { messages ->
-                    TopicAction.ShowPaginationResult(messages
-                        .filterNot { it.messageId == action.anchor }
-                        .asReversed(),
-                        isLastPage = messages.size < MESSAGES_TO_LOAD)
-                }
-                .onErrorReturn { TopicAction.ShowError(it) }
-        }
+                    .map<TopicAction> { messages ->
+                        TopicAction.ShowPaginationResult(
+                            messages
+                                .filterNot { it.messageId == anchor }
+                                .asReversed(),
+                            isLastPage = messages.size < MESSAGES_TO_LOAD)
+                    }
+                    .onErrorReturn { TopicAction.ShowError(it) }
+            }
     }
 
     companion object {

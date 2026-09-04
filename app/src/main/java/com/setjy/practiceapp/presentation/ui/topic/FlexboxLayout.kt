@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
-import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.Reactions
+import com.setjy.practiceapp.presentation.ui.topic.reactions.Reactions
 import kotlin.random.Random
 
 private object FlexboxDimens {

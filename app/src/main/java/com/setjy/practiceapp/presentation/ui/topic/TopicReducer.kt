@@ -36,6 +36,8 @@ class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, Topi
 
             is TopicAction.DeleteSearch -> state.copy(search = "")
             is TopicAction.FoundIndices -> state.copy(foundIndices = action.indices)
+            is TopicAction.ShowBottomSheet -> state.copy(emojiSelectedMessageId = action.messageId)
+            is TopicAction.HideBottomSheet -> state.copy(emojiSelectedMessageId = null)
             else -> state
         }
     }
@@ -48,12 +50,6 @@ class TopicReducer @Inject constructor() : Reducer<TopicAction, TopicState, Topi
 
             is TopicAction.ShowEvents -> Optional.of(
                 TopicEffect.GetEvents(queueId = action.queueId, lastEventId = action.lastEventId)
-            )
-
-            is TopicAction.ShowBottomSheetFragment -> Optional.of(
-                TopicEffect.ShowBottomSheetFragment(
-                    action.messageId
-                )
             )
 
             is TopicAction.AcceptSearchAction -> Optional.of(

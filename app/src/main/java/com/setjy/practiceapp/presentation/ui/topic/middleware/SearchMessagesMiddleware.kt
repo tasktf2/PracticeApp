@@ -4,6 +4,7 @@ import com.setjy.practiceapp.presentation.base.mvi.Middleware
 import com.setjy.practiceapp.presentation.ui.topic.TopicAction
 import com.setjy.practiceapp.presentation.ui.topic.TopicState
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -13,28 +14,44 @@ class SearchMessagesMiddleware @Inject constructor() :
         actions: Observable<TopicAction>,
         state: Observable<TopicState>
     ): Observable<TopicAction> {
-        return actions.ofType(TopicAction.SearchChanged::class.java)
-            .debounce(DEBOUNCE_SEARCH_MS, TimeUnit.MILLISECONDS)
-            .distinctUntilChanged()
+        return actions
+            .observeOn(Schedulers.computation())
+            .filter { action ->
+                action is TopicAction.SearchChanged ||
+                        action is TopicAction.ShowMessages ||
+                        action is TopicAction.ShowPaginationResult ||
+                        action is TopicAction.ShowEvents
+            }
+            .debounce { action ->
+                if (action is TopicAction.SearchChanged) {
+                    Observable.timer(DEBOUNCE_SEARCH_MS, TimeUnit.MILLISECONDS)
+                } else {
+                    Observable.just(0L)
+                }
+            }
             .withLatestFrom(state) { action, state ->
 
-                val query = action.search.trim()
+                val query =
+                    (if (action is TopicAction.SearchChanged) action.search else state.search)
+                        .trim()
 
-                val foundIndices = if (query.isBlank()) emptyList()
-                else {
-                    state.messages.orEmpty()
-                        .mapIndexedNotNull { index, item ->
-                            val isMatch = item.message.contains(query, ignoreCase = true)
-
-                            if (isMatch) index else null
-                        }
+                val messagesForSearch = when (action) {
+                    is TopicAction.ShowMessages -> action.messages
+                    is TopicAction.ShowEvents -> action.messages
+                    else -> state.messages.orEmpty()
                 }
-                TopicAction.FoundIndices(foundIndices)
-            }
+                val indices = if (query.isBlank()) emptyList()
+                else {
+
+                    messagesForSearch.mapIndexedNotNull { index, item ->
+                        if (item.message.contains(query, ignoreCase = true)) index else null
+                    }
+                }
+                TopicAction.FoundIndices(indices)
+            }.distinctUntilChanged().ofType(TopicAction::class.java)
     }
 
     private companion object {
         const val DEBOUNCE_SEARCH_MS = 300L
     }
-
 }

@@ -1,4 +1,4 @@
-package com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment
+package com.setjy.practiceapp.presentation.ui.topic.reactions
 
 import com.setjy.practiceapp.presentation.model.EmojiUI
 

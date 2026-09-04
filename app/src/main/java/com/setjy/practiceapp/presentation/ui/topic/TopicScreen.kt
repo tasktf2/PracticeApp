@@ -14,21 +14,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rxjava3.subscribeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -36,162 +43,80 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.setjy.practiceapp.R
 import com.setjy.practiceapp.presentation.base.mvi.MviViewModel
+import com.setjy.practiceapp.presentation.base.mvi.subscribe
+import com.setjy.practiceapp.presentation.model.EmojiUI
 import com.setjy.practiceapp.presentation.model.MessageUI
 import com.setjy.practiceapp.presentation.ui.theme.AppTheme
 import com.setjy.practiceapp.presentation.ui.theme.ZulipTheme
-import com.setjy.practiceapp.presentation.ui.topic.TopicAction.AddReaction
 import com.setjy.practiceapp.presentation.ui.topic.TopicAction.GetEvents
-import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.BottomSheetFragment
-import com.setjy.practiceapp.presentation.ui.topic.bottom_sheet_fragment.Reactions
+import com.setjy.practiceapp.presentation.ui.topic.TopicDimens.PAGINATION_NUMBER
+import com.setjy.practiceapp.presentation.ui.topic.reactions.Reactions
 import kotlin.random.Random
 
 @Composable
 fun TopicScreen(
     modifier: Modifier = Modifier,
-    viewModel: MviViewModel<TopicAction, TopicState, TopicEffect>?,
+    viewModel: MviViewModel<TopicAction, TopicState, TopicEffect>,
     streamName: String,
     topicName: String,
     onBackClick: () -> Unit,
 ) {
+    InitScreenData(streamName, topicName, viewModel)
 
-    val state by viewModel!!.state.subscribeAsState(TopicState())
-    val searchValue: String = state.search
-    val msgValue: String = state.message.orEmpty()
-    val messages = state.messages.orEmpty()
-
-
-    val isSearchActive = state.isSearchVisible
-    val lazyListState = rememberLazyListState()
     val searchIterator: SearchMessagesIterator = remember { SearchMessagesIterator() }
-    val isAtTop: Boolean by remember {
-        derivedStateOf {
-            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - 3 && !state.isPaginationLoading && !state.isPaginationLastPage
-        }
-    }
+    val lazyListState = rememberLazyListState()
+    val state = viewModel.subscribe { effect ->
+        when (effect) {
+            is TopicEffect.NextSearchAction -> when (effect.action) {
 
-    val actions = remember(viewModel, state.isSearchVisible, onBackClick, streamName, topicName) {
-        TopicActions(
-            onEmojiClick = { messageId: Int, emojiName: String, emojiCode: String ->
-                viewModel?.accept(
-                    TopicAction.EmojiClicked(
-                        messageId = messageId,
-                        emojiName = emojiName,
-                        emojiCode = emojiCode
-                    )
-                )
-            },
-            onLongClick = { viewModel?.accept(TopicAction.ShowBottomSheetFragment(it)) },
-            onSendMessage = {
-                viewModel?.accept(
-                    TopicAction.SendMessage(
-                        streamName,
-                        topicName
-                    )
-                )
-
-            },
-            onBackClick = {
-                //back pressing to hide search group
-                if (state.isSearchVisible) {
-                    viewModel?.accept(TopicAction.DeleteSearch)
-                    viewModel?.accept(TopicAction.AcceptSearchAction(SearchAction.CANCEL))
-                } else {
-                    onBackClick.invoke()
+                SearchAction.START -> if (searchIterator.foundIndices.value.isNotEmpty()) {
+                    searchIterator.currentMessage()
                 }
-            },
-            onSearchChanged = {
-                viewModel?.accept(TopicAction.SearchChanged(it))
-            },
-            onDeleteClick = {
-                searchIterator.reset()
-                viewModel?.accept(TopicAction.DeleteSearch)
-            },
-            onSearchNext = {
-                viewModel?.accept(
-                    TopicAction.AcceptSearchAction(
-                        SearchAction.NEXT
-                    )
-                )
-            },
-            onSearchPrev = {
-                viewModel?.accept(
-                    TopicAction.AcceptSearchAction(
-                        SearchAction.PREV
-                    )
-                )
-            },
-            onSearchStart = {
-                viewModel?.accept(
-                    TopicAction.AcceptSearchAction(SearchAction.START)
-                )
-            },
-            onType = { viewModel?.accept(TopicAction.TypeMessage(it)) }
 
-        )
-    }
+                SearchAction.NEXT -> if (searchIterator.hasNext()) {
+                    searchIterator.nextMessage()
+                }
 
-    LaunchedEffect(isAtTop) {
-        if (isAtTop) {
-            viewModel?.accept(
-                TopicAction.StartPagination(
-                    streamName,
-                    topicName,
-                    messages.lastOrNull()?.messageId ?: 0
+                SearchAction.PREV -> if (searchIterator.hasPrevious()) {
+                    searchIterator.previousMessage()
+                }
+
+                SearchAction.CANCEL -> searchIterator.reset()
+            }
+
+            is TopicEffect.GetEvents -> viewModel.accept(
+                GetEvents(
+                    streamName = streamName,
+                    topicName = topicName,
+                    queueId = effect.queueId,
+                    lastEventId = effect.lastEventId
                 )
             )
         }
     }
 
-    LaunchedEffect(state.foundIndices) {
-        searchIterator.setMatches(state.foundIndices, state.search)
+    val actions = remember(viewModel, state.isSearchVisible, onBackClick) {
+        initActions(
+            viewModel,
+            streamName,
+            topicName,
+            state.isSearchVisible,
+            onBackClick,
+            searchIterator
+        )
     }
 
-    LaunchedEffect(searchIterator.currentMatchIndex) {
-        if (searchIterator.currentMatchIndex != null && searchIterator.currentMatchIndex!! >= 0) {
-            lazyListState.animateScrollToItem(searchIterator.currentMatchIndex!!)
+    val searchValue: String = state.search
+    val msgValue: String = state.message.orEmpty()
+    val messages = state.messages.orEmpty()
+    val isSearchActive = state.isSearchVisible
 
-        }
-    }
-
-    DisposableEffect(viewModel?.effects) {
-        val disposable = viewModel?.effects?.subscribe { effect ->
-            when (effect) {
-                is TopicEffect.NextSearchAction -> when (effect.action) {
-
-                    SearchAction.START -> if (searchIterator.foundIndices.value.isNotEmpty()) {
-                        searchIterator.currentMessage()
-                    }
-
-                    SearchAction.NEXT -> if (searchIterator.hasNext()) {
-                        searchIterator.nextMessage()
-                    }
-
-                    SearchAction.PREV -> if (searchIterator.hasPrevious()) {
-                        searchIterator.previousMessage()
-                    }
-
-                    SearchAction.CANCEL -> searchIterator.reset()
-                }
-
-                is TopicEffect.GetEvents -> viewModel.accept(
-                    GetEvents(
-                        streamName = streamName,
-                        topicName = topicName,
-                        queueId = effect.queueId,
-                        lastEventId = effect.lastEventId
-                    )
-                )
-
-                else -> {}
-            }
-        }
-        onDispose { disposable?.dispose() }
-    }
-
+    InitPagination(lazyListState, state, viewModel, streamName, topicName)
+    InitSearch(state, searchIterator, lazyListState)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -233,7 +158,9 @@ fun TopicScreen(
                     .padding(horizontal = AppTheme.dimens.marginDefault)
 
             ) {
-                itemsIndexed(messages) { index, message ->
+                itemsIndexed(
+                    messages,
+                    key = { _, message -> message.messageId }) { index, message ->
 
                     val isHighlighted =
                         remember(
@@ -329,6 +256,180 @@ fun TopicScreen(
             }
         }
     )
+
+    BottomSheet(
+        state.emojiSelectedMessageId,
+        onEmojiClick = {
+            actions.onEmojiClick(state.emojiSelectedMessageId!!, it.emojiName, it.code)
+            viewModel.accept(
+                TopicAction.HideBottomSheet
+            )
+
+        }, onDismiss = {
+            viewModel.accept(
+                TopicAction.HideBottomSheet
+            )
+        })
+}
+
+@Composable
+private fun InitSearch(
+    state: TopicState,
+    searchIterator: SearchMessagesIterator,
+    lazyListState: LazyListState
+) {
+    LaunchedEffect(state.foundIndices, state.messages) {
+        searchIterator.setMatches(state.foundIndices, state.search)
+    }
+
+    LaunchedEffect(searchIterator.currentMatchIndex) {
+        if (searchIterator.currentMatchIndex != null && searchIterator.currentMatchIndex!! >= 0) {
+            lazyListState.animateScrollToItem(
+                searchIterator.currentMatchIndex!!,
+                -lazyListState.layoutInfo.viewportSize.height / 2
+            )
+
+        }
+    }
+}
+
+@Composable
+private fun InitScreenData(
+    streamName: String,
+    topicName: String,
+    viewModel: MviViewModel<TopicAction, TopicState, TopicEffect>
+) {
+    LaunchedEffect(streamName, topicName) {
+        viewModel.accept(TopicAction.GetNewestMessages(streamName, topicName))
+        viewModel.accept(TopicAction.RegisterEventsQueue)
+    }
+}
+
+@Composable
+private fun InitPagination(
+    lazyListState: LazyListState,
+    topicState: TopicState,
+    viewModel: MviViewModel<TopicAction, TopicState, TopicEffect>,
+    streamName: String,
+    topicName: String
+) {
+    val state by rememberUpdatedState(topicState)
+    val isAtTop: Boolean by remember {
+        derivedStateOf {
+            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem?.index != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - PAGINATION_NUMBER && !state.isPaginationLoading && !state.isPaginationLastPage
+        }
+    }
+
+    LaunchedEffect(isAtTop) {
+        if (isAtTop) {
+            viewModel.accept(
+                TopicAction.StartPagination(
+                    streamName,
+                    topicName
+                )
+            )
+        }
+    }
+}
+
+private fun initActions(
+    viewModel: MviViewModel<TopicAction, TopicState, TopicEffect>,
+    streamName: String,
+    topicName: String,
+    isSearchVisible: Boolean,
+    onBackClick: () -> Unit,
+    searchIterator: SearchMessagesIterator
+): TopicActions = TopicActions(
+    onEmojiClick = { messageId: Int, emojiName: String, emojiCode: String ->
+        viewModel.accept(
+            TopicAction.EmojiClicked(
+                messageId = messageId,
+                emojiName = emojiName,
+                emojiCode = emojiCode
+            )
+        )
+    },
+    onLongClick = { viewModel.accept(TopicAction.ShowBottomSheet(it)) },
+    onSendMessage = {
+        viewModel.accept(
+            TopicAction.SendMessage(
+                streamName,
+                topicName
+            )
+        )
+
+    },
+    onBackClick = {
+        //back pressing to hide search group
+        if (isSearchVisible) {
+            viewModel.accept(TopicAction.DeleteSearch)
+            viewModel.accept(TopicAction.AcceptSearchAction(SearchAction.CANCEL))
+        } else {
+            onBackClick.invoke()
+        }
+    },
+    onSearchChanged = {
+        viewModel.accept(TopicAction.SearchChanged(it))
+    },
+    onDeleteClick = {
+        searchIterator.reset()
+        viewModel.accept(TopicAction.DeleteSearch)
+    },
+    onSearchNext = {
+        viewModel.accept(
+            TopicAction.AcceptSearchAction(
+                SearchAction.NEXT
+            )
+        )
+    },
+    onSearchPrev = {
+        viewModel.accept(
+            TopicAction.AcceptSearchAction(
+                SearchAction.PREV
+            )
+        )
+    },
+    onSearchStart = {
+        viewModel.accept(
+            TopicAction.AcceptSearchAction(SearchAction.START)
+        )
+    },
+    onType = { viewModel.accept(TopicAction.TypeMessage(it)) }
+
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BottomSheet(
+    emojiMessageId: Int?,
+    onEmojiClick: (EmojiUI) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val items = remember { Reactions.emojiUISet }
+
+    if (emojiMessageId != null) {
+        ModalBottomSheet(
+            onDismissRequest = { onDismiss.invoke() },
+            sheetState = rememberModalBottomSheetState(),
+            containerColor = AppTheme.colors.backgroundSecondary
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(TopicDimens.EMOJI_GRID_WIDTH),
+                state = rememberLazyGridState(),
+                modifier = Modifier.padding(horizontal = AppTheme.dimens.marginDefault)
+            ) {
+                items(items = items) { item ->
+                    Text(
+                        text = item.codeString,
+                        fontSize = TopicDimens.emojiSize,
+                        modifier = Modifier
+                            .padding(bottom = AppTheme.dimens.marginMedium)
+                            .clickable { onEmojiClick.invoke(item) })
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -508,13 +609,12 @@ private fun FlexBox(
 ) {
     FlexboxLayout(isRtL = isOutgoing) {
 
-        val codeToNumber: Map<String, Int> =
-            remember {
-                message
-                    .reactions
-                    .groupBy { it.code }
-                    .mapValues { it.value.count() }
-            }
+        val codeToNumber: Map<String, Int> = remember(message.reactions) {
+            message
+                .reactions
+                .groupBy { it.code }
+                .mapValues { it.value.count() }
+        }
 
         message.reactions.forEach { emoji ->
 
@@ -537,6 +637,21 @@ private fun FlexBox(
         }
     }
 
+}
+
+private object TopicDimens {
+    val emojiSize = 40.sp
+    const val EMOJI_GRID_WIDTH = 7
+    const val PAGINATION_NUMBER = 3
+
+}
+
+@Preview
+@Composable
+fun BottomSheetPreview() {
+    ZulipTheme {
+        BottomSheet(emojiMessageId = 1, {}, {})
+    }
 }
 
 @Preview
@@ -583,12 +698,12 @@ private fun TopicScreenPreview() {
         )
     )
 
-    ZulipTheme() {
-        TopicScreen(
-            viewModel = null,
-            streamName = "test",
-            topicName = "test",
-            onBackClick = {},
-        )
-    }
+//    ZulipTheme() {
+//        TopicScreen(
+//            viewModel = MviViewModel<TopicAction, TopicState, TopicEffect>(Store<>),
+//            streamName = "test",
+//            topicName = "test",
+//            onBackClick = {},
+//        )
+//    }
 }
